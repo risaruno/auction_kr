@@ -7,9 +7,9 @@ import AppAppBar from '../../../marketing-page/components/AppAppBar';
 import CancelPolicy from '../../../marketing-page/components/CancelPolicy';
 import Footer from '@/marketing-page/components/Footer';
 
-export default function MarketingPage(props: { disableCustomTheme?: boolean }) {
+export default function MarketingPage() {
   return (
-    <AppTheme {...props}>
+    <AppTheme>
       <CssBaseline enableColorScheme />
 
       <AppAppBar />

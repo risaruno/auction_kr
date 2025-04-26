@@ -14,9 +14,9 @@ import FAQ from '../marketing-page/components/FAQ';
 import Footer from '../marketing-page/components/Footer';
 import Apply from '@/marketing-page/components/Apply';
 
-export default function MarketingPage(props: { disableCustomTheme?: boolean }) {
+export default function Home() {
   return (
-    <AppTheme {...props}>
+    <AppTheme>
       <CssBaseline enableColorScheme />
 
       <AppAppBar />
