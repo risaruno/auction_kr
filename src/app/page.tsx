@@ -17,7 +17,7 @@ import Apply from '@/marketing-page/components/Apply';
 export default function Home() {
   return (
     <AppTheme>
-      <CssBaseline enableColorScheme />
+      <CssBaseline />
 
       <AppAppBar />
       <Hero />
