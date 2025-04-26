@@ -107,8 +107,10 @@ export default function AppAppBar() {
             <Button color="primary" variant="contained" size="small">
               대리입찰 신청
             </Button>
+            {/* <ColorModeIconDropdown /> */}
           </Box>
           <Box sx={{ display: { xs: "flex", md: "none" }, gap: 1 }}>
+            {/* <ColorModeIconDropdown size="medium" /> */}
             <IconButton aria-label="Menu button" onClick={toggleDrawer(true)}>
               <MenuIcon />
             </IconButton>
