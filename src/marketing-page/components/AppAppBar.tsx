@@ -55,36 +55,22 @@ export default function AppAppBar() {
           <Box
             sx={{ flexGrow: 1, display: "flex", alignItems: "center", px: 0 }}
           >
-            <Typography
-              variant="h5"
-              sx={(theme) => ({
-                display: "flex",
-                alignItems: "center",
-                fontWeight: 700,
-                textDecoration: "none",
-                color: 'primary.main',
-                margin: "0 8px",
-                ...theme.applyStyles('dark', {
-                  color: 'primary.light',
-                }),
-              })}
-            >
-              Certo
-            </Typography>
+            <Sitemark />
             <Box sx={{ display: { xs: "none", md: "flex" }, marginLeft: {md: 2} }}>
-              <Button variant="text" color="info" size="small">
+              <Button href="/info" variant="text" color="info" size="small">
                 이용 안내
               </Button>
-              <Button variant="text" color="info" size="small">
+              <Button href="/experts" variant="text" color="info" size="small">
                 전문가 서비스
               </Button>
-              <Button variant="text" color="info" size="small">
+              <Button href="/area" variant="text" color="info" size="small">
                 서비스 지역
               </Button>
-              <Button variant="text" color="info" size="small">
+              <Button href="/faq" variant="text" color="info" size="small">
                 자주하는 질문
               </Button>
               <Button
+                href="/contact"
                 variant="text"
                 color="info"
                 size="small"
@@ -101,10 +87,10 @@ export default function AppAppBar() {
               alignItems: "center",
             }}
           >
-            <Button color="primary" variant="text" size="small">
+            <Button href="/sign-in" color="primary" variant="text" size="small">
               로그인/회원가입
             </Button>
-            <Button color="primary" variant="contained" size="small">
+            <Button href="/apply" color="primary" variant="contained" size="small">
               대리입찰 신청
             </Button>
             {/* <ColorModeIconDropdown /> */}
@@ -135,11 +121,11 @@ export default function AppAppBar() {
                     <CloseRoundedIcon />
                   </IconButton>
                 </Box>
-                <MenuItem>이용 안내</MenuItem>
-                <MenuItem>전문가 서비스</MenuItem>
-                <MenuItem>서비스 지역</MenuItem>
-                <MenuItem>자주하는 질문</MenuItem>
-                <MenuItem>1:1 문의</MenuItem>
+                <MenuItem component="a" href="/info">이용 안내</MenuItem>
+                <MenuItem component="a" href="/experts">전문가 서비스</MenuItem>
+                <MenuItem component="a" href="/area">서비스 지역</MenuItem>
+                <MenuItem component="a" href="/faq">자주하는 질문</MenuItem>
+                <MenuItem component="a" href="/contact">1:1 문의</MenuItem>
                 <Divider sx={{ my: 3 }} />
                 <MenuItem>
                   <Button color="primary" variant="contained" fullWidth>

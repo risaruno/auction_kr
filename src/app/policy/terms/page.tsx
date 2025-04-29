@@ -7,7 +7,7 @@ import AppAppBar from '../../../marketing-page/components/AppAppBar';
 import CancelPolicy from '../../../marketing-page/components/CancelPolicy';
 import Footer from '@/marketing-page/components/Footer';
 
-export default function CancelPolicyPage() {
+export default function TermsPolicyPage() {
   return (
     <AppTheme>
       <CssBaseline enableColorScheme />

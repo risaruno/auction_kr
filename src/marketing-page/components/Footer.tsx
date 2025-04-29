@@ -56,6 +56,8 @@ export default function Footer() {
         >
           <Box sx={{ width: { xs: '100%', sm: '100%', },  }}>
             <Typography
+              component="a"
+              href="/"
               variant="h5"
               sx={(theme) => ({
                 display: "flex",
@@ -72,37 +74,37 @@ export default function Footer() {
               Certo
             </Typography>
             <div>
-              <Link color="text.secondary" variant="body1" href="#" sx={{ fontWeight: 700 }}>
+              <Link color="text.secondary" variant="body1" href="/policy/privacy" sx={{ fontWeight: 700 }}>
                 개인정보 처리방침
               </Link>
               <Typography sx={{ display: 'inline', mx: 0.5, opacity: 0.5 }}>
                 &nbsp;•&nbsp;
               </Typography>
-              <Link color="text.secondary" variant="body2" href="#">
+              <Link color="text.secondary" variant="body2" href="/policy/terms">
                 이용약관
               </Link>
               <Typography sx={{ display: 'inline', mx: 0.5, opacity: 0.5 }}>
                 &nbsp;•&nbsp;
               </Typography>
-              <Link color="text.secondary" variant="body2" href="#">
+              <Link color="text.secondary" variant="body2" href="/about">
                 회사 소개
               </Link>
               <Typography sx={{ display: 'inline', mx: 0.5, opacity: 0.5 }}>
                 &nbsp;•&nbsp;
               </Typography>
-              <Link color="text.secondary" variant="body2" href="#">
+              <Link color="text.secondary" variant="body2" href="/policy/refund">
                 환불 취소 규정
               </Link>
               <Typography sx={{ display: 'inline', mx: 0.5, opacity: 0.5 }}>
                 &nbsp;•&nbsp;
               </Typography>
-              <Link color="text.secondary" variant="body2" href="#">
+              <Link color="text.secondary" variant="body2" href="/policy/agent-support">
                 대리인 지원하기
               </Link>
               <Typography sx={{ display: 'inline', mx: 0.5, opacity: 0.5 }}>
                 &nbsp;•&nbsp;
               </Typography>
-              <Link color="text.secondary" variant="body2" href="#">
+              <Link color="text.secondary" variant="body2" href="/policy/legal-registration">
                 법무사 등록하기
               </Link>
             </div>
@@ -123,19 +125,19 @@ export default function Footer() {
             gap: 1,
           }}
         >
-          <Link color="text.secondary" variant="body2" href="#">
+          <Link color="text.secondary" variant="body2" href="/info">
             이용 안내
           </Link>
-          <Link color="text.secondary" variant="body2" href="#">
+          <Link color="text.secondary" variant="body2" href="/expert">
             전문가 서비스
           </Link>
-          <Link color="text.secondary" variant="body2" href="#">
+          <Link color="text.secondary" variant="body2" href="/area">
             서비스 지역
           </Link>
-          <Link color="text.secondary" variant="body2" href="#">
+          <Link color="text.secondary" variant="body2" href="/faq">
             자주하는 질문
           </Link>
-          <Link color="text.secondary" variant="body2" href="#">
+          <Link color="text.secondary" variant="body2" href="/contact">
             1:1 문의
           </Link>
         </Box>
