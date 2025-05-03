@@ -4,10 +4,9 @@ import CssBaseline from '@mui/material/CssBaseline';
 import Divider from '@mui/material/Divider';
 import AppTheme from '../../shared-theme/AppTheme';
 import AppAppBar from '../../marketing-page/components/AppAppBar';
-import CancelPolicy from '../../marketing-page/components/CancelPolicy';
 import Footer from '@/marketing-page/components/Footer';
 import Headline from '@/marketing-page/components/Headline';
-import { Typography } from '@mui/material';
+import { Button, Typography } from '@mui/material';
 import Timeline from '@/marketing-page/components/Timeline';
 
 export default function InfoPage() {
