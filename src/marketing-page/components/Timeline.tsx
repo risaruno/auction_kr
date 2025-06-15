@@ -14,7 +14,6 @@ import TimelineOppositeContent from '@mui/lab/TimelineOppositeContent'
 import TimelineDot from '@mui/lab/TimelineDot'
 import FastfoodIcon from '@mui/icons-material/Fastfood'
 import LaptopMacIcon from '@mui/icons-material/LaptopMac'
-import HotelIcon from '@mui/icons-material/Hotel'
 import RepeatIcon from '@mui/icons-material/Repeat'
 import Typography from '@mui/material/Typography'
 import { ButtonGroup } from '@mui/material'
@@ -163,146 +162,176 @@ export default function Features() {
           </Timeline>
         </Box>
       </Box>
-      <Timeline sx={{ backgroundColor: 'grey.200', mt: 4 }}>
-        <TimelineItem>
-          <TimelineOppositeContent align="right" variant="h4" color="text.main">
-            고객
-          </TimelineOppositeContent>
-          <TimelineSeparator>
-            <TimelineDot />
-            <TimelineConnector />
-          </TimelineSeparator>
-          <TimelineContent align="right" variant="h4" color="text.main">
-            쎄르토
-          </TimelineContent>
-        </TimelineItem>
-        <TimelineItem>
-          <TimelineOppositeContent align="right" variant="h4" color="text.main">
-            <Typography variant="h6" component="span">
-              1.입찰정보 작성
-            </Typography>
-            <Typography>입찰사건을 조회하고 정보를 입력합니다.</Typography>
-          </TimelineOppositeContent>
-          <TimelineSeparator>
-            <TimelineConnector />
-            <TimelineDot>
-              <FastfoodIcon />
-            </TimelineDot>
-          </TimelineSeparator>
-          <TimelineContent align="right" variant="h4" color="text.main">
-          </TimelineContent>
-        </TimelineItem>
-        <TimelineItem>
-          <TimelineSeparator>
-            <TimelineConnector />
-            <TimelineDot color="primary">
-              <LaptopMacIcon />
-            </TimelineDot>
-            <TimelineConnector />
-          </TimelineSeparator>
-          <TimelineContent sx={{ py: '12px', px: 2 }}>
-            <Typography variant="h6" component="span">
-              2. 전자계약서 발행
-            </Typography>
-            <Typography>보안과 안전한 입찰을 위한 전자계약서 제공</Typography>
-          </TimelineContent>
-        </TimelineItem>
-        <TimelineItem>
-          <TimelineOppositeContent sx={{ py: '12px', px: 2 }}>
-            <Typography variant="h6" component="span">
-              3.전자서명/ 수수료 결제
-            </Typography>
-            <Typography>법적 구속력있는 대리입찰 프로세스 보장</Typography>
-          </TimelineOppositeContent>
-          <TimelineSeparator>
-            <TimelineConnector />
-            <TimelineDot color="primary" variant="outlined">
-              <HotelIcon />
-            </TimelineDot>
-            <TimelineConnector sx={{ bgcolor: 'secondary.main' }} />
-          </TimelineSeparator>
-          <TimelineContent sx={{ py: '12px', px: 2 }}>
-          </TimelineContent>
-        </TimelineItem>
-        <TimelineItem>
-          <TimelineSeparator>
-            <TimelineConnector sx={{ bgcolor: 'secondary.main' }} />
-            <TimelineDot color="secondary">
-              <RepeatIcon />
-            </TimelineDot>
-            <TimelineConnector />
-          </TimelineSeparator>
-          <TimelineContent sx={{ py: '12px', px: 2 }}>
-            <Typography variant="h6" component="span">
-              4.서류 작성/ 전담 바토너 제공
-            </Typography>
-            <Typography>배정된 입찰 전문가가 입찰관련 서류 작성</Typography>
-          </TimelineContent>
-        </TimelineItem>
-        <TimelineItem>
-          <TimelineOppositeContent sx={{ py: '12px', px: 2 }}>
-            <Typography variant="h6" component="span">
-              5.전자본인서명확인서 업로드/보증금 입금
-            </Typography>
-            <Typography>대리입찰을 위한 전자본인서명확인서 및 보증금 입금</Typography>
-          </TimelineOppositeContent>
-          <TimelineSeparator>
-            <TimelineConnector />
-            <TimelineDot color="primary" variant="outlined">
-              <HotelIcon />
-            </TimelineDot>
-            <TimelineConnector sx={{ bgcolor: 'secondary.main' }} />
-          </TimelineSeparator>
-          <TimelineContent sx={{ py: '12px', px: 2 }}>
-          </TimelineContent>
-        </TimelineItem>
-        <TimelineItem>
-          <TimelineSeparator>
-            <TimelineConnector sx={{ bgcolor: 'secondary.main' }} />
-            <TimelineDot color="secondary">
-              <RepeatIcon />
-            </TimelineDot>
-            <TimelineConnector />
-          </TimelineSeparator>
-          <TimelineContent sx={{ py: '12px', px: 2 }}>
-          </TimelineContent>
-        </TimelineItem>
-        <TimelineItem>
-          <TimelineSeparator>
-            <TimelineConnector sx={{ bgcolor: 'secondary.main' }} />
-            <TimelineDot color="secondary">
-              <RepeatIcon />
-            </TimelineDot>
-            <TimelineConnector />
-          </TimelineSeparator>
-          <TimelineContent sx={{ py: '12px', px: 2 }}>
-            <Typography variant="h6" component="span">
-              6.입찰서류제출
-            </Typography>
-            <Typography>전문가가 대리참석하여 서류제출</Typography>
-          </TimelineContent>
-        </TimelineItem>
-        <TimelineItem>
-          <TimelineSeparator>
-            <TimelineConnector sx={{ bgcolor: 'secondary.main' }} />
-            <TimelineDot color="secondary">
-              <RepeatIcon />
-            </TimelineDot>
-            <TimelineConnector />
-          </TimelineSeparator>
-          <TimelineContent sx={{ py: '12px', px: 2 }}>
-            <Typography variant="h6" component="span">
-              7.입찰결과 통보
-            </Typography>
-            <Typography>
-              낙찰시
-              낙찰 영수증 전달
-              패찰시
-              보증금 반환 안내
-            </Typography>
-          </TimelineContent>
-        </TimelineItem>
-      </Timeline>
+      <Box sx={{ backgroundColor: 'grey.200', pt: 4 }}>
+        <Timeline>
+          <TimelineItem>
+            <TimelineOppositeContent align="right" color="text.main" sx={{ m: 'auto 0' }}>
+              <Typography
+                variant="h4"
+                sx={{
+                  fontWeight: 'bold',
+                  color: 'white',
+                  px: 8,
+                  py: 2,
+                  mx: 4,
+                  backgroundColor: 'gray',
+                  borderRadius: 4,
+                  width: 'fit-content',
+                }}
+              >
+                고객
+              </Typography>
+            </TimelineOppositeContent>
+            <TimelineSeparator>
+              <TimelineConnector />
+            </TimelineSeparator>
+            <TimelineContent align="right" color="text.main">
+              <Typography
+                variant="h4"
+                sx={{
+                  fontWeight: 'bold',
+                  color: 'white',
+                  px: 8,
+                  py: 2,
+                  mx: 4,
+                  backgroundColor: 'primary.main',
+                  borderRadius: 4,
+                  width: 'fit-content',
+                }}
+              >
+                체르토
+              </Typography>
+            </TimelineContent>
+          </TimelineItem>
+          <TimelineItem>
+            <TimelineOppositeContent
+              align="right"
+              variant="h4"
+              color="text.main"
+            >
+              <Typography variant="h6" component="span">
+                1.입찰정보 작성
+              </Typography>
+              <Typography>입찰사건을 조회하고 정보를 입력합니다.</Typography>
+            </TimelineOppositeContent>
+            <TimelineSeparator>
+              <TimelineConnector />
+              <TimelineDot>
+                <LaptopMacIcon />
+              </TimelineDot>
+              <TimelineConnector />
+            </TimelineSeparator>
+            <TimelineContent
+              align="right"
+              variant="h4"
+              color="text.main"
+            ></TimelineContent>
+          </TimelineItem>
+          <TimelineItem>
+            <TimelineSeparator>
+              <TimelineDot color="primary">
+                <LaptopMacIcon />
+              </TimelineDot>
+              <TimelineConnector />
+            </TimelineSeparator>
+            <TimelineContent sx={{ py: '12px', px: 2 }}>
+              <Typography variant="h6" component="span">
+                2. 전자계약서 발행
+              </Typography>
+              <Typography>보안과 안전한 입찰을 위한 전자계약서 제공</Typography>
+            </TimelineContent>
+          </TimelineItem>
+          <TimelineItem>
+            <TimelineOppositeContent sx={{ py: '12px', px: 2 }}>
+              <Typography variant="h6" component="span">
+                3.전자서명/ 수수료 결제
+              </Typography>
+              <Typography>법적 구속력있는 대리입찰 프로세스 보장</Typography>
+            </TimelineOppositeContent>
+            <TimelineSeparator>
+              <TimelineConnector />
+              <TimelineDot color="primary" variant="outlined">
+                <LaptopMacIcon />
+              </TimelineDot>
+              <TimelineConnector />
+            </TimelineSeparator>
+            <TimelineContent sx={{ py: '12px', px: 2 }}></TimelineContent>
+          </TimelineItem>
+          <TimelineItem>
+            <TimelineSeparator>
+              <TimelineConnector />
+              <TimelineDot color="secondary">
+                <RepeatIcon />
+              </TimelineDot>
+            </TimelineSeparator>
+            <TimelineContent sx={{ py: '12px', px: 2 }}>
+              <Typography variant="h6" component="span">
+                4.서류 작성/ 전담 바토너 제공
+              </Typography>
+              <Typography>배정된 입찰 전문가가 입찰관련 서류 작성</Typography>
+            </TimelineContent>
+          </TimelineItem>
+          <TimelineItem>
+            <TimelineOppositeContent sx={{ py: '12px', px: 2 }}>
+              <Typography variant="h6" component="span">
+                5.전자본인서명확인서 업로드/보증금 입금
+              </Typography>
+              <Typography>
+                대리입찰을 위한 전자본인서명확인서 및 보증금 입금
+              </Typography>
+            </TimelineOppositeContent>
+            <TimelineSeparator>
+              <TimelineConnector sx={{ bgcolor: 'secondary.main' }} />
+              <TimelineDot color="primary" variant="outlined">
+                <LaptopMacIcon />
+              </TimelineDot>
+            </TimelineSeparator>
+            <TimelineContent sx={{ py: '12px', px: 2 }}></TimelineContent>
+          </TimelineItem>
+          <TimelineItem>
+            <TimelineOppositeContent
+              sx={{ py: '12px', px: 2 }}
+            ></TimelineOppositeContent>
+            <TimelineSeparator>
+              <TimelineConnector sx={{ bgcolor: 'secondary.main' }} />
+              <TimelineDot color="secondary">
+                <RepeatIcon />
+              </TimelineDot>
+            </TimelineSeparator>
+            <TimelineContent sx={{ py: '12px', px: 2 }}></TimelineContent>
+          </TimelineItem>
+          <TimelineItem>
+            <TimelineSeparator>
+              <TimelineConnector sx={{ bgcolor: 'secondary.main' }} />
+              <TimelineDot color="secondary">
+                <RepeatIcon />
+              </TimelineDot>
+            </TimelineSeparator>
+            <TimelineContent sx={{ py: '12px', px: 2 }}>
+              <Typography variant="h6" component="span">
+                6.입찰서류제출
+              </Typography>
+              <Typography>전문가가 대리참석하여 서류제출</Typography>
+            </TimelineContent>
+          </TimelineItem>
+          <TimelineItem>
+            <TimelineSeparator>
+              <TimelineConnector sx={{ bgcolor: 'secondary.main' }} />
+              <TimelineDot color="secondary">
+                <RepeatIcon />
+              </TimelineDot>
+            </TimelineSeparator>
+            <TimelineContent sx={{ py: '12px', px: 2 }}>
+              <Typography variant="h6" component="span">
+                7.입찰결과 통보
+              </Typography>
+              <Typography>
+                낙찰시 낙찰 영수증 전달 패찰시 보증금 반환 안내
+              </Typography>
+            </TimelineContent>
+          </TimelineItem>
+        </Timeline>
+      </Box>
     </>
   )
 }

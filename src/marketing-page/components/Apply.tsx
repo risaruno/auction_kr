@@ -31,7 +31,7 @@ export default function Apply() {
           }}
         >
           <Typography component="h2" variant="h3" gutterBottom>
-            쎄르토에서 경매입찰 전문가를 만나보세요
+            체르토에서 경매입찰 전문가를 만나보세요
           </Typography>
           <Typography variant="h6" sx={{ color: 'grey.100' }}>
             대리입찰 서비스 100,000원. 원스톱으로 끝내세요.

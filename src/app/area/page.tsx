@@ -36,7 +36,7 @@ export default function ServiceAreaPage() {
                 }),
               })}
             >
-              쎄르토
+              체르토
             </Typography>
             &nbsp;서비스&nbsp;지역
           </Typography>}

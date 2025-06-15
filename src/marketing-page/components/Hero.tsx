@@ -97,7 +97,7 @@ export default function Hero() {
                 }),
               })}
             >
-              쎄르토
+              체르토
             </Typography>
           </Typography>
           <Typography
@@ -125,6 +125,7 @@ export default function Hero() {
               color="primary"
               size="large"
               sx={{ minWidth: "fit-content" }}
+              href="/apply-bid"
             >
               대리입찰 신청
             </Button>
