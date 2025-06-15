@@ -17,7 +17,7 @@ const FormGrid = styled(Grid)(() => ({
   flexDirection: "column",
 }));
 
-export default function CaseFind() {
+export default function ContractSign() {
   const [areaCd, setAreaCd] = useState("B000411");
   const [cortOfcCd, setCortOfcCd] = useState("B000411");
   const [csNo, setCsNo] = useState("2024타경110861");

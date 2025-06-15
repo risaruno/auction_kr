@@ -10,14 +10,22 @@ import MenuItem from "@mui/material/MenuItem";
 import Box from "@mui/material/Box";
 import OutlinedInput from "@mui/material/OutlinedInput";
 import { styled } from "@mui/material/styles";
-import { Card, CardContent, CardMedia, Menu } from "@mui/material";
+import {
+  Card,
+  CardContent,
+  CardMedia,
+  FormControl,
+  FormHelperText,
+  InputAdornment,
+  Menu,
+} from "@mui/material";
 
 const FormGrid = styled(Grid)(() => ({
   display: "flex",
   flexDirection: "column",
 }));
 
-export default function CaseFind() {
+export default function InputForm() {
   const [areaCd, setAreaCd] = useState("B000411");
   const [cortOfcCd, setCortOfcCd] = useState("B000411");
   const [csNo, setCsNo] = useState("2024타경110861");
@@ -199,7 +207,7 @@ export default function CaseFind() {
       <Grid container spacing={3} size={{ xs: 12 }}>
         <Grid container spacing={0} size={{ xs: 12 }}>
           <Typography variant="h3" fontWeight={"bold"} gutterBottom>
-            의뢰하시는 경매 사건은 무엇인가요?
+            입찰가를 입력해주세요
           </Typography>
           <Grid
             container
@@ -214,42 +222,79 @@ export default function CaseFind() {
             }}
           >
             <Typography variant="body1">
-              경매 사건을 신청하시는 분들을 위해 경매 사건 조회 서비스를
-              제공합니다.
-            </Typography>
-            <Typography variant="body2" color="text.secondary">
-              (단, 자동차 경매는 조회 및 신청이 불가능합니다.)
+              대리인만 입찰가를 확인할 수 있습니다.
             </Typography>
           </Grid>
         </Grid>
         <Grid container spacing={3} size={{ xs: 12 }}>
-          <FormGrid size={{ xs: 4 }}>
-            <FormLabel htmlFor="area" required>
-              관할법원
-            </FormLabel>
-            <TextField
-              select
-              id="area"
-              name="area"
-              label="지역"
-              required
-              variant="filled"
-              value={areaCd ? areaCd : "default"}
-              onChange={(e) => {
-                setAreaCd(e.target.value);
-                setCortOfcCd("default");
-              }}
-            >
-              <MenuItem value="default" disabled>
-                지역 선택
-              </MenuItem>
-              {Object.entries(courtHouses).map(([key, { areaNm }]) => (
-                <MenuItem key={key} value={key}>
-                  {areaNm}
-                </MenuItem>
-              ))}
-            </TextField>
+          <FormGrid size={{ xs: 12 }}>
+            <FormControl>
+              <FormLabel htmlFor="bidAmt" required>
+                입찰가
+              </FormLabel>
+              <OutlinedInput
+                id="bidAmt"
+                name="bidAmt"
+                label="입찰가"
+                required
+                value=""
+                placeholder="입찰가를 입력해주세요"
+                onChange={(e) => {}}
+                endAdornment={
+                  <InputAdornment position="end">원</InputAdornment>
+                }
+              />
+              <FormHelperText id="filled-weight-helper-text">
+                100000원 이상 입력해주세요.
+              </FormHelperText>
+            </FormControl>
           </FormGrid>
+          <FormGrid size={{ xs: 12 }}>
+            <FormLabel htmlFor="depositAmt" required>
+              입찰 보증금
+            </FormLabel>
+            <FormControl>
+              <OutlinedInput
+                id="depositAmt"
+                name="depositAmt"
+                label="입찰 보증금"
+                required
+                disabled
+                value="100000"
+                onChange={(e) => {}}
+                endAdornment={
+                  <InputAdornment position="end">원</InputAdornment>
+                }
+              />
+              <FormHelperText id="filled-weight-helper-text">
+                100000원 이상 입력해주세요.
+              </FormHelperText>
+            </FormControl>
+          </FormGrid>
+        </Grid>
+        <Grid container spacing={0} size={{ xs: 12 }}>
+          <Typography variant="h3" fontWeight={"bold"} gutterBottom>
+            입찰자 정보를 입력해주세요
+          </Typography>
+          <Grid
+            container
+            size={{ xs: 12 }}
+            sx={{
+              backgroundColor: "background.default",
+              border: "1px solid",
+              borderColor: "divider",
+              borderRadius: 2,
+              padding: 2,
+              width: "100%",
+            }}
+          >
+            <Typography variant="body1">
+              입찰자 정보는 정확하게 입력해주세요. 잘못된 정보로 인해 입찰이
+              실패할 수 있습니다.
+            </Typography>
+          </Grid>
+        </Grid>
+        <Grid container spacing={3} size={{ xs: 12 }}>
           <FormGrid size={{ xs: 8 }} sx={{ justifyContent: "flex-end" }}>
             <TextField
               select
@@ -351,7 +396,9 @@ export default function CaseFind() {
                       }}
                     >
                       <Typography variant="body2">법원명</Typography>
-                      <Typography variant="body1" fontWeight={"bold"}>{caseResult.data.courtName}</Typography>
+                      <Typography variant="body1" fontWeight={"bold"}>
+                        {caseResult.data.courtName}
+                      </Typography>
                     </Box>
                     <Box
                       sx={{
@@ -362,7 +409,9 @@ export default function CaseFind() {
                       }}
                     >
                       <Typography variant="body2">사건번호</Typography>
-                      <Typography variant="body1" fontWeight={"bold"}>{caseResult.data.printCaseNumber}</Typography>
+                      <Typography variant="body1" fontWeight={"bold"}>
+                        {caseResult.data.printCaseNumber}
+                      </Typography>
                     </Box>
                     <Box
                       sx={{
@@ -412,7 +461,9 @@ export default function CaseFind() {
                       }}
                     >
                       <Typography variant="body2">매각기일</Typography>
-                      <Typography variant="body1" fontWeight={"bold"}>{caseResult.data.bidDate}</Typography>
+                      <Typography variant="body1" fontWeight={"bold"}>
+                        {caseResult.data.bidDate}
+                      </Typography>
                     </Box>
                   </CardContent>
                 </Box>
