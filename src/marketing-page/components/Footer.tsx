@@ -109,7 +109,7 @@ export default function Footer() {
               </Link>
             </div>
             <Typography variant="body2" sx={{ color: 'text.secondary', mt: 2, mb: 2, fontSize: '0.875rem' }}>
-              주식회사 쎄르토 · 대표이사 홍길동<br />
+              주식회사 체르토 · 대표이사 홍길동<br />
               사업자등록번호 000-11-22222 · 통신판매업신고번호 2025-수원-1607<br />
               주소 : 경기도 수원시 장안구 조원동 731-16 · 문의 : customerservice@certo.co.kr<br />
             </Typography>

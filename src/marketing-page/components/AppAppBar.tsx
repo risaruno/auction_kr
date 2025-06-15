@@ -90,7 +90,7 @@ export default function AppAppBar() {
             <Button href="/sign-in" color="primary" variant="text" size="small">
               로그인/회원가입
             </Button>
-            <Button href="/apply" color="primary" variant="contained" size="small">
+            <Button href="/apply-bid" color="primary" variant="contained" size="small">
               대리입찰 신청
             </Button>
             {/* <ColorModeIconDropdown /> */}
@@ -133,7 +133,7 @@ export default function AppAppBar() {
                   </Button>
                 </MenuItem>
                 <MenuItem>
-                  <Button color="primary" variant="outlined" fullWidth>
+                  <Button color="primary" variant="outlined" fullWidth href="/apply-bid">
                     대리입찰 신청
                   </Button>
                 </MenuItem>

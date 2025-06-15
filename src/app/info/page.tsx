@@ -4,10 +4,9 @@ import CssBaseline from '@mui/material/CssBaseline';
 import Divider from '@mui/material/Divider';
 import AppTheme from '../../shared-theme/AppTheme';
 import AppAppBar from '../../marketing-page/components/AppAppBar';
-import CancelPolicy from '../../marketing-page/components/CancelPolicy';
 import Footer from '@/marketing-page/components/Footer';
 import Headline from '@/marketing-page/components/Headline';
-import { Typography } from '@mui/material';
+import { Button, Typography } from '@mui/material';
 import Timeline from '@/marketing-page/components/Timeline';
 
 export default function InfoPage() {
@@ -36,7 +35,7 @@ export default function InfoPage() {
                 }),
               })}
             >
-              쎄르토
+              체르토
             </Typography>
             &nbsp;대리입찰&nbsp;이용안내
           </Typography>}

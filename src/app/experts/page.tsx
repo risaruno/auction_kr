@@ -1,15 +1,18 @@
-"use client";
+'use client';
 import * as React from 'react';
+import { useEffect } from 'react';
 import CssBaseline from '@mui/material/CssBaseline';
 import Divider from '@mui/material/Divider';
 import AppTheme from '../../shared-theme/AppTheme';
 import AppAppBar from '../../marketing-page/components/AppAppBar';
-import CancelPolicy from '../../marketing-page/components/CancelPolicy';
 import Footer from '@/marketing-page/components/Footer';
 import Headline from '@/marketing-page/components/Headline';
 import { Typography } from '@mui/material';
 import Experts from '@/marketing-page/components/Experts';
-export default function ExpertPage() {
+import fetchExperts from './Experts';
+import ExpertList from './ExpertList';
+
+export default async function ExpertPage() {
   return (
     <AppTheme>
       <CssBaseline enableColorScheme />
@@ -36,7 +39,7 @@ export default function ExpertPage() {
                 }),
               })}
             >
-              쎄르토
+              체르토
             </Typography>
             &nbsp;전문가&nbsp;서비스
           </Typography>}
