@@ -172,7 +172,7 @@ export default function CaseFind() {
         alert("법원을 선택해주세요.");
         return;
       }
-      const response = await fetch(`${extrnUrl}/api/courtAuction`, {
+      const response = await fetch(`${extrnUrl}api/courtAuction`, {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
