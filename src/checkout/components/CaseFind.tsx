@@ -167,7 +167,7 @@ export default function CaseFind() {
 
   const handleSubmit = async () => {
     try {
-      const extrnUrl = 'http://175.198.81.82:9800/'
+      const extrnUrl = 'https://175.198.81.82:9800/'
       if (areaCd === "default" || cortOfcCd === "default") {
         alert("법원을 선택해주세요.");
         return;
