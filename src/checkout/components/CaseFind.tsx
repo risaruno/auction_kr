@@ -167,11 +167,12 @@ export default function CaseFind() {
 
   const handleSubmit = async () => {
     try {
+      const extrnUrl = 'http://175.198.81.82:9800/'
       if (areaCd === "default" || cortOfcCd === "default") {
         alert("법원을 선택해주세요.");
         return;
       }
-      const response = await fetch("/api/courtAuction", {
+      const response = await fetch(`${extrnUrl}/api/courtAuction`, {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
