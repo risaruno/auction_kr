@@ -29,9 +29,9 @@ const steps = ["사건조회", "입찰정보작성", "전자계약", "수수료�
 function getStepContent(step: number) {
   switch (step) {
     case 0:
-      return <CaseFind />;
-    case 1:
       return <InputForm />;
+    case 1:
+      return <CaseFind />;
     case 2:
       return <ContractSign />;
     case 3:
