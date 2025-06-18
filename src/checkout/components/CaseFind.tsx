@@ -167,12 +167,11 @@ export default function CaseFind() {
 
   const handleSubmit = async () => {
     try {
-      const extrnUrl = 'https://certo.cisseoul.com/'
       if (areaCd === "default" || cortOfcCd === "default") {
         alert("법원을 선택해주세요.");
         return;
       }
-      const response = await fetch(`${extrnUrl}api/courtAuction`, {
+      const response = await fetch(`/api/courtAuction`, {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
