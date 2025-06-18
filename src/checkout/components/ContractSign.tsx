@@ -1,430 +1,204 @@
-import { useState } from "react";
-import Button from "@mui/material/Button";
-import Checkbox from "@mui/material/Checkbox";
-import FormControlLabel from "@mui/material/FormControlLabel";
-import FormLabel from "@mui/material/FormLabel";
-import Grid from "@mui/material/Grid";
-import Typography from "@mui/material/Typography";
-import TextField from "@mui/material/TextField";
-import MenuItem from "@mui/material/MenuItem";
-import Box from "@mui/material/Box";
-import OutlinedInput from "@mui/material/OutlinedInput";
-import { styled } from "@mui/material/styles";
-import { Card, CardContent, CardMedia, Menu } from "@mui/material";
+import { useState, useRef } from "react";
+import {
+  Box,
+  Button,
+  Container,
+  Divider,
+  Grid,
+  Modal,
+  Paper,
+  Typography,
+} from "@mui/material";
+import SignatureCanvas from "react-signature-canvas";
 
-const FormGrid = styled(Grid)(() => ({
-  display: "flex",
-  flexDirection: "column",
-}));
+// Style for the main container
+const contractPaperStyle = {
+  padding: 4,
+  marginTop: 4,
+  marginBottom: 4,
+};
 
-export default function ContractSign() {
-  const [areaCd, setAreaCd] = useState("B000411");
-  const [cortOfcCd, setCortOfcCd] = useState("B000411");
-  const [csNo, setCsNo] = useState("2024타경110861");
-  interface CaseResult {
-    error?: string; // Add an optional error field to handle errors
-    data?: {
-      picFile: string;
-      courtName: string;
-      caseNumber: string;
-      printCaseNumber: string;
-      evaluationAmt: number;
-      lowestBidAmt: number;
-      depositAmt: number;
-      bidDate: string;
-    };
-  }
+// Style for the modal
+const modalStyle = {
+  position: 'absolute' as 'absolute',
+  top: '50%',
+  left: '50%',
+  transform: 'translate(-50%, -50%)',
+  width: 500,
+  bgcolor: 'background.paper',
+  boxShadow: 24,
+  p: 0,
+  borderRadius: 1,
+};
 
-  const [caseResult, setCaseResult] = useState<CaseResult | null>(null);
-  const courtHouses = {
-    seoul: {
-      areaNm: "서울",
-      courtList: [
-        { code: "B000210", name: "서울중앙지방법원" },
-        { code: "B000211", name: "서울동부지방법원" },
-        { code: "B000215", name: "서울서부지방법원" },
-        { code: "B000212", name: "서울남부지방법원" },
-        { code: "B000213", name: "서울북부지방법원" },
-      ],
-    },
-    uijeongbu: {
-      areaNm: "의정부",
-      courtList: [
-        { code: "B000214", name: "의정부지방법원" },
-        { code: "B214807", name: "의정부지방법원 고양지원" },
-        { code: "B214804", name: "의정부지방법원 남양주지원" },
-      ],
-    },
-    incheon: {
-      areaNm: "인천",
-      courtList: [
-        { code: "B000240", name: "인천지방법원" },
-        { code: "B000241", name: "인천지방법원 부천지원" },
-      ],
-    },
-    suwon: {
-      areaNm: "수원",
-      courtList: [
-        { code: "B000250", name: "수원지방법원" },
-        { code: "B000251", name: "수원지방법원 성남지원" },
-        { code: "B000252", name: "수원지방법원 여주지원" },
-        { code: "B000253", name: "수원지방법원 평택지원" },
-        { code: "B250826", name: "수원지방법원 안산지원" },
-        { code: "B000254", name: "수원지방법원 안양지원" },
-      ],
-    },
-    chuncheon: {
-      areaNm: "춘천",
-      courtList: [
-        { code: "B000260", name: "춘천지방법원" },
-        { code: "B000261", name: "춘천지방법원 강릉지원" },
-        { code: "B000262", name: "춘천지방법원 원주지원" },
-        { code: "B000263", name: "춘천지방법원 속초지원" },
-        { code: "B000264", name: "춘천지방법원 영월지원" },
-      ],
-    },
-    cheongju: {
-      areaNm: "청주",
-      courtList: [
-        { code: "B000270", name: "청주지방법원" },
-        { code: "B000271", name: "청주지방법원 충주지원" },
-        { code: "B000272", name: "청주지방법원 제천지원" },
-        { code: "B000273", name: "청주지방법원 영동지원" },
-      ],
-    },
-    daejeon: {
-      areaNm: "대전",
-      courtList: [
-        { code: "B000280", name: "대전지방법원" },
-        { code: "B000281", name: "대전지방법원 홍성지원" },
-        { code: "B000282", name: "대전지방법원 논산지원" },
-        { code: "B000283", name: "대전지방법원 천안지원" },
-        { code: "B000284", name: "대전지방법원 공주지원" },
-        { code: "B000285", name: "대전지방법원 서산지원" },
-      ],
-    },
-    daegu: {
-      areaNm: "대구",
-      courtList: [
-        { code: "B000310", name: "대구지방법원" },
-        { code: "B000311", name: "대구지방법원 안동지원" },
-        { code: "B000312", name: "대구지방법원 경주지원" },
-        { code: "B000313", name: "대구지방법원 김천지원" },
-        { code: "B000314", name: "대구지방법원 상주지원" },
-        { code: "B000315", name: "대구지방법원 의성지원" },
-        { code: "B000316", name: "대구지방법원 영덕지원" },
-        { code: "B000317", name: "대구지방법원 포항지원" },
-        { code: "B000320", name: "대구지방법원 대구서부지원" },
-      ],
-    },
-    busan: {
-      areaNm: "부산",
-      courtList: [
-        { code: "B000410", name: "부산지방법원" },
-        { code: "B000412", name: "부산지방법원 부산동부지원" },
-        { code: "B000414", name: "부산지방법원 부산서부지원" },
-      ],
-    },
-    ulsan: {
-      areaNm: "울산",
-      courtList: [{ code: "B000411", name: "울산지방법원" }],
-    },
-    changwon: {
-      areaNm: "창원",
-      courtList: [
-        { code: "B000420", name: "창원지방법원" },
-        { code: "B000431", name: "창원지방법원 마산지원" },
-        { code: "B000421", name: "창원지방법원 진주지원" },
-        { code: "B000422", name: "창원지방법원 통영지원" },
-        { code: "B000423", name: "창원지방법원 밀양지원" },
-        { code: "B000424", name: "창원지방법원 거창지원" },
-      ],
-    },
-    gwangju: {
-      areaNm: "광주",
-      courtList: [
-        { code: "B000510", name: "광주지방법원" },
-        { code: "B000511", name: "광주지방법원 목포지원" },
-        { code: "B000512", name: "광주지방법원 장흥지원" },
-        { code: "B000513", name: "광주지방법원 순천지원" },
-        { code: "B000514", name: "광주지방법원 해남지원" },
-      ],
-    },
-    jeonju: {
-      areaNm: "전주",
-      courtList: [
-        { code: "B000520", name: "전주지방법원" },
-        { code: "B000521", name: "전주지방법원 군산지원" },
-        { code: "B000522", name: "전주지방법원 정읍지원" },
-        { code: "B000523", name: "전주지방법원 남원지원" },
-      ],
-    },
-    jeju: {
-      areaNm: "제주",
-      courtList: [{ code: "B000530", name: "제주지방법원" }],
-    },
+// Dummy data based on the provided image
+const contractData = {
+  bidderName: "김지수",
+  contact: "010-7731-6601",
+  address: "경기 평택시 지산동 771-11 1101호",
+  caseNumber: "2024타경110861",
+  itemNumber: "1",
+  court: "울산지방법원 본원",
+  fee: "100,000원",
+  feePaidOn: "대리입찰 접수 시",
+  contractDate: "2025년 05월 25일",
+};
+
+const ContractSign = () => {
+  const [isModalOpen, setIsModalOpen] = useState(false);
+  const [signature, setSignature] = useState<string | null>(null);
+  const sigCanvas = useRef<SignatureCanvas>(null);
+
+  const handleOpenModal = () => setIsModalOpen(true);
+  const handleCloseModal = () => setIsModalOpen(false);
+
+  const clearSignature = () => {
+    sigCanvas.current?.clear();
   };
 
-  const handleSubmit = async () => {
-    try {
-      if (areaCd === "default" || cortOfcCd === "default") {
-        alert("법원을 선택해주세요.");
-        return;
-      }
-      const response = await fetch("/api/courtAuction", {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify({
-          cortOfcCd,
-          csNo,
-        }),
-      });
-
-      if (!response.ok) throw new Error("Failed to fetch data");
-
-      const result = await response.json();
-      console.log("Result:", result);
-      setCaseResult(result); // Update the state with
-    } catch (error) {
-      setCaseResult(null); // Clear the case result on error
-      setCaseResult({
-        error: error instanceof Error ? error.message : String(error),
-      }); // Set an error message in the state
+  const saveSignature = () => {
+    if (sigCanvas.current) {
+      const dataUrl = sigCanvas.current.getCanvas().toDataURL("image/png");
+      setSignature(dataUrl);
     }
+    handleCloseModal();
   };
-  return (
-    <Grid container spacing={3} sx={{ padding: 2 }}>
-      <Grid container spacing={3} size={{ xs: 12 }}>
-        <Grid container spacing={0} size={{ xs: 12 }}>
-          <Typography variant="h3" fontWeight={"bold"} gutterBottom>
-            의뢰하시는 경매 사건은 무엇인가요?
-          </Typography>
-          <Grid
-            container
-            size={{ xs: 12 }}
-            sx={{
-              backgroundColor: "background.default",
-              border: "1px solid",
-              borderColor: "divider",
-              borderRadius: 2,
-              padding: 2,
-              width: "100%",
-            }}
-          >
-            <Typography variant="body1">
-              경매 사건을 신청하시는 분들을 위해 경매 사건 조회 서비스를
-              제공합니다.
-            </Typography>
-            <Typography variant="body2" color="text.secondary">
-              (단, 자동차 경매는 조회 및 신청이 불가능합니다.)
-            </Typography>
-          </Grid>
-        </Grid>
-        <Grid container spacing={3} size={{ xs: 12 }}>
-          <FormGrid size={{ xs: 4 }}>
-            <FormLabel htmlFor="area" required>
-              관할법원
-            </FormLabel>
-            <TextField
-              select
-              id="area"
-              name="area"
-              label="지역"
-              required
-              variant="filled"
-              value={areaCd ? areaCd : "default"}
-              onChange={(e) => {
-                setAreaCd(e.target.value);
-                setCortOfcCd("default");
-              }}
-            >
-              <MenuItem value="default" disabled>
-                지역 선택
-              </MenuItem>
-              {Object.entries(courtHouses).map(([key, { areaNm }]) => (
-                <MenuItem key={key} value={key}>
-                  {areaNm}
-                </MenuItem>
-              ))}
-            </TextField>
-          </FormGrid>
-          <FormGrid size={{ xs: 8 }} sx={{ justifyContent: "flex-end" }}>
-            <TextField
-              select
-              id="court-house"
-              name="court-house"
-              label="법원"
-              required
-              value={cortOfcCd ? cortOfcCd : "default"}
-              variant="filled"
-              onChange={(e) => setCortOfcCd(e.target.value)}
-            >
-              <MenuItem value="default" disabled>
-                법원 선택
-              </MenuItem>
-              {Object.entries(courtHouses)
-                .filter(([key]) => key === areaCd)
-                .flatMap(([, { courtList }]) =>
-                  courtList.map(({ code, name }) => (
-                    <MenuItem key={code} value={code}>
-                      {name}
-                    </MenuItem>
-                  ))
-                )}
-            </TextField>
-          </FormGrid>
-          <FormGrid size={{ xs: 12 }}>
-            <FormLabel htmlFor="case-number" required>
-              사건번호
-            </FormLabel>
-            <TextField
-              id="case-number"
-              name="case-number"
-              label="사건번호"
-              placeholder="예) 2025-1234 또는 2025가합1234"
-              variant="filled"
-              required
-              value={csNo}
-              onChange={(e) => setCsNo(e.target.value)}
-            />
-          </FormGrid>
-          <Button
-            variant="contained"
-            sx={{ width: { xs: "100%", sm: "fit-content" } }}
-            onClick={handleSubmit}
-          >
-            조회하기
-          </Button>
-        </Grid>
+
+  const ContractSection = ({ title, children }: { title: string; children: React.ReactNode }) => (
+    <Box mt={4}>
+      <Typography variant="h6" gutterBottom sx={{ fontWeight: 'bold' }}>
+        {title}
+      </Typography>
+      <Divider sx={{ mb: 2 }} />
+      {children}
+    </Box>
+  );
+
+  const InfoRow = ({ label, value }: { label: string; value: string }) => (
+    <Grid container spacing={2} sx={{ mb: 1 }}>
+      <Grid size={{ xs: 3, sm: 2 }}>
+        <Typography variant="body1" sx={{ fontWeight: 'bold' }}>{label}</Typography>
       </Grid>
-      <Grid container spacing={3} size={{ xs: 12 }}>
-        <Grid container spacing={0} size={{ xs: 12 }}>
-          <Typography variant="h3" fontWeight={"bold"} gutterBottom>
-            입찰하시는 사건을 확인해주세요.
-          </Typography>
-          <Grid container size={{ xs: 12 }}>
-            {caseResult && typeof caseResult === "object" && caseResult.data ? (
-              <Card
-                sx={{
-                  margin: "0 auto",
-                  display: "flex",
-                  width: "100%",
-                  flexDirection: { xs: "column", sm: "column", md: "row" },
-                }}
-              >
-                <CardMedia
-                  component="img"
-                  image={`data:image/jpeg;base64,${caseResult.data.picFile}`}
-                  alt="Case Image"
-                  sx={{
-                    flex: 1,
-                    objectFit: "cover",
-                    height: 250,
-                    maxHeight: { xs: 250, sm: 300, md: 350 },
-                    width: { xs: "100%", sm: "auto" },
-                  }}
-                />
-                <Box
-                  sx={{
-                    display: "flex",
-                    flex: { sm: "0", md: "1" },
-                    alignItems: "center",
-                  }}
-                >
-                  <CardContent
-                    sx={{
-                      width: "100%",
-                      height: "100%",
-                      display: "flex",
-                      flexDirection: "column",
-                      justifyContent: "space-evenly",
-                    }}
-                  >
-                    <Box
-                      sx={{
-                        display: "flex",
-                        flexDirection: "row",
-                        alignItems: "center",
-                        justifyContent: "space-between",
-                      }}
-                    >
-                      <Typography variant="body2">법원명</Typography>
-                      <Typography variant="body1" fontWeight={"bold"}>{caseResult.data.courtName}</Typography>
-                    </Box>
-                    <Box
-                      sx={{
-                        display: "flex",
-                        flexDirection: "row",
-                        alignItems: "center",
-                        justifyContent: "space-between",
-                      }}
-                    >
-                      <Typography variant="body2">사건번호</Typography>
-                      <Typography variant="body1" fontWeight={"bold"}>{caseResult.data.printCaseNumber}</Typography>
-                    </Box>
-                    <Box
-                      sx={{
-                        display: "flex",
-                        flexDirection: "row",
-                        alignItems: "center",
-                        justifyContent: "space-between",
-                      }}
-                    >
-                      <Typography variant="body2">감정가</Typography>
-                      <Typography variant="body1" fontWeight={"bold"}>
-                        {caseResult.data.evaluationAmt.toLocaleString()}원
-                      </Typography>
-                    </Box>
-                    <Box
-                      sx={{
-                        display: "flex",
-                        flexDirection: "row",
-                        alignItems: "center",
-                        justifyContent: "space-between",
-                      }}
-                    >
-                      <Typography variant="body2">최저 입찰가</Typography>
-                      <Typography variant="body1" fontWeight={"bold"}>
-                        {caseResult.data.lowestBidAmt.toLocaleString()}원
-                      </Typography>
-                    </Box>
-                    <Box
-                      sx={{
-                        display: "flex",
-                        flexDirection: "row",
-                        alignItems: "center",
-                        justifyContent: "space-between",
-                      }}
-                    >
-                      <Typography variant="body2">보증금</Typography>
-                      <Typography variant="body1" fontWeight={"bold"}>
-                        {caseResult.data.depositAmt.toLocaleString()}원
-                      </Typography>
-                    </Box>
-                    <Box
-                      sx={{
-                        display: "flex",
-                        flexDirection: "row",
-                        alignItems: "center",
-                        justifyContent: "space-between",
-                      }}
-                    >
-                      <Typography variant="body2">매각기일</Typography>
-                      <Typography variant="body1" fontWeight={"bold"}>{caseResult.data.bidDate}</Typography>
-                    </Box>
-                  </CardContent>
-                </Box>
-              </Card>
-            ) : (
-              <Typography variant="body1">
-                조회된 사건 정보가 없습니다.
-              </Typography>
-            )}
-          </Grid>
-        </Grid>
+      <Grid size={{ xs: 9, sm: 10 }}>
+        <Typography variant="body1">{value}</Typography>
       </Grid>
     </Grid>
   );
-}
+
+  return (
+    <Container maxWidth="md">
+      <Paper elevation={3} sx={contractPaperStyle}>
+        <Typography variant="h4" align="center" gutterBottom sx={{ fontWeight: 'bold' }}>
+          대리입찰 계약서
+        </Typography>
+        <Typography variant="body1" align="center" sx={{ mb: 4 }}>
+          입찰인은 아래 표시 경매 사건에 관하여 다음 내용과 같이 계약을 체결한다.
+        </Typography>
+
+        <ContractSection title="입찰인 정보">
+          <InfoRow label="입찰인 (성명)" value={contractData.bidderName} />
+          <InfoRow label="연락처" value={contractData.contact} />
+          <InfoRow label="주소" value={contractData.address} />
+        </ContractSection>
+
+        <ContractSection title="경매 사건 정보">
+          <InfoRow label="경매사건번호" value={contractData.caseNumber} />
+          <InfoRow label="물건번호" value={contractData.itemNumber} />
+          <InfoRow label="집행 법원" value={contractData.court} />
+        </ContractSection>
+
+        <ContractSection title="매수신청 대리 보수">
+          <InfoRow label="확정 보수" value={contractData.fee} />
+          <InfoRow label="보수지급 시기" value={contractData.feePaidOn} />
+        </ContractSection>
+
+        <ContractSection title="위임 내용">
+          <Typography component="div" variant="body2">
+            <ol>
+              <li>「민사집행법」 제113조의 규정에 따른 매수신청 보증의 제공</li>
+              <li>입찰표의 작성 및 제출</li>
+              <li>「민사집행법」 제115조 제3항, 제142조 제6항의 규정에 따라 매수신청의 보증을 돌려줄 것을 신청하는 행위</li>
+            </ol>
+          </Typography>
+        </ContractSection>
+
+        <ContractSection title="계약 내용">
+          <Typography component="div" variant="body2" sx={{ lineHeight: 1.8 }}>
+            <ol>
+                <li>㈜케이디씨씨씨 파트너(이하 ‘회사’라 함)는 통신판매 시스템을 제공할 뿐, 통신판매의 당사자가 아니다.</li>
+                <li>회사는 이용자의 관리를 위해 사건 정보를 제공할 뿐, 정보 오류에 대해 회사는 어떠한 책임도 지지 아니한다.</li>
+                <li>회사가 제공하는 경매 정보는 법원 정책에 기반하여 제공되며, 재매각 등 특별매각 조건 물건의 보증금은 입찰인이 직접 해당 경매계에 확인하여야 할 의무가 있다.</li>
+                <li>입찰인은 회사에서 중개한 대리인에게 입찰에 필요한 모든 정보를 제공하고, 입찰을 위한 모든 권한을 위임한다.</li>
+            </ol>
+          </Typography>
+        </ContractSection>
+
+        {/* --- Signing Area --- */}
+        <Box sx={{ textAlign: 'center', mt: 8 }}>
+          <Typography variant="h6" sx={{ mb: 2 }}>{contractData.contractDate}</Typography>
+          <Box sx={{ display: 'flex', justifyContent: 'flex-end', alignItems: 'center', pr: 4 }}>
+            <Typography variant="h6" sx={{ mr: 2 }}>입찰인</Typography>
+            <Typography variant="h5" sx={{ mr: 1, fontWeight: 'bold' }}>{contractData.bidderName}</Typography>
+            {signature ? (
+                <img src={signature} alt="signature" style={{ height: '40px', borderBottom: '1px solid #000' }} />
+            ) : (
+                <Typography variant="body1">(서명날인)</Typography>
+            )}
+          </Box>
+        </Box>
+
+        <Box sx={{ textAlign: "center", mt: 6 }}>
+          <Button variant="contained" size="large" onClick={handleOpenModal}>
+            서명하기
+          </Button>
+        </Box>
+      </Paper>
+
+      {/* --- Signature Modal --- */}
+      <Modal open={isModalOpen} onClose={handleCloseModal}>
+        <Box sx={modalStyle}>
+          <Box sx={{ p: 3, textAlign: 'center' }}>
+            <Typography variant="h5" component="h2" sx={{ fontWeight: 'bold' }}>
+              김 지 수
+            </Typography>
+            <Typography sx={{ mt: 1 }}>
+              마우스를 서명하여야 합니다.
+            </Typography>
+          </Box>
+          <Paper
+            elevation={0}
+            sx={{ borderTop: "1px solid #ddd", borderBottom: "1px solid #ddd" }}
+          >
+            <SignatureCanvas
+              ref={sigCanvas}
+              penColor="black"
+              canvasProps={{
+                width: 500,
+                height: 200,
+                className: "sigCanvas",
+              }}
+            />
+          </Paper>
+          <Box sx={{ p: 2, display: "flex", justifyContent: "space-between" }}>
+            <Button
+              variant="outlined"
+              onClick={clearSignature}
+              sx={{ width: "48%" }}
+            >
+              지우기
+            </Button>
+            <Button
+              variant="contained"
+              onClick={saveSignature}
+              sx={{ width: "48%" }}
+            >
+              서명완료
+            </Button>
+          </Box>
+        </Box>
+      </Modal>
+    </Container>
+  );
+};
+
+export default ContractSign;
