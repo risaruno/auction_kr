@@ -1,4 +1,4 @@
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 import Button from '@mui/material/Button'
 import Checkbox from '@mui/material/Checkbox'
 import FormControlLabel from '@mui/material/FormControlLabel'
@@ -7,9 +7,11 @@ import Grid from '@mui/material/Grid'
 import Typography from '@mui/material/Typography'
 import TextField from '@mui/material/TextField'
 import MenuItem from '@mui/material/MenuItem'
-import Box from '@mui/material/Box'
 import OutlinedInput from '@mui/material/OutlinedInput'
 import { styled } from '@mui/material/styles'
+import { Box, Modal } from '@mui/material' // Import Modal and Box
+import DaumPostcodeEmbed from 'react-daum-postcode' // Import DaumPostcodeEmbed
+
 import {
   Card,
   CardContent,
@@ -46,20 +48,37 @@ export default function InputForm() {
   const [bidderName, setBidderName] = useState('')
   const [phoneNumber, setPhoneNumber] = useState('')
 
-  interface CaseResult {
-    error?: string // Add an optional error field to handle errors
-    data?: {
-      picFile: string
-      courtName: string
-      caseNumber: string
-      printCaseNumber: string
-      evaluationAmt: number
-      lowestBidAmt: number
-      depositAmt: number
-      bidDate: string
-    }
-  }
+  // State for Address
+  const [zipNo, setZipNo] = useState('')
+  const [roadAddr, setRoadAddr] = useState('')
+  const [addrDetail, setAddrDetail] = useState('')
 
+  // State to control the Daum Postcode modal
+  const [isModalOpen, setIsModalOpen] = useState(false)
+
+  const handleOpenModal = () => setIsModalOpen(true)
+  const handleCloseModal = () => setIsModalOpen(false)
+
+  // Handler for when the address search is complete
+  const handleComplete = (data: any) => {
+    let fullAddress = data.address
+    let extraAddress = ''
+
+    if (data.addressType === 'R') {
+      if (data.bname !== '') {
+        extraAddress += data.bname
+      }
+      if (data.buildingName !== '') {
+        extraAddress +=
+          extraAddress !== '' ? `, ${data.buildingName}` : data.buildingName
+      }
+      fullAddress += extraAddress !== '' ? ` (${extraAddress})` : ''
+    }
+
+    setZipNo(data.zonecode) // Set postal code
+    setRoadAddr(fullAddress) // Set the full address
+    handleCloseModal() // Close the modal
+  }
   return (
     <Grid container spacing={3} sx={{ padding: 2 }}>
       {/* SECTION 1: Bid Amount */}
@@ -94,6 +113,8 @@ export default function InputForm() {
               <OutlinedInput
                 id='bidAmt'
                 name='bidAmt'
+                required
+                type='number'
                 placeholder='입찰가를 입력해주세요'
                 onChange={(e) => {}}
                 endAdornment={
@@ -112,6 +133,7 @@ export default function InputForm() {
                 id='depositAmt'
                 name='depositAmt'
                 required
+                type='number'
                 disabled
                 value='100000'
                 onChange={(e) => {}}
@@ -124,7 +146,6 @@ export default function InputForm() {
           </FormGrid>
         </Grid>
       </Grid>
-
       {/* SECTION 2: Bidder Information */}
       <Grid container spacing={3} size={{ xs: 12 }} mt={4}>
         <Grid container spacing={2} size={{ xs: 12 }}>
@@ -154,24 +175,29 @@ export default function InputForm() {
         <Grid container spacing={2} size={{ xs: 12 }}>
           <FormGrid size={{ xs: 12 }}>
             <FormLabel htmlFor='residentId1'>주민등록번호</FormLabel>
-            <Grid container spacing={2} sx={{ alignItems: 'center', justifyContent: 'space-between' }}>
+            <Grid container spacing={2}>
               <TextField
                 id='residentId1'
                 name='residentId1'
-                sx={{ flexGrow: 5 }}
+                required
+                type='number'
+                fullWidth // fullWidth now applies to the Grid item's space
                 placeholder='주민등록번호 앞자리'
                 value={residentId1}
                 onChange={(e) => setResidentId1(e.target.value)}
+                sx={{ alignItems: 'center', flex: 20 }}
               />
-              <Typography sx={{ flexGrow: 2, textAlign: 'center' }}> - </Typography>
+              <Typography sx={{ textAlign: 'center', flex: 1 }}>-</Typography>
               <TextField
                 id='residentId2'
                 name='residentId2'
+                required
                 type='password'
-                sx={{ flexGrow: 5 }}
+                fullWidth // fullWidth now applies to the Grid item's space
                 placeholder='주민등록번호 뒷자리'
                 value={residentId2}
                 onChange={(e) => setResidentId2(e.target.value)}
+                sx={{ alignItems: 'center', flex: 20 }}
               />
             </Grid>
             <FormHelperText sx={{ color: '#b42318' }}>
@@ -242,23 +268,95 @@ export default function InputForm() {
           <FormGrid size={{ xs: 12 }}>
             <FormLabel htmlFor='phoneNumber'>휴대폰 번호</FormLabel>
             <Grid container spacing={2} alignItems='center'>
-              <Grid size={{ xs: 6 }}>
+              <Grid size={{ xs: 12, sm: 9 }}>
                 <TextField
                   id='phoneNumber'
                   name='phoneNumber'
+                  required
+                  type='number'
                   fullWidth
                   placeholder='휴대폰번호 입력'
                   value={phoneNumber}
                   onChange={(e) => setPhoneNumber(e.target.value)}
                 />
               </Grid>
-              <Grid>
-                <Button variant='contained'>인증번호 받기</Button>
+              <Grid size={{ xs: 12, sm: 3 }}>
+                <Button variant='contained' sx={{ width: '100%' }}>
+                  인증번호 받기
+                </Button>
               </Grid>
             </Grid>
           </FormGrid>
         </Grid>
-      </Grid>
+
+        {/* --- ADDRESS FORM using React Daum Postcode --- */}
+        <Grid container spacing={2} size={{ xs: 12 }}>
+          <FormGrid size={{ xs: 12 }}>
+            <FormLabel htmlFor='roadAddr'>주소</FormLabel>
+            <Grid container spacing={2} alignItems='center'>
+              <Grid size={{ xs: 12, sm: 9 }}>
+                <TextField
+                  id='zipNo'
+                  name='zipNo'
+                  fullWidth
+                  placeholder='우편번호'
+                  value={zipNo}
+                />
+              </Grid>
+              <Grid size={{ xs: 12, sm: 3 }}>
+                <Button
+                  variant='contained'
+                  onClick={handleOpenModal} // Open modal on click
+                  sx={{
+                    width: '100%',
+                  }}
+                >
+                  주소찾기
+                </Button>
+              </Grid>
+            </Grid>
+            <TextField
+              id='roadAddr'
+              name='roadAddr'
+              fullWidth
+              placeholder='주소'
+              value={roadAddr}
+              sx={{ mt: 2 }}
+            />
+            <TextField
+              id='addrDetail'
+              name='addrDetail'
+              required
+              fullWidth
+              placeholder='상세주소 입력'
+              value={addrDetail}
+              onChange={(e) => setAddrDetail(e.target.value)}
+              sx={{ mt: 2 }}
+            />
+          </FormGrid>
+        </Grid>
+      </Grid>{' '}
+      {/* --- DAUM POSTCODE MODAL --- */}
+      <Modal
+        open={isModalOpen}
+        onClose={handleCloseModal}
+        aria-labelledby='modal-address-search'
+      >
+        <Box
+          sx={{
+            position: 'absolute',
+            top: '50%',
+            left: '50%',
+            transform: 'translate(-50%, -50%)',
+            width: 600,
+            ba: 'background.paper',
+            border: '2px solid #000',
+            boxShadow: 24,
+          }}
+        >
+          <DaumPostcodeEmbed onComplete={handleComplete} />
+        </Box>
+      </Modal>
     </Grid>
   )
 }
