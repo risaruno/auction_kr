@@ -63,9 +63,9 @@ export default function AppAppBar() {
               <Button href="/experts" variant="text" color="info" size="small">
                 전문가 서비스
               </Button>
-              <Button href="/area" variant="text" color="info" size="small">
+              {/* <Button href="/area" variant="text" color="info" size="small">
                 서비스 지역
-              </Button>
+              </Button> */}
               <Button href="/faq" variant="text" color="info" size="small">
                 자주하는 질문
               </Button>

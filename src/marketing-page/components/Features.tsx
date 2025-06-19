@@ -16,7 +16,7 @@ const items = [
     icon: <ViewQuiltRoundedIcon />,
     title: '원스톱 대리입찰 간편하게',
     description:
-      '복잡한 입찰 절차는 이제 그만. 바토너는 대리 입찰에 필요한 원스톱 솔루션을 제공합니다. 단 몇 번의 클릭만으로 입찰 대행 신청을하고, 진행 상황을 추적할 수 있습니다. 이 모든 것이 하나의 편리한 위치에서 이루어집니다.',
+      '복잡한 입찰 절차는 이제 그만. 체로토는 대리 입찰에 필요한 원스톱 솔루션을 제공합니다. 단 몇 번의 클릭만으로 입찰 대행 신청을하고, 진행 상황을 추적할 수 있습니다. 이 모든 것이 하나의 편리한 위치에서 이루어집니다.',
     imageLight: `url("${process.env.TEMPLATE_IMAGE_URL || 'https://mui.com'}/static/images/templates/templates-images/dash-light.png")`,
     imageDark: `url("${process.env.TEMPLATE_IMAGE_URL || 'https://mui.com'}/static/images/templates/templates-images/dash-dark.png")`,
   },
@@ -24,7 +24,7 @@ const items = [
     icon: <EdgesensorHighRoundedIcon />,
     title: '실수없이 안전한 서류작성',
     description:
-      '체르토는 입찰 서류 작성 대행 서비스를 제공하여 문서의 정확성을 보장합니다. 바토너를 통해 서류작성 과정에서 발생할 수 있는 오류의 잠재적 위험을 제거합니다. 만약의 실수까지 방어하세요.',
+      '체르토는 입찰 서류 작성 대행 서비스를 제공하여 문서의 정확성을 보장합니다. 체로토를 통해 서류작성 과정에서 발생할 수 있는 오류의 잠재적 위험을 제거합니다. 만약의 실수까지 방어하세요.',
     imageLight: `url("${process.env.TEMPLATE_IMAGE_URL || 'https://mui.com'}/static/images/templates/templates-images/mobile-light.png")`,
     imageDark: `url("${process.env.TEMPLATE_IMAGE_URL || 'https://mui.com'}/static/images/templates/templates-images/mobile-dark.png")`,
   },

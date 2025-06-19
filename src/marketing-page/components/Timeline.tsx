@@ -1,337 +1,242 @@
-import * as React from 'react'
-import Box from '@mui/material/Box'
-import Button from '@mui/material/Button'
-import Card from '@mui/material/Card'
-import MuiChip from '@mui/material/Chip'
-import Container from '@mui/material/Container'
-import { styled } from '@mui/material/styles'
-import Timeline from '@mui/lab/Timeline'
-import TimelineItem, { timelineItemClasses } from '@mui/lab/TimelineItem'
-import TimelineSeparator from '@mui/lab/TimelineSeparator'
-import TimelineConnector from '@mui/lab/TimelineConnector'
-import TimelineContent from '@mui/lab/TimelineContent'
-import TimelineOppositeContent from '@mui/lab/TimelineOppositeContent'
-import TimelineDot from '@mui/lab/TimelineDot'
-import FastfoodIcon from '@mui/icons-material/Fastfood'
-import LaptopMacIcon from '@mui/icons-material/LaptopMac'
-import RepeatIcon from '@mui/icons-material/Repeat'
-import Typography from '@mui/material/Typography'
-import { ButtonGroup } from '@mui/material'
+import * as React from 'react';
+import Box from '@mui/material/Box';
+import Card from '@mui/material/Card';
+import CardContent from '@mui/material/CardContent';
+import Container from '@mui/material/Container';
+import Typography from '@mui/material/Typography';
+import Paper from '@mui/material/Paper';
 
-import { Paid, LocationOn, Description } from '@mui/icons-material'
+// Timeline-related imports
+import Timeline from '@mui/lab/Timeline';
+import TimelineItem from '@mui/lab/TimelineItem';
+import TimelineSeparator from '@mui/lab/TimelineSeparator';
+import TimelineConnector from '@mui/lab/TimelineConnector';
+import TimelineContent from '@mui/lab/TimelineContent';
+import TimelineOppositeContent from '@mui/lab/TimelineOppositeContent';
+import TimelineDot from '@mui/lab/TimelineDot';
+
+// Icon imports
+import { LocationOn, Paid, Description, Gavel } from '@mui/icons-material';
+import AssignmentIndIcon from '@mui/icons-material/AssignmentInd';
+import RequestQuoteIcon from '@mui/icons-material/RequestQuote';
+import UploadFileIcon from '@mui/icons-material/UploadFile';
+import PeopleIcon from '@mui/icons-material/People';
+import HowToRegIcon from '@mui/icons-material/HowToReg';
+
+// Data for the top feature cards
+const features = [
+  {
+    icon: <LocationOn color="primary" />,
+    title: '서비스 지역',
+    description: '전국 법원',
+  },
+  {
+    icon: <Paid color="primary" />,
+    title: '이용요금',
+    description: '11만원',
+    subDescription: '입찰기일 D-1 신청시 154,000원',
+  },
+  {
+    icon: <Description color="primary" />,
+    title: '서비스 내용',
+    description: ['입찰관련 서류 작성', '대리입찰참여', '입찰결과 안내'],
+  },
+];
+
+// Data for the timeline steps
+const timelineSteps = [
+  {
+    actor: '고객',
+    title: '1. 입찰정보 작성',
+    description: '입찰사건을 조회하고 정보를 입력합니다.',
+    icon: <AssignmentIndIcon />,
+  },
+  {
+    actor: '체르토',
+    title: '2. 전자계약서 발행',
+    description: '보안과 안전한 입찰을 위한 전자계약서 제공',
+    icon: <Description />,
+  },
+  {
+    actor: '고객',
+    title: '3. 전자서명 / 수수료 결제',
+    description: '법적 구속력있는 대리입찰 프로세스 보장',
+    icon: <RequestQuoteIcon />,
+  },
+  {
+    actor: '체르토',
+    title: '4. 서류 작성 / 전담 체르토 제공',
+    description: '배정된 입찰 전문가가 입찰관련 서류 작성',
+    icon: <PeopleIcon />,
+  },
+  {
+    actor: '고객',
+    title: '5. 전자본인서명확인서 업로드 / 보증금 입금',
+    description: '대리입찰을 위한 전자본인서명확인서 및 보증금 입금',
+    icon: <UploadFileIcon />,
+  },
+];
 
 export default function Features() {
   return (
-    <>
+    <Container sx={{ py: { xs: 4, sm: 8 } }}>
+      {/* Main Title */}
+      <Typography
+        variant="h3"
+        component="h1"
+        textAlign="center"
+        sx={{ fontWeight: 'bold', mb: 6 }}
+      >
+        전문가의 발빠른 대리입찰, 체르토
+      </Typography>
+
+      {/* Top Feature Cards Section */}
       <Box
         sx={{
-          display: 'flex',
-          justifyContent: 'center',
-          mx: 24,
-          my: 4,
-          flexDirection: { xs: 'column', sm: 'row' },
-          gap: 2,
-          height: 'auto',
-          '& .MuiBox-root': {
-            flex: 1,
-            display: 'flex',
-            flexDirection: 'column',
-            height: '100%',
-          },
-          '& .MuiButton-root': {
-            flex: 1,
-            fontSize: '1.25rem',
-            padding: '12px 24px',
-            backgroundColor: 'primary.main',
-            '&:hover': {
-              backgroundColor: 'primary.dark',
-            },
-            color: 'white',
-          },
+          display: 'grid',
+          gridTemplateColumns: { xs: '1fr', sm: '1fr 1fr 1fr' },
+          gap: 4,
+          mb: 8,
         }}
       >
-        <Box>
-          <Button
-            key="area"
-            sx={{
-              display: 'flex',
-              flexDirection: 'column',
-              alignItems: 'center',
-            }}
-          >
-            <LocationOn sx={{ fontSize: 48, mb: 1 }} />
-            <Typography variant="h6" component="span">
-              서비스 지역
-            </Typography>
-          </Button>
-          <Timeline
-            sx={{
-              [`& .${timelineItemClasses.root}:before`]: {
-                flex: 0,
-                padding: 0,
-              },
-            }}
-          >
-            <TimelineItem>
-              <TimelineSeparator>
-                <TimelineDot />
-              </TimelineSeparator>
-              <TimelineContent>전국 법원</TimelineContent>
-            </TimelineItem>
-          </Timeline>
-        </Box>
-        <Box>
-          <Button
-            key="usage"
-            sx={{
-              display: 'flex',
-              flexDirection: 'column',
-              alignItems: 'center',
-            }}
-          >
-            <Paid sx={{ fontSize: 48, mb: 1 }} />
-            <Typography variant="h6" component="span">
-              이용요금
-            </Typography>
-          </Button>
-          <Timeline
-            sx={{
-              [`& .${timelineItemClasses.root}:before`]: {
-                flex: 0,
-                padding: 0,
-              },
-            }}
-          >
-            <TimelineItem>
-              <TimelineSeparator>
-                <TimelineDot />
-                <TimelineConnector />
-              </TimelineSeparator>
-              <TimelineContent>10만원</TimelineContent>
-            </TimelineItem>
-            <TimelineItem>
-              <TimelineSeparator>
-                <TimelineDot />
-              </TimelineSeparator>
-              <TimelineContent>입찰기일 D-1 신청시 14만원</TimelineContent>
-            </TimelineItem>
-          </Timeline>
-        </Box>
-        <Box>
-          <Button
-            key="content"
-            sx={{
-              display: 'flex',
-              flexDirection: 'column',
-              alignItems: 'center',
-            }}
-          >
-            <Description sx={{ fontSize: 48, mb: 1 }} />
-            <Typography variant="h6" component="span">
-              서비스 내용
-            </Typography>
-          </Button>
-          <Timeline
-            sx={{
-              [`& .${timelineItemClasses.root}:before`]: {
-                flex: 0,
-                padding: 0,
-              },
-            }}
-          >
-            <TimelineItem>
-              <TimelineSeparator>
-                <TimelineDot />
-                <TimelineConnector />
-              </TimelineSeparator>
-              <TimelineContent>입찰관련 서류 작성</TimelineContent>
-            </TimelineItem>
-            <TimelineItem>
-              <TimelineSeparator>
-                <TimelineDot />
-                <TimelineConnector />
-              </TimelineSeparator>
-              <TimelineContent>대리입찰참여</TimelineContent>
-            </TimelineItem>
-            <TimelineItem>
-              <TimelineSeparator>
-                <TimelineDot />
-              </TimelineSeparator>
-              <TimelineContent>입찰결과 안내</TimelineContent>
-            </TimelineItem>
-          </Timeline>
-        </Box>
+        {features.map((feature) => (
+          <Card key={feature.title} sx={{ textAlign: 'center', boxShadow: 3 }}>
+            <CardContent sx={{ p: 3 }}>
+              <Box
+                sx={{
+                  display: 'flex',
+                  justifyContent: 'center',
+                  alignItems: 'center',
+                  width: 64,
+                  height: 64,
+                  borderRadius: '50%',
+                  backgroundColor: 'primary.light',
+                  mx: 'auto',
+                  mb: 2,
+                  boxShadow: '0px 2px 4px rgba(0,0,0,0.1)',
+                }}
+              >
+                {React.cloneElement(feature.icon, { sx: { fontSize: 40 } })}
+              </Box>
+              <Typography variant="h6" component="h3" sx={{ fontWeight: '600', mb: 1 }}>
+                {feature.title}
+              </Typography>
+              {Array.isArray(feature.description) ? (
+                <Box sx={{ textAlign: 'left', display: 'inline-block' }}>
+                  {feature.description.map((item) => (
+                    <Typography key={item} component="div" sx={{ mt: 0.5 }}>
+                      • {item}
+                    </Typography>
+                  ))}
+                </Box>
+              ) : (
+                <Typography>{feature.description}</Typography>
+              )}
+              {feature.subDescription && (
+                <Typography color="text.secondary" sx={{ mt: 1, fontSize: '0.875rem' }}>
+                  {feature.subDescription}
+                </Typography>
+              )}
+            </CardContent>
+          </Card>
+        ))}
       </Box>
-      <Box sx={{ backgroundColor: 'grey.200', pt: 4 }}>
-        <Timeline>
-          <TimelineItem>
-            <TimelineOppositeContent align="right" color="text.main" sx={{ m: 'auto 0' }}>
-              <Typography
-                variant="h4"
-                sx={{
-                  fontWeight: 'bold',
-                  color: 'white',
-                  px: 8,
-                  py: 2,
-                  mx: 4,
-                  backgroundColor: 'gray',
-                  borderRadius: 4,
-                  width: 'fit-content',
-                }}
-              >
-                고객
-              </Typography>
-            </TimelineOppositeContent>
-            <TimelineSeparator>
-              <TimelineConnector />
-            </TimelineSeparator>
-            <TimelineContent align="right" color="text.main">
-              <Typography
-                variant="h4"
-                sx={{
-                  fontWeight: 'bold',
-                  color: 'white',
-                  px: 8,
-                  py: 2,
-                  mx: 4,
-                  backgroundColor: 'primary.main',
-                  borderRadius: 4,
-                  width: 'fit-content',
-                }}
-              >
-                체르토
-              </Typography>
-            </TimelineContent>
-          </TimelineItem>
-          <TimelineItem>
+
+      {/* CTA Banner */}
+      <Box
+        sx={{
+          backgroundColor: '#34495e',
+          color: 'white',
+          textAlign: 'center',
+          py: 4,
+          px: 2,
+          my: 8,
+          borderRadius: 2,
+          boxShadow: 5,
+        }}
+      >
+        <Typography variant="h5" component="p" sx={{ fontWeight: 'bold' }}>
+          복잡하고 번거로운 작업은 체르토에게 맡기세요.
+        </Typography>
+        <Typography sx={{ mt: 1 }}>
+          딱 5분, 입찰자님은 꼭 필요한 일만 하세요.
+        </Typography>
+      </Box>
+
+      {/* Timeline Section */}
+      <Timeline position="alternate">
+        {timelineSteps.map((step, index) => (
+          <TimelineItem key={index}>
             <TimelineOppositeContent
+              sx={{ m: 'auto 0' }}
               align="right"
-              variant="h4"
-              color="text.main"
+              variant="body2"
+              color="text.secondary"
             >
-              <Typography variant="h6" component="span">
-                1.입찰정보 작성
-              </Typography>
-              <Typography>입찰사건을 조회하고 정보를 입력합니다.</Typography>
+              {step.actor === '고객' && (
+                <Paper
+                  elevation={3}
+                  sx={{
+                    p: 2,
+                    transition: 'box-shadow 0.3s',
+                    '&:hover': { boxShadow: 6 },
+                  }}
+                >
+                  <Typography variant="h6" component="h4" sx={{ fontWeight: 'bold' }}>
+                    {step.title}
+                  </Typography>
+                  <Typography>{step.description}</Typography>
+                </Paper>
+              )}
             </TimelineOppositeContent>
             <TimelineSeparator>
               <TimelineConnector />
-              <TimelineDot>
-                <LaptopMacIcon />
+              <TimelineDot color={step.actor === '고객' ? 'primary' : 'secondary'} variant="filled">
+                {step.icon}
               </TimelineDot>
               <TimelineConnector />
             </TimelineSeparator>
-            <TimelineContent
-              align="right"
-              variant="h4"
-              color="text.main"
-            ></TimelineContent>
-          </TimelineItem>
-          <TimelineItem>
-            <TimelineSeparator>
-              <TimelineDot color="primary">
-                <LaptopMacIcon />
-              </TimelineDot>
-              <TimelineConnector />
-            </TimelineSeparator>
-            <TimelineContent sx={{ py: '12px', px: 2 }}>
-              <Typography variant="h6" component="span">
-                2. 전자계약서 발행
-              </Typography>
-              <Typography>보안과 안전한 입찰을 위한 전자계약서 제공</Typography>
+            <TimelineContent sx={{ m: 'auto 0' }}>
+              {step.actor === '체르토' && (
+                <Paper
+                  elevation={3}
+                  sx={{
+                    p: 2,
+                    transition: 'box-shadow 0.3s',
+                    '&:hover': { boxShadow: 6 },
+                  }}
+                >
+                  <Typography variant="h6" component="h4" sx={{ fontWeight: 'bold' }}>
+                    {step.title}
+                  </Typography>
+                  <Typography>{step.description}</Typography>
+                </Paper>
+              )}
             </TimelineContent>
           </TimelineItem>
-          <TimelineItem>
-            <TimelineOppositeContent sx={{ py: '12px', px: 2 }}>
-              <Typography variant="h6" component="span">
-                3.전자서명/ 수수료 결제
-              </Typography>
-              <Typography>법적 구속력있는 대리입찰 프로세스 보장</Typography>
-            </TimelineOppositeContent>
-            <TimelineSeparator>
-              <TimelineConnector />
-              <TimelineDot color="primary" variant="outlined">
-                <LaptopMacIcon />
-              </TimelineDot>
-              <TimelineConnector />
-            </TimelineSeparator>
-            <TimelineContent sx={{ py: '12px', px: 2 }}></TimelineContent>
-          </TimelineItem>
-          <TimelineItem>
-            <TimelineSeparator>
-              <TimelineConnector />
-              <TimelineDot color="secondary">
-                <RepeatIcon />
-              </TimelineDot>
-            </TimelineSeparator>
-            <TimelineContent sx={{ py: '12px', px: 2 }}>
-              <Typography variant="h6" component="span">
-                4.서류 작성/ 전담 바토너 제공
-              </Typography>
-              <Typography>배정된 입찰 전문가가 입찰관련 서류 작성</Typography>
-            </TimelineContent>
-          </TimelineItem>
-          <TimelineItem>
-            <TimelineOppositeContent sx={{ py: '12px', px: 2 }}>
-              <Typography variant="h6" component="span">
-                5.전자본인서명확인서 업로드/보증금 입금
-              </Typography>
-              <Typography>
-                대리입찰을 위한 전자본인서명확인서 및 보증금 입금
-              </Typography>
-            </TimelineOppositeContent>
-            <TimelineSeparator>
-              <TimelineConnector sx={{ bgcolor: 'secondary.main' }} />
-              <TimelineDot color="primary" variant="outlined">
-                <LaptopMacIcon />
-              </TimelineDot>
-            </TimelineSeparator>
-            <TimelineContent sx={{ py: '12px', px: 2 }}></TimelineContent>
-          </TimelineItem>
-          <TimelineItem>
-            <TimelineOppositeContent
-              sx={{ py: '12px', px: 2 }}
-            ></TimelineOppositeContent>
-            <TimelineSeparator>
-              <TimelineConnector sx={{ bgcolor: 'secondary.main' }} />
-              <TimelineDot color="secondary">
-                <RepeatIcon />
-              </TimelineDot>
-            </TimelineSeparator>
-            <TimelineContent sx={{ py: '12px', px: 2 }}></TimelineContent>
-          </TimelineItem>
-          <TimelineItem>
-            <TimelineSeparator>
-              <TimelineConnector sx={{ bgcolor: 'secondary.main' }} />
-              <TimelineDot color="secondary">
-                <RepeatIcon />
-              </TimelineDot>
-            </TimelineSeparator>
-            <TimelineContent sx={{ py: '12px', px: 2 }}>
-              <Typography variant="h6" component="span">
-                6.입찰서류제출
-              </Typography>
-              <Typography>전문가가 대리참석하여 서류제출</Typography>
-            </TimelineContent>
-          </TimelineItem>
-          <TimelineItem>
-            <TimelineSeparator>
-              <TimelineConnector sx={{ bgcolor: 'secondary.main' }} />
-              <TimelineDot color="secondary">
-                <RepeatIcon />
-              </TimelineDot>
-            </TimelineSeparator>
-            <TimelineContent sx={{ py: '12px', px: 2 }}>
-              <Typography variant="h6" component="span">
-                7.입찰결과 통보
-              </Typography>
-              <Typography>
-                낙찰시 낙찰 영수증 전달 패찰시 보증금 반환 안내
-              </Typography>
-            </TimelineContent>
-          </TimelineItem>
-        </Timeline>
-      </Box>
-    </>
-  )
+        ))}
+         {/* Final Step */}
+         <TimelineItem>
+          <TimelineSeparator>
+            <TimelineConnector />
+            <TimelineDot
+              sx={{
+                width: 100,
+                height: 100,
+                backgroundColor: 'success.main',
+                boxShadow: '0 0 15px rgba(76, 175, 80, 0.8)',
+              }}
+            >
+              <Box sx={{ textAlign: 'center', color: 'white' }}>
+                <Gavel sx={{ fontSize: 32 }} />
+                <Typography sx={{ fontWeight: 'bold' }}>입찰 기일</Typography>
+              </Box>
+            </TimelineDot>
+            <TimelineConnector />
+          </TimelineSeparator>
+          <TimelineContent />
+        </TimelineItem>
+      </Timeline>
+    </Container>
+  );
 }
