@@ -1,10 +1,7 @@
 "use client";
 import * as React from "react";
-import AppAppBar from "@/marketing-page/components/AppAppBar";
 import Box from "@mui/material/Box";
 import Button from "@mui/material/Button";
-import Card from "@mui/material/Card";
-import CardContent from "@mui/material/CardContent";
 import CssBaseline from "@mui/material/CssBaseline";
 import Grid from "@mui/material/Grid";
 import Stack from "@mui/material/Stack";
@@ -14,170 +11,167 @@ import Stepper from "@mui/material/Stepper";
 import Typography from "@mui/material/Typography";
 import ChevronLeftRoundedIcon from "@mui/icons-material/ChevronLeftRounded";
 import ChevronRightRoundedIcon from "@mui/icons-material/ChevronRightRounded";
+
+import AppTheme from "../../shared-theme/AppTheme";
+import AppAppBar from "@/marketing-page/components/AppAppBar";
+import Footer from "@/marketing-page/components/Footer";
 import CaseFind from "@/checkout/components/CaseFind";
 import InputForm from "@/checkout/components/InputForm";
 import ContractSign from "@/checkout/components/ContractSign";
-import InfoMobile from "@/checkout/components/InfoMobile";
 import PaymentForm from "@/checkout/components/PaymentForm";
 import Review from "@/checkout/components/Review";
-import SitemarkIcon from "@/checkout/components/SitemarkIcon";
-import AppTheme from "../../shared-theme/AppTheme";
-import ColorModeIconDropdown from "../../shared-theme/ColorModeIconDropdown";
-import Footer from "@/marketing-page/components/Footer";
+import { CaseResult } from "@/interfaces/CaseResult";
+import { FormData, InitialFormData } from "@/interfaces/FormData";
 
-const steps = ["사건조회", "입찰정보작성", "전자계약", "수수료결제"];
-function getStepContent(step: number) {
-  switch (step) {
-    case 0:
-      return <PaymentForm />;
-    case 1:
-      return <InputForm />;
-    case 2:
-      return <ContractSign />;
-    case 3:
-      return <CaseFind />;
-    case 4:
-      return <Review />;
-    default:
-      throw new Error("Unknown step");
-  }
-}
-export default function Checkout() {
+const steps = [
+  "사건조회",
+  "입찰정보작성",
+  "전자계약",
+  "수수료결제",
+  "내용확인",
+];
+
+export default function ApplyBid() {
   const [activeStep, setActiveStep] = React.useState(0);
+
+  // The complete, centralized state for the entire multi-step form
+  const [formData, setFormData] = React.useState<FormData>(InitialFormData);
+
+  const handleFormChange = (
+    event: React.ChangeEvent<{ name?: string; value: unknown }>
+  ) => {
+    const { name, value, type } = event.target as HTMLInputElement;
+    if (name) {
+      setFormData((prevData) => ({
+        ...prevData,
+        [name]:
+          type === "checkbox"
+            ? (event.target as HTMLInputElement).checked
+            : value,
+      }));
+    }
+  };
+
+  const updateFormData = (field: string, value: any) => {
+    setFormData((prevData) => ({
+      ...prevData,
+      [field]: value,
+    }));
+  };
+
+  const getStepContent = (step: number) => {
+    switch (step) {
+      case 0:
+        return (
+          <CaseFind
+            caseResult={formData.caseResult}
+            setCaseResult={(result) => updateFormData("caseResult", result)}
+          />
+        );
+      case 1:
+        return (
+          <InputForm
+            formData={formData}
+            handleFormChange={handleFormChange}
+            updateFormData={updateFormData}
+          />
+        );
+      case 2:
+        return (
+          <ContractSign
+            formData={formData}
+            setSignature={(sig) => updateFormData("signature", sig)}
+          />
+        );
+      case 3:
+        return (
+          <PaymentForm
+            formData={formData}
+            handleFormChange={handleFormChange}
+          />
+        );
+      case 4:
+        // Pass the entire formData object to the Review component for display
+        return <Review formData={formData} />;
+      default:
+        throw new Error("Unknown step");
+    }
+  };
+
   const handleNext = () => {
     setActiveStep(activeStep + 1);
+    // If it's the last step, log the final data
+    if (activeStep === steps.length - 1) {
+      console.log("Submitting Final Form Data:", formData);
+      // Here you would make your final API call to the backend
+    }
   };
-  const handleBack = () => {
-    setActiveStep(activeStep - 1);
-  };
+  const handleBack = () => setActiveStep(activeStep - 1);
+
   return (
     <AppTheme>
       <CssBaseline enableColorScheme />
-
       <AppAppBar />
-      <Grid
-        size={{ sm: 12, md: 7, lg: 8 }}
-        sx={{
-          display: "flex",
-          flexDirection: "column",
-          maxWidth: "100%",
-          width: "100%",
-          backgroundColor: { xs: "transparent", sm: "background.default" },
-          alignItems: "center",
-          pt: { xs: 0, sm: 16 },
-          px: { xs: 2, sm: 10 },
-          gap: { xs: 4, md: 8 },
-        }}
-      >
-        <Box
+        <Grid
+          size={{ sm: 12, md: 7, lg: 8 }}
           sx={{
             display: "flex",
-            justifyContent: { sm: "space-between", md: "flex-end" },
-            alignItems: "center",
+            flexDirection: "column",
+            maxWidth: "100%",
             width: "100%",
-            maxWidth: { sm: "100%", md: 800 },
+            backgroundColor: { xs: "transparent", sm: "background.default" },
+            alignItems: "center",
+            pt: { xs: 0, sm: 16 },
+            px: { xs: 2, sm: 10 },
+            gap: { xs: 4, md: 8 },
           }}
         >
           <Box
             sx={{
-              display: { xs: "none", md: "flex" },
-              flexDirection: "column",
-              justifyContent: "space-between",
-              alignItems: "flex-end",
-              flexGrow: 1,
+              display: "flex",
+              justifyContent: { sm: "space-between", md: "flex-end" },
+              alignItems: "center",
+              width: "100%",
+              maxWidth: { sm: "100%", md: 800 },
             }}
           >
             <Stepper
               id="desktop-stepper"
               activeStep={activeStep}
-              sx={{ width: "100%", height: 40 }}
+              sx={{
+                width: "100%",
+                height: 40,
+                display: { xs: "none", md: "flex" },
+              }}
             >
               {steps.map((label) => (
-                <Step
-                  sx={{ ":first-child": { pl: 0 }, ":last-child": { pr: 0 } }}
-                  key={label}
-                >
+                <Step key={label}>
                   <StepLabel>{label}</StepLabel>
                 </Step>
               ))}
             </Stepper>
           </Box>
-        </Box>
-        <Card sx={{ display: { xs: "flex", md: "none" }, width: "100%" }}>
-          <CardContent
+
+          <Box
             sx={{
               display: "flex",
+              flexDirection: "column",
+              flexGrow: 1,
               width: "100%",
-              alignItems: "center",
-              justifyContent: "space-between",
+              maxWidth: { sm: "100%", md: 800 },
+              gap: { xs: 5, md: "none" },
             }}
           >
-            <div>
-              <Typography variant="subtitle2" gutterBottom>
-                Selected products
-              </Typography>
-              <Typography variant="body1">
-                {activeStep >= 2 ? "$144.97" : "$134.98"}
-              </Typography>
-            </div>
-            <InfoMobile totalPrice={activeStep >= 2 ? "$144.97" : "$134.98"} />
-          </CardContent>
-        </Card>
-        <Box
-          sx={{
-            display: "flex",
-            flexDirection: "column",
-            flexGrow: 1,
-            width: "100%",
-            maxWidth: { sm: "100%", md: 800 },
-            gap: { xs: 5, md: "none" },
-          }}
-        >
-          <Stepper
-            id="mobile-stepper"
-            activeStep={activeStep}
-            alternativeLabel
-            sx={{ display: { sm: "flex", md: "none" } }}
-          >
-            {steps.map((label) => (
-              <Step
-                sx={{
-                  ":first-child": { pl: 0 },
-                  ":last-child": { pr: 0 },
-                  "& .MuiStepConnector-root": { top: { xs: 6, sm: 12 } },
-                }}
-                key={label}
-              >
-                <StepLabel
-                  sx={{ ".MuiStepLabel-labelContainer": { maxWidth: "70px" } }}
-                >
-                  {label}
-                </StepLabel>
-              </Step>
-            ))}
-          </Stepper>
-          {activeStep === steps.length ? (
-            <Stack spacing={2} useFlexGap>
-              <Typography variant="h1">📦</Typography>
-              <Typography variant="h5">Thank you for your order!</Typography>
-              <Typography variant="body1" sx={{ color: "text.secondary" }}>
-                Your order number is
-                <strong>&nbsp;#140396</strong>. We have emailed your order
-                confirmation and will update you once its shipped.
-              </Typography>
-              <Button
-                variant="contained"
-                sx={{ alignSelf: "start", width: { xs: "100%", sm: "auto" } }}
-              >
-                Go to my orders
-              </Button>
-            </Stack>
-          ) : (
-            <React.Fragment>
-              {getStepContent(activeStep)}
-              <Box
-                sx={[
-                  {
+            {activeStep === steps.length ? (
+              <Stack spacing={2} useFlexGap>
+                <Typography variant="h1">📦</Typography>
+                <Typography variant="h5">신청해주셔서 감사합니다!</Typography>
+              </Stack>
+            ) : (
+              <React.Fragment>
+                {getStepContent(activeStep)}
+                <Box
+                  sx={{
                     display: "flex",
                     flexDirection: { xs: "column-reverse", sm: "row" },
                     alignItems: "end",
@@ -186,45 +180,31 @@ export default function Checkout() {
                     pb: { xs: 12, sm: 0 },
                     mt: { xs: 2, sm: 0 },
                     mb: "60px",
-                  },
-                  activeStep !== 0
-                    ? { justifyContent: "space-between" }
-                    : { justifyContent: "flex-end" },
-                ]}
-              >
-                {activeStep !== 0 && (
-                  <Button
-                    startIcon={<ChevronLeftRoundedIcon />}
-                    onClick={handleBack}
-                    variant="text"
-                    sx={{ display: { xs: "none", sm: "flex" } }}
-                  >
-                    Previous
-                  </Button>
-                )}
-                {activeStep !== 0 && (
-                  <Button
-                    startIcon={<ChevronLeftRoundedIcon />}
-                    onClick={handleBack}
-                    variant="outlined"
-                    fullWidth
-                    sx={{ display: { xs: "flex", sm: "none" } }}
-                  >
-                    Previous
-                  </Button>
-                )}
-                <Button
-                  variant="contained"
-                  endIcon={<ChevronRightRoundedIcon />}
-                  onClick={handleNext}
-                  sx={{ width: { xs: "100%", sm: "fit-content" } }}
+                    justifyContent:
+                      activeStep !== 0 ? "space-between" : "flex-end",
+                  }}
                 >
-                  {activeStep === steps.length - 1 ? "확인" : "다음"}
-                </Button>
-              </Box>
-            </React.Fragment>
-          )}
-        </Box>
+                  {activeStep !== 0 && (
+                    <Button
+                      startIcon={<ChevronLeftRoundedIcon />}
+                      onClick={handleBack}
+                      variant="text"
+                    >
+                      Previous
+                    </Button>
+                  )}
+                  <Button
+                    variant="contained"
+                    endIcon={<ChevronRightRoundedIcon />}
+                    onClick={handleNext}
+                    sx={{ width: { xs: "100%", sm: "fit-content" } }}
+                  >
+                    {activeStep === steps.length - 1 ? "제출하기" : "다음"}
+                  </Button>
+                </Box>
+              </React.Fragment>
+            )}
+          </Box>
       </Grid>
       <Footer />
     </AppTheme>

@@ -1,4 +1,4 @@
-import { useState } from 'react'
+import { useState } from "react";
 import {
   Box,
   Button,
@@ -18,50 +18,61 @@ import {
   Accordion,
   AccordionSummary,
   AccordionDetails,
-} from '@mui/material'
-import CheckCircleIcon from '@mui/icons-material/CheckCircle'
-import CloseIcon from '@mui/icons-material/Close'
-import ExpandMoreIcon from '@mui/icons-material/ExpandMore'
+} from "@mui/material";
+import CheckCircleIcon from "@mui/icons-material/CheckCircle";
+import CloseIcon from "@mui/icons-material/Close";
+import ExpandMoreIcon from "@mui/icons-material/ExpandMore";
 
-// Style for the modal
+// 1. Define the props interface for type safety.
+interface PaymentFormProps {
+  formData: {
+    termsChecked: boolean;
+    pointsUsed: number;
+  };
+  handleFormChange: (event: React.ChangeEvent<HTMLInputElement>) => void;
+}
+
 const modalStyle = {
-  position: 'absolute' as 'absolute',
-  top: '50%',
-  left: '50%',
-  transform: 'translate(-50%, -50%)',
-  width: '90%',
+  position: "absolute" as "absolute",
+  top: "50%",
+  left: "50%",
+  transform: "translate(-50%, -50%)",
+  width: "90%",
   maxWidth: 500,
-  bgcolor: 'background.paper',
+  bgcolor: "background.paper",
   boxShadow: 24,
   borderRadius: 2,
   p: 3,
-}
+};
 
-const PaymentForm = () => {
-  const [termsChecked, setTermsChecked] = useState(false)
-  const [openConfirmModal, setOpenConfirmModal] = useState(false)
-  const [openRefundModal, setOpenRefundModal] = useState(false)
-  const [openPaymentModal, setOpenPaymentModal] = useState(false)
+// 2. The component now accepts props.
+export default function PaymentForm({
+  formData,
+  handleFormChange,
+}: PaymentFormProps) {
+  const [openConfirmModal, setOpenConfirmModal] = useState(false);
+  const [openRefundModal, setOpenRefundModal] = useState(false);
+  const [openPaymentModal, setOpenPaymentModal] = useState(false);
 
   const handleMainPayClick = () => {
     // Here you would typically validate the form (e.g., termsChecked)
-    if (!termsChecked) {
-      alert('약관에 동의해주세요.')
-      return
+    if (!formData.termsChecked) {
+      alert("약관에 동의해주세요.");
+      return;
     }
-    setOpenConfirmModal(true)
-  }
+    setOpenConfirmModal(true);
+  };
 
   const handleContinueFromConfirm = () => {
-    setOpenConfirmModal(false)
-    setOpenPaymentModal(true)
-  }
+    setOpenConfirmModal(false);
+    setOpenPaymentModal(true);
+  };
 
   return (
-    <Container maxWidth='sm'>
-      <Paper elevation={0} sx={{ p: 3, mt: 4, backgroundColor: '#f7f8fa' }}>
+    <Container maxWidth="sm">
+      <Paper elevation={0} sx={{ p: 3, mt: 4, backgroundColor: "#f7f8fa" }}>
         {/* Fee Payment Section */}
-        <Typography variant='h5' sx={{ fontWeight: 'bold', mb: 2 }}>
+        <Typography variant="h5" sx={{ fontWeight: "bold", mb: 2 }}>
           수수료 결제
         </Typography>
         <Paper
@@ -70,24 +81,24 @@ const PaymentForm = () => {
             p: 3,
             mb: 2,
             borderRadius: 4,
-            background: 'linear-gradient(to right bottom, #4a6a8a, #3c5d7a)',
-            color: 'white',
+            background: "linear-gradient(to right bottom, #4a6a8a, #3c5d7a)",
+            color: "white",
           }}
         >
-          <Typography variant='h5' sx={{ my: 1, fontWeight: 'bold' }}>
+          <Typography variant="h5" sx={{ my: 1, fontWeight: "bold" }}>
             대리입찰 수수료
           </Typography>
-          <Typography variant='h4' sx={{ fontWeight: 'bold' }}>
+          <Typography variant="h4" sx={{ fontWeight: "bold" }}>
             100,000원
           </Typography>
         </Paper>
         <Typography
-          variant='body2'
+          variant="body2"
           sx={{
-            backgroundColor: '#fffbe6',
+            backgroundColor: "#fffbe6",
             p: 1.5,
             borderRadius: 1,
-            textAlign: 'center',
+            textAlign: "center",
           }}
         >
           📢 대리입찰을 위해 <strong>전자본인서명확인서</strong> 발급등록이
@@ -97,42 +108,42 @@ const PaymentForm = () => {
         </Typography>
 
         {/* Included Services Section */}
-        <Typography variant='h5' sx={{ fontWeight: 'bold', mt: 4, mb: 1 }}>
+        <Typography variant="h5" sx={{ fontWeight: "bold", mt: 4, mb: 1 }}>
           서비스 포함 내역
         </Typography>
         <List dense>
           <ListItem>
             <ListItemIcon sx={{ minWidth: 32 }}>
-              <CheckCircleIcon color='primary' />
+              <CheckCircleIcon color="primary" />
             </ListItemIcon>
-            <ListItemText primary='입찰관련 서류작성' />
+            <ListItemText primary="입찰관련 서류작성" />
           </ListItem>
           <ListItem>
             <ListItemIcon sx={{ minWidth: 32 }}>
-              <CheckCircleIcon color='primary' />
+              <CheckCircleIcon color="primary" />
             </ListItemIcon>
-            <ListItemText primary='대리 입찰참여' />
+            <ListItemText primary="대리 입찰참여" />
           </ListItem>
           <ListItem>
             <ListItemIcon sx={{ minWidth: 32 }}>
-              <CheckCircleIcon color='primary' />
+              <CheckCircleIcon color="primary" />
             </ListItemIcon>
-            <ListItemText primary='입찰 결과 안내' />
+            <ListItemText primary="입찰 결과 안내" />
           </ListItem>
         </List>
 
         {/* Terms and Refund Section */}
-        <Typography variant='h5' sx={{ fontWeight: 'bold', mt: 4, mb: 1 }}>
+        <Typography variant="h5" sx={{ fontWeight: "bold", mt: 4, mb: 1 }}>
           결제약관 및 환불 취소 규정 확인
         </Typography>
         <Paper
-          variant='outlined'
+          variant="outlined"
           sx={{
             height: 150,
-            overflow: 'auto',
+            overflow: "auto",
             p: 2,
             mb: 1,
-            fontSize: '0.8rem',
+            fontSize: "0.8rem",
           }}
         >
           1. 경매 일정 변경시 처리방법
@@ -143,18 +154,18 @@ const PaymentForm = () => {
           신청취소시 환불규정에 따라 환불됩니다.
           {/* Add more terms here */}
         </Paper>
-        <Box display='flex' alignItems='center'>
+        <Box display="flex" alignItems="center">
           <Checkbox
-            checked={termsChecked}
-            onChange={(e) => setTermsChecked(e.target.checked)}
+            checked={formData.termsChecked}
+            onChange={handleFormChange}
           />
-          <Typography variant='body2'>
+          <Typography variant="body2">
             위 약관을 확인하였으며, 회원 본인은 약관 및 결제에 동의합니다.
           </Typography>
           <Button
-            size='small'
+            size="small"
             onClick={() => setOpenRefundModal(true)}
-            sx={{ ml: 'auto' }}
+            sx={{ ml: "auto" }}
           >
             환불정책
           </Button>
@@ -163,8 +174,8 @@ const PaymentForm = () => {
         {/* Payment Button */}
         <Button
           fullWidth
-          variant='contained'
-          size='large'
+          variant="contained"
+          size="large"
           sx={{ mt: 4, py: 1.5 }}
           onClick={handleMainPayClick}
         >
@@ -178,9 +189,9 @@ const PaymentForm = () => {
       <Modal open={openConfirmModal} onClose={() => setOpenConfirmModal(false)}>
         <Box sx={modalStyle}>
           <Typography
-            variant='h6'
-            component='h2'
-            sx={{ fontWeight: 'bold', textAlign: 'center' }}
+            variant="h6"
+            component="h2"
+            sx={{ fontWeight: "bold", textAlign: "center" }}
           >
             대리입찰 서비스를 진행하기 위해서는
             <br />
@@ -189,9 +200,9 @@ const PaymentForm = () => {
           <Typography
             sx={{
               mt: 2,
-              textAlign: 'center',
-              fontSize: '0.9rem',
-              color: 'text.secondary',
+              textAlign: "center",
+              fontSize: "0.9rem",
+              color: "text.secondary",
             }}
           >
             이용료 결제 후, 수임인(대리인) 정보를 확인하고 간단하게 발급할 수
@@ -202,8 +213,8 @@ const PaymentForm = () => {
           </Typography>
           <Button
             fullWidth
-            variant='contained'
-            size='large'
+            variant="contained"
+            size="large"
             sx={{ mt: 3 }}
             onClick={handleContinueFromConfirm}
           >
@@ -217,18 +228,18 @@ const PaymentForm = () => {
         <Box sx={{ ...modalStyle, maxWidth: 600 }}>
           <IconButton
             onClick={() => setOpenRefundModal(false)}
-            sx={{ position: 'absolute', top: 8, right: 8 }}
+            sx={{ position: "absolute", top: 8, right: 8 }}
           >
             <CloseIcon />
           </IconButton>
           <Typography
-            variant='h5'
-            component='h2'
-            sx={{ fontWeight: 'bold', textAlign: 'center' }}
+            variant="h5"
+            component="h2"
+            sx={{ fontWeight: "bold", textAlign: "center" }}
           >
             환불 정책 안내
           </Typography>
-          <Typography variant='body1' sx={{ mt: 2, textAlign: 'center' }}>
+          <Typography variant="body1" sx={{ mt: 2, textAlign: "center" }}>
             체르토는 입찰에 어려움이 있으신 분들을
             <br />
             전문가가 도와드리는 서비스입니다.
@@ -239,7 +250,7 @@ const PaymentForm = () => {
               <Typography>의뢰인의 일정변경 확인 및 고지 의무</Typography>
             </AccordionSummary>
             <AccordionDetails>
-              <Typography variant='body2'>
+              <Typography variant="body2">
                 세부적인 환불 정책 내용이 여기에 들어갑니다.
               </Typography>
             </AccordionDetails>
@@ -249,29 +260,22 @@ const PaymentForm = () => {
               <Typography>환불규정 자세히보기</Typography>
             </AccordionSummary>
             <AccordionDetails>
-              <Typography variant='body2'>
+              <Typography variant="body2">
                 추가적인 환불 규정 세부사항입니다.
               </Typography>
             </AccordionDetails>
           </Accordion>
 
-          <Box sx={{ mt: 3, display: 'flex', gap: 1 }}>
+          <Box sx={{ mt: 3, display: "flex", gap: 1 }}>
             <Button
               fullWidth
-              variant='outlined'
-              color='secondary'
+              variant="outlined"
+              color="secondary"
               onClick={() => setOpenRefundModal(false)}
             >
               동의하지 않습니다
             </Button>
-            <Button
-              fullWidth
-              variant='contained'
-              onClick={() => {
-                setTermsChecked(true)
-                setOpenRefundModal(false)
-              }}
-            >
+            <Button fullWidth variant="contained" onClick={handleMainPayClick}>
               환불 정책에 동의합니다
             </Button>
           </Box>
@@ -281,20 +285,20 @@ const PaymentForm = () => {
       {/* 3. Payment Method Modal */}
       <Modal open={openPaymentModal} onClose={() => setOpenPaymentModal(false)}>
         <Box sx={modalStyle}>
-          <Typography variant='h5' sx={{ fontWeight: 'bold', mb: 3 }}>
+          <Typography variant="h5" sx={{ fontWeight: "bold", mb: 3 }}>
             결제하기
           </Typography>
-          <Button fullWidth variant='outlined' size='large' sx={{ mb: 1 }}>
+          <Button fullWidth variant="outlined" size="large" sx={{ mb: 1 }}>
             신용·체크카드
           </Button>
           <Grid container spacing={1}>
             <Grid size={6}>
-              <Button fullWidth variant='outlined' size='large'>
+              <Button fullWidth variant="outlined" size="large">
                 toss pay
               </Button>
             </Grid>
             <Grid size={6}>
-              <Button fullWidth variant='outlined' size='large'>
+              <Button fullWidth variant="outlined" size="large">
                 계좌이체
               </Button>
             </Grid>
@@ -303,19 +307,19 @@ const PaymentForm = () => {
             sx={{
               my: 2,
               p: 1.5,
-              backgroundColor: '#f0f5ff',
+              backgroundColor: "#f0f5ff",
               borderRadius: 1,
-              textAlign: 'center',
+              textAlign: "center",
             }}
           >
-            <Typography variant='body2' color='primary'>
+            <Typography variant="body2" color="primary">
               S 신한카드 최대 5개월 무이자 할부
             </Typography>
           </Box>
           <TextField
             select
             fullWidth
-            label='카드사 선택'
+            label="카드사 선택"
             SelectProps={{ native: true }}
             sx={{ mb: 1 }}
           >
@@ -324,19 +328,17 @@ const PaymentForm = () => {
             <option>국민카드</option>
             <option>우리카드</option>
           </TextField>
-          <Box display='flex' alignItems='center' my={2}>
+          <Box display="flex" alignItems="center" my={2}>
             <Checkbox defaultChecked />
-            <Typography variant='body2'>
+            <Typography variant="body2">
               [필수] 결제 서비스 이용 약관, 개인정보 처리 동의
             </Typography>
           </Box>
-          <Button fullWidth variant='contained' size='large'>
+          <Button fullWidth variant="contained" size="large">
             결제하기
           </Button>
         </Box>
       </Modal>
     </Container>
-  )
+  );
 }
-
-export default PaymentForm
