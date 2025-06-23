@@ -87,7 +87,7 @@ export default function AppAppBar() {
               alignItems: "center",
             }}
           >
-            <Button href="/sign-in" color="primary" variant="text" size="small">
+            <Button href="/sign/in" color="primary" variant="text" size="small">
               로그인/회원가입
             </Button>
             <Button href="/apply-bid" color="primary" variant="contained" size="small">
