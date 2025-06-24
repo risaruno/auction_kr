@@ -14,17 +14,11 @@ export default function Hero() {
         width: '100%',
         backgroundRepeat: 'no-repeat',
         backgroundImage: `
-          linear-gradient(rgba(255, 255, 255, 0.7), rgba(255, 255, 255, 0.7)),
+          linear-gradient(to right, rgba(255, 255, 255, 1), rgba(255, 255, 255, 0.8), rgba(255, 255, 255, 0)),
           url('/hero-background.jpg')
         `,
         backgroundSize: 'cover',
         backgroundPosition: 'center',
-        ...theme.applyStyles('dark', {
-          backgroundImage: `
-            linear-gradient(rgba(0, 0, 0, 0.6), rgba(0, 0, 0, 0.6)),
-            url('/hero-background.jpg')
-          `,
-        }),
       })}
     >
       <Container
@@ -32,9 +26,9 @@ export default function Hero() {
           display: 'flex',
           flexDirection: 'column',
           alignItems: 'flex-start',
-          pt: { xs: 14, sm: 20 },
-          pb: { xs: 8, sm: 12 },
-          px: { xs: 4, sm: 6 },
+          pt: { xs: 18, sm: 24 },
+          pb: { xs: 12, sm: 16 },
+          px: { xs: 4, sm: 6 }, 
         }}
       >
         <Stack
@@ -113,17 +107,6 @@ export default function Hero() {
               전문가 서비스 신청
             </Button>
           </Stack>
-          <Typography
-            variant='caption'
-            color='text.secondary'
-            sx={{ textAlign: 'left' }}
-          >
-            상담 신청시 &quot;개인정보 처리방침&quot;에 동의하는 것으로
-            간주합니다.&nbsp;
-            <Link href='#' color='primary'>
-              자세히 보기
-            </Link>
-          </Typography>
         </Stack>
       </Container>
     </Box>
