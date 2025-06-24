@@ -19,7 +19,6 @@ export default function Home() {
       <AppAppBar />
       <Hero />
       <div>
-        {/* <LogoCollection /> */}
         <Features />
         <Divider />
         <Highlights />

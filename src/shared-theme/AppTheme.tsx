@@ -1,39 +1,31 @@
-import * as React from 'react';
-import { ThemeProvider, createTheme } from '@mui/material/styles';
-import type { ThemeOptions } from '@mui/material/styles';
-import { inputsCustomizations } from './customizations/inputs';
-import { dataDisplayCustomizations } from './customizations/dataDisplay';
-import { feedbackCustomizations } from './customizations/feedback';
-import { navigationCustomizations } from './customizations/navigation';
-import { surfacesCustomizations } from './customizations/surfaces';
-import { colorSchemes, typography, shadows, shape } from './themePrimitives';
-
+import * as React from 'react'
+import { ThemeProvider, createTheme } from '@mui/material/styles'
+import type { ThemeOptions } from '@mui/material/styles'
+import { inputsCustomizations } from './customizations/inputs'
+import { dataDisplayCustomizations } from './customizations/dataDisplay'
+import { feedbackCustomizations } from './customizations/feedback'
+import { navigationCustomizations } from './customizations/navigation'
+import { surfacesCustomizations } from './customizations/surfaces'
+import { colorSchemes, typography, shadows, shape } from './themePrimitives'
 interface AppThemeProps {
-  children: React.ReactNode;
-  /**
-   * This is for the docs site. You can ignore it or remove it.
-   */
-  disableCustomTheme?: boolean;
-  themeComponents?: ThemeOptions['components'];
+  children: React.ReactNode
+  disableCustomTheme?: boolean
+  themeComponents?: ThemeOptions['components']
 }
 
 export default function AppTheme(props: AppThemeProps) {
-  const { children, disableCustomTheme, themeComponents } = props;
+  const { children, disableCustomTheme, themeComponents } = props
   const theme = React.useMemo(() => {
     return disableCustomTheme
       ? {}
       : createTheme({
-          palette: {
-            mode: 'light',
-            // mode: 'dark',
-            // mode: 'system', // system mode
-          },
-          // For more details about CSS variables configuration, see https://mui.com/material-ui/customization/css-theme-variables/configuration/
+          // The palette object is no longer needed here because
+          // `colorSchemes` is handling it.
           cssVariables: {
             colorSchemeSelector: 'data-mui-color-scheme',
             cssVarPrefix: 'template',
           },
-          colorSchemes, // Recently added in v6 for building light & dark mode app, see https://mui.com/material-ui/customization/palette/#color-schemes
+          colorSchemes, // Your new green theme is passed in here
           typography,
           shadows,
           shape,
@@ -45,17 +37,20 @@ export default function AppTheme(props: AppThemeProps) {
             ...surfacesCustomizations,
             ...themeComponents,
           },
-        });
-  }, [disableCustomTheme, themeComponents]);
+        })
+  }, [disableCustomTheme, themeComponents])
+
+  // This correctly ensures only light mode is ever used.
   React.useEffect(() => {
-    document.documentElement.setAttribute('data-mui-color-scheme', 'light');
-  }, []);
+    document.documentElement.setAttribute('data-mui-color-scheme', 'light')
+  }, [])
+
   if (disableCustomTheme) {
-    return <React.Fragment>{children}</React.Fragment>;
+    return <React.Fragment>{children}</React.Fragment>
   }
   return (
     <ThemeProvider theme={theme} disableTransitionOnChange>
       {children}
     </ThemeProvider>
-  );
+  )
 }

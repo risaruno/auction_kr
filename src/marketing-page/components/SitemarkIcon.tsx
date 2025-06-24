@@ -1,25 +1,34 @@
-import * as React from 'react';
-import { Typography } from '@mui/material';
+import * as React from 'react'
+import { Typography } from '@mui/material'
+import Link from 'next/link';
 
 export default function SitemarkIcon() {
   return (
-    <Typography
-      variant="h5"
-      component="a"
-      href="/"
-      sx={(theme) => ({
-        display: "flex",
-        alignItems: "center",
-        fontWeight: 700,
-        textDecoration: "none",
-        color: 'primary.main',
-        margin: "0 8px",
-        ...theme.applyStyles('dark', {
-          color: 'primary.light',
-        }),
-      })}
-    >
-      Certo
-    </Typography>
-  );
+    <>
+      <Link
+        href='/'
+        passHref
+        style={{ textDecoration: 'none', color: 'inherit' }}
+      >
+        <Typography
+          variant='h5'
+          component='a'
+          href='/'
+          sx={(theme) => ({
+            display: 'flex',
+            alignItems: 'center',
+            fontWeight: 700,
+            textDecoration: 'none',
+            color: 'primary.main',
+            margin: '0 8px',
+            ...theme.applyStyles('dark', {
+              color: 'primary.light',
+            }),
+          })}
+        >
+          Certo
+        </Typography>
+      </Link>
+    </>
+  )
 }
