@@ -1,48 +1,39 @@
 'use client'
-import React, { useState } from 'react'
+import React, { useState, useEffect } from 'react' // Import useEffect
 import {
   Box,
-  Drawer,
-  AppBar,
-  Toolbar,
-  Typography,
-  List,
-  ListItem,
-  ListItemButton,
-  ListItemIcon,
-  ListItemText,
   CssBaseline,
+  Toolbar,
   Card,
   CardContent,
+  Typography,
   Button,
   Table,
-  TableBody,
-  TableCell,
   TableContainer,
+  Paper,
   TableHead,
   TableRow,
-  Paper,
+  TableCell,
+  TableBody,
+  Avatar,
+  Chip,
   IconButton,
   Modal,
+  Grid,
   TextField,
-  Select,
-  MenuItem,
-  Chip,
-  OutlinedInput,
   FormControl,
   InputLabel,
+  Select,
+  MenuItem,
+  OutlinedInput,
   SelectChangeEvent,
   Dialog,
-  DialogActions,
+  DialogTitle,
   DialogContent,
   DialogContentText,
-  DialogTitle,
-  Avatar,
-  Grid, // Make sure Grid is imported if not already
+  DialogActions,
 } from '@mui/material'
 import {
-  Dashboard as DashboardIcon,
-  People as PeopleIcon,
   Edit as EditIcon,
   Delete as DeleteIcon,
   AddCircle as AddCircleIcon,
@@ -50,27 +41,15 @@ import {
 } from '@mui/icons-material'
 import AdminLayout from '../AdminLayout'
 
-// --- Sample Data ---
-const initialExperts = [
-  {
-    id: 1,
-    name: '원유호 공인중개사',
-    location: '인천',
-    description:
-      '경매 경력 10년 낙찰횟수 다수. 권리분석 심가 / 다가구 / 법정지상권/유치권/지분경매 등',
-    photo: '',
-    services: ['권리분석', '임장', '예상낙찰가산정'],
-  },
-  {
-    id: 2,
-    name: '오은석 공인중개사',
-    location: '광주',
-    description:
-      '개업공인중개사로서 고객의 니즈를 이해하고 니즈에 맞는 결과를 만들어왔습니다.',
-    photo: '',
-    services: ['권리분석', '사건기록열람', '부동산 관리'],
-  },
-]
+// In a real app, you might want to create a proper interface file for this
+interface Expert {
+  id: number
+  name: string
+  location: string
+  description: string
+  photo?: string
+  services: string[]
+}
 
 const allLocations = [
   '서울',
@@ -114,26 +93,42 @@ const modalStyle = {
 
 // --- Main Admin Panel Component ---
 const ExpertsContent = () => {
-  const [experts, setExperts] = useState(initialExperts)
+  const [experts, setExperts] = useState<Expert[]>([])
+  const [loading, setLoading] = useState(true)
   const [openFormModal, setOpenFormModal] = useState(false)
   const [openDeleteDialog, setOpenDeleteDialog] = useState(false)
-  const [selectedExpert, setSelectedExpert] = useState<any>(null)
+  const [selectedExpert, setSelectedExpert] = useState<Partial<Expert> | null>(
+    null
+  )
   const [isEditing, setIsEditing] = useState(false)
 
-  // --- Handlers for Form Modal ---
+  // --- Fetch Experts on Load ---
+  const fetchExperts = async () => {
+    setLoading(true)
+    try {
+      const response = await fetch('/api/experts')
+      if (!response.ok) throw new Error('Failed to fetch experts')
+      const data = await response.json()
+      setExperts(data)
+    } catch (error) {
+      console.error(error)
+    } finally {
+      setLoading(false)
+    }
+  }
+
+  useEffect(() => {
+    fetchExperts()
+  }, [])
+
+  // --- Modal & Form Handlers ---
   const handleOpenCreateModal = () => {
     setIsEditing(false)
-    setSelectedExpert({
-      name: '',
-      location: '',
-      description: '',
-      photo: '',
-      services: [],
-    })
+    setSelectedExpert({ name: '', location: '', description: '', services: [] })
     setOpenFormModal(true)
   }
 
-  const handleOpenEditModal = (expert: any) => {
+  const handleOpenEditModal = (expert: Expert) => {
     setIsEditing(true)
     setSelectedExpert(expert)
     setOpenFormModal(true)
@@ -146,37 +141,66 @@ const ExpertsContent = () => {
 
   const handleFormChange = (event: React.ChangeEvent<HTMLInputElement>) => {
     const { name, value } = event.target
-    setSelectedExpert((prev: any) => ({ ...prev, [name]: value }))
+    setSelectedExpert((prev) => ({ ...prev, [name]: value }))
   }
 
   const handleMultiSelectChange = (event: SelectChangeEvent<string[]>) => {
     const {
       target: { value },
     } = event
-    setSelectedExpert((prev: any) => ({
+    setSelectedExpert((prev) => ({
       ...prev,
       services: typeof value === 'string' ? value.split(',') : value,
     }))
   }
 
-  const handleSaveExpert = () => {
-    if (isEditing) {
-      // Update logic
-      setExperts(
-        experts.map((exp) =>
-          exp.id === selectedExpert.id ? selectedExpert : exp
-        )
-      )
-    } else {
-      // Create logic
-      const newExpert = { ...selectedExpert, id: Date.now() } // Simple ID generation
-      setExperts([...experts, newExpert])
+  // --- CRUD API Handlers ---
+  const handleSaveExpert = async () => {
+    if (!selectedExpert) return
+
+    const method = isEditing ? 'PUT' : 'POST'
+    const body = JSON.stringify(selectedExpert)
+
+    try {
+      const response = await fetch('/api/experts', {
+        method,
+        headers: { 'Content-Type': 'application/json' },
+        body,
+      })
+
+      if (!response.ok) throw new Error('Failed to save expert')
+
+      // Refresh data from the server to get the latest state
+      await fetchExperts()
+    } catch (error) {
+      console.error(error)
+    } finally {
+      handleCloseFormModal()
     }
-    handleCloseFormModal()
   }
 
-  // --- Handlers for Delete Dialog ---
-  const handleOpenDeleteDialog = (expert: any) => {
+  const handleDeleteExpert = async () => {
+    if (!selectedExpert || !selectedExpert.id) return
+
+    try {
+      const response = await fetch('/api/experts', {
+        method: 'DELETE',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ id: selectedExpert.id }),
+      })
+
+      if (!response.ok) throw new Error('Failed to delete expert')
+
+      // Update UI optimistically or refetch
+      setExperts((prev) => prev.filter((exp) => exp.id !== selectedExpert.id))
+    } catch (error) {
+      console.error(error)
+    } finally {
+      handleCloseDeleteDialog()
+    }
+  }
+
+  const handleOpenDeleteDialog = (expert: Expert) => {
     setSelectedExpert(expert)
     setOpenDeleteDialog(true)
   }
@@ -186,17 +210,11 @@ const ExpertsContent = () => {
     setSelectedExpert(null)
   }
 
-  const handleDeleteExpert = () => {
-    setExperts(experts.filter((exp) => exp.id !== selectedExpert.id))
-    handleCloseDeleteDialog()
-  }
-
   return (
     <Box sx={{ display: 'flex' }}>
       <CssBaseline />
       <Box component='main' sx={{ flexGrow: 1, p: 3 }}>
         <Toolbar />
-        {/* --- Main Content --- */}
         <Card>
           <CardContent>
             <Box
@@ -219,9 +237,8 @@ const ExpertsContent = () => {
               </Button>
             </Box>
 
-            {/* View (Read) - Data Table */}
             <TableContainer component={Paper} variant='outlined'>
-              <Table sx={{ minWidth: 650 }} aria-label='experts table'>
+              <Table>
                 <TableHead sx={{ backgroundColor: 'grey.100' }}>
                   <TableRow>
                     <TableCell>Name</TableCell>
@@ -231,52 +248,61 @@ const ExpertsContent = () => {
                   </TableRow>
                 </TableHead>
                 <TableBody>
-                  {experts.map((expert) => (
-                    <TableRow
-                      key={expert.id}
-                      sx={{ '&:last-child td, &:last-child th': { border: 0 } }}
-                    >
-                      <TableCell component='th' scope='row'>
-                        <Box sx={{ display: 'flex', alignItems: 'center' }}>
-                          <Avatar
-                            sx={{
-                              width: 40,
-                              height: 40,
-                              mr: 2,
-                              bgcolor: 'primary.light',
-                            }}
-                          >
-                            {expert.name.charAt(0)}
-                          </Avatar>
-                          {expert.name}
-                        </Box>
-                      </TableCell>
-                      <TableCell>{expert.location}</TableCell>
-                      <TableCell>
-                        <Box
-                          sx={{ display: 'flex', flexWrap: 'wrap', gap: 0.5 }}
-                        >
-                          {expert.services.map((service) => (
-                            <Chip key={service} label={service} size='small' />
-                          ))}
-                        </Box>
-                      </TableCell>
-                      <TableCell align='right'>
-                        <IconButton
-                          size='small'
-                          onClick={() => handleOpenEditModal(expert)}
-                        >
-                          <EditIcon />
-                        </IconButton>
-                        <IconButton
-                          size='small'
-                          onClick={() => handleOpenDeleteDialog(expert)}
-                        >
-                          <DeleteIcon />
-                        </IconButton>
+                  {loading ? (
+                    <TableRow>
+                      <TableCell colSpan={4} align='center'>
+                        Loading...
                       </TableCell>
                     </TableRow>
-                  ))}
+                  ) : (
+                    experts.map((expert) => (
+                      <TableRow key={expert.id}>
+                        <TableCell>
+                          <Box sx={{ display: 'flex', alignItems: 'center' }}>
+                            <Avatar
+                              sx={{
+                                width: 40,
+                                height: 40,
+                                mr: 2,
+                                bgcolor: 'primary.light',
+                              }}
+                            >
+                              {expert.name.charAt(0)}
+                            </Avatar>
+                            {expert.name}
+                          </Box>
+                        </TableCell>
+                        <TableCell>{expert.location}</TableCell>
+                        <TableCell>
+                          <Box
+                            sx={{ display: 'flex', flexWrap: 'wrap', gap: 0.5 }}
+                          >
+                            {expert.services.map((service) => (
+                              <Chip
+                                key={service}
+                                label={service}
+                                size='small'
+                              />
+                            ))}
+                          </Box>
+                        </TableCell>
+                        <TableCell align='right'>
+                          <IconButton
+                            size='small'
+                            onClick={() => handleOpenEditModal(expert)}
+                          >
+                            <EditIcon />
+                          </IconButton>
+                          <IconButton
+                            size='small'
+                            onClick={() => handleOpenDeleteDialog(expert)}
+                          >
+                            <DeleteIcon />
+                          </IconButton>
+                        </TableCell>
+                      </TableRow>
+                    ))
+                  )}
                 </TableBody>
               </Table>
             </TableContainer>
@@ -284,10 +310,9 @@ const ExpertsContent = () => {
         </Card>
       </Box>
 
-      {/* --- Create/Update Form Modal --- */}
       <Modal open={openFormModal} onClose={handleCloseFormModal}>
         <Box sx={modalStyle}>
-          <Typography variant='h6' component='h2' sx={{ mb: 2 }}>
+          <Typography variant='h6' sx={{ mb: 2 }}>
             {isEditing ? 'Edit Expert' : 'Add New Expert'}
           </Typography>
           <IconButton
@@ -296,7 +321,6 @@ const ExpertsContent = () => {
           >
             <CloseIcon />
           </IconButton>
-          {/* Grid components updated to use size prop */}
           <Grid container spacing={2}>
             <Grid size={{ xs: 12 }}>
               <TextField
@@ -379,7 +403,6 @@ const ExpertsContent = () => {
         </Box>
       </Modal>
 
-      {/* --- Delete Confirmation Dialog --- */}
       <Dialog open={openDeleteDialog} onClose={handleCloseDeleteDialog}>
         <DialogTitle>Confirm Deletion</DialogTitle>
         <DialogContent>
