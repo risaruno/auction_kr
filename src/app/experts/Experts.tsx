@@ -10,7 +10,6 @@ export default async function fetchExperts() {
     return null;
   }
 
-  console.log('experts:', experts);
   if (!experts) {
     console.error('No experts found');
     return null;

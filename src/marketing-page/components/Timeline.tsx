@@ -1,47 +1,47 @@
-import * as React from 'react';
-import Box from '@mui/material/Box';
-import Card from '@mui/material/Card';
-import CardContent from '@mui/material/CardContent';
-import Container from '@mui/material/Container';
-import Typography from '@mui/material/Typography';
-import Paper from '@mui/material/Paper';
+import * as React from 'react'
+import Box from '@mui/material/Box'
+import Card from '@mui/material/Card'
+import CardContent from '@mui/material/CardContent'
+import Container from '@mui/material/Container'
+import Typography from '@mui/material/Typography'
+import Paper from '@mui/material/Paper'
 
 // Timeline-related imports
-import Timeline from '@mui/lab/Timeline';
-import TimelineItem from '@mui/lab/TimelineItem';
-import TimelineSeparator from '@mui/lab/TimelineSeparator';
-import TimelineConnector from '@mui/lab/TimelineConnector';
-import TimelineContent from '@mui/lab/TimelineContent';
-import TimelineOppositeContent from '@mui/lab/TimelineOppositeContent';
-import TimelineDot from '@mui/lab/TimelineDot';
+import Timeline from '@mui/lab/Timeline'
+import TimelineItem from '@mui/lab/TimelineItem'
+import TimelineSeparator from '@mui/lab/TimelineSeparator'
+import TimelineConnector from '@mui/lab/TimelineConnector'
+import TimelineContent from '@mui/lab/TimelineContent'
+import TimelineOppositeContent from '@mui/lab/TimelineOppositeContent'
+import TimelineDot from '@mui/lab/TimelineDot'
 
 // Icon imports
-import { LocationOn, Paid, Description, Gavel } from '@mui/icons-material';
-import AssignmentIndIcon from '@mui/icons-material/AssignmentInd';
-import RequestQuoteIcon from '@mui/icons-material/RequestQuote';
-import UploadFileIcon from '@mui/icons-material/UploadFile';
-import PeopleIcon from '@mui/icons-material/People';
-import HowToRegIcon from '@mui/icons-material/HowToReg';
+import { LocationOn, Paid, Description, Gavel } from '@mui/icons-material'
+import AssignmentIndIcon from '@mui/icons-material/AssignmentInd'
+import RequestQuoteIcon from '@mui/icons-material/RequestQuote'
+import UploadFileIcon from '@mui/icons-material/UploadFile'
+import PeopleIcon from '@mui/icons-material/People'
+import HowToRegIcon from '@mui/icons-material/HowToReg'
 
 // Data for the top feature cards
 const features = [
   {
-    icon: <LocationOn color="primary" />,
+    icon: <LocationOn color='primary' />,
     title: '서비스 지역',
     description: '전국 법원',
   },
   {
-    icon: <Paid color="primary" />,
+    icon: <Paid color='primary' />,
     title: '이용요금',
     description: '11만원',
     subDescription: '입찰기일 D-1 신청시 154,000원',
   },
   {
-    icon: <Description color="primary" />,
+    icon: <Description color='primary' />,
     title: '서비스 내용',
     description: ['입찰관련 서류 작성', '대리입찰참여', '입찰결과 안내'],
   },
-];
+]
 
 // Data for the timeline steps
 const timelineSteps = [
@@ -75,16 +75,16 @@ const timelineSteps = [
     description: '대리입찰을 위한 전자본인서명확인서 및 보증금 입금',
     icon: <UploadFileIcon />,
   },
-];
+]
 
 export default function Features() {
   return (
     <Container sx={{ py: { xs: 4, sm: 8 } }}>
       {/* Main Title */}
       <Typography
-        variant="h3"
-        component="h1"
-        textAlign="center"
+        variant='h3'
+        component='h1'
+        textAlign='center'
         sx={{ fontWeight: 'bold', mb: 6 }}
       >
         전문가의 발빠른 대리입찰, 체르토
@@ -118,13 +118,17 @@ export default function Features() {
               >
                 {React.cloneElement(feature.icon, { sx: { fontSize: 40 } })}
               </Box>
-              <Typography variant="h6" component="h3" sx={{ fontWeight: '600', mb: 1 }}>
+              <Typography
+                variant='h6'
+                component='h3'
+                sx={{ fontWeight: '600', mb: 1 }}
+              >
                 {feature.title}
               </Typography>
               {Array.isArray(feature.description) ? (
                 <Box sx={{ textAlign: 'left', display: 'inline-block' }}>
                   {feature.description.map((item) => (
-                    <Typography key={item} component="div" sx={{ mt: 0.5 }}>
+                    <Typography key={item} component='div' sx={{ mt: 0.5 }}>
                       • {item}
                     </Typography>
                   ))}
@@ -133,7 +137,10 @@ export default function Features() {
                 <Typography>{feature.description}</Typography>
               )}
               {feature.subDescription && (
-                <Typography color="text.secondary" sx={{ mt: 1, fontSize: '0.875rem' }}>
+                <Typography
+                  color='text.secondary'
+                  sx={{ mt: 1, fontSize: '0.875rem' }}
+                >
                   {feature.subDescription}
                 </Typography>
               )}
@@ -155,7 +162,7 @@ export default function Features() {
           boxShadow: 5,
         }}
       >
-        <Typography variant="h5" component="p" sx={{ fontWeight: 'bold' }}>
+        <Typography variant='h5' component='p' sx={{ fontWeight: 'bold' }}>
           복잡하고 번거로운 작업은 체르토에게 맡기세요.
         </Typography>
         <Typography sx={{ mt: 1 }}>
@@ -164,15 +171,10 @@ export default function Features() {
       </Box>
 
       {/* Timeline Section */}
-      <Timeline position="alternate">
+      <Timeline position='alternate'>
         {timelineSteps.map((step, index) => (
           <TimelineItem key={index}>
-            <TimelineOppositeContent
-              sx={{ m: 'auto 0' }}
-              align="right"
-              variant="body2"
-              color="text.secondary"
-            >
+            <TimelineOppositeContent sx={{ m: 'auto 0' }}>
               {step.actor === '고객' && (
                 <Paper
                   elevation={3}
@@ -182,7 +184,11 @@ export default function Features() {
                     '&:hover': { boxShadow: 6 },
                   }}
                 >
-                  <Typography variant="h6" component="h4" sx={{ fontWeight: 'bold' }}>
+                  <Typography
+                    variant='h6'
+                    component='h4'
+                    sx={{ fontWeight: 'bold' }}
+                  >
                     {step.title}
                   </Typography>
                   <Typography>{step.description}</Typography>
@@ -191,7 +197,10 @@ export default function Features() {
             </TimelineOppositeContent>
             <TimelineSeparator>
               <TimelineConnector />
-              <TimelineDot color={step.actor === '고객' ? 'primary' : 'secondary'} variant="filled">
+              <TimelineDot
+                color={step.actor === '고객' ? 'primary' : 'secondary'}
+                variant='filled'
+              >
                 {step.icon}
               </TimelineDot>
               <TimelineConnector />
@@ -206,7 +215,11 @@ export default function Features() {
                     '&:hover': { boxShadow: 6 },
                   }}
                 >
-                  <Typography variant="h6" component="h4" sx={{ fontWeight: 'bold' }}>
+                  <Typography
+                    variant='h6'
+                    component='h4'
+                    sx={{ fontWeight: 'bold' }}
+                  >
                     {step.title}
                   </Typography>
                   <Typography>{step.description}</Typography>
@@ -215,8 +228,8 @@ export default function Features() {
             </TimelineContent>
           </TimelineItem>
         ))}
-         {/* Final Step */}
-         <TimelineItem>
+        {/* Final Step */}
+        <TimelineItem>
           <TimelineSeparator>
             <TimelineConnector />
             <TimelineDot
@@ -238,5 +251,5 @@ export default function Features() {
         </TimelineItem>
       </Timeline>
     </Container>
-  );
+  )
 }

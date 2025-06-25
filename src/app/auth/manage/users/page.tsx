@@ -1,17 +1,11 @@
 'use client'
-import React, { useState } from 'react'
+import React, { useState, useEffect } from 'react'
 import {
   Box,
   Drawer,
   Divider,
-  AppBar,
   Toolbar,
   Typography,
-  List,
-  ListItem,
-  ListItemButton,
-  ListItemIcon,
-  ListItemText,
   CssBaseline,
   Card,
   CardContent,
@@ -35,10 +29,9 @@ import {
   Avatar,
   Tabs,
   Tab,
+  CircularProgress,
 } from '@mui/material'
 import {
-  Dashboard as DashboardIcon,
-  People as PeopleIcon,
   Search as SearchIcon,
   Visibility as VisibilityIcon,
   Block as BlockIcon,
@@ -47,114 +40,94 @@ import {
 } from '@mui/icons-material'
 import AdminLayout from '../AdminLayout'
 
-// --- Sample Data ---
-const initialUsers = [
-  {
-    id: 'user-001',
-    name: '김민준',
-    email: 'k**@example.com',
-    phone: '010-****-1234',
-    signupDate: '2024-05-20',
-    status: 'Active',
-    points: 15000,
-    serviceHistory: [
-      {
-        id: 'service-a1',
-        type: '대리입찰',
-        caseNumber: '2024타경110861',
-        status: '입찰완료',
-      },
-      {
-        id: 'service-a2',
-        type: '전문가 서비스',
-        caseNumber: '2024타경987654',
-        status: '상담완료',
-      },
-    ],
-  },
-  {
-    id: 'user-002',
-    name: '이서연',
-    email: 'l**@example.com',
-    phone: '010-****-5678',
-    signupDate: '2024-05-18',
-    status: 'Suspended',
-    points: 0,
-    serviceHistory: [],
-  },
-]
-
-const maskEmail = (email: string) => {
-  const [localPart, domain] = email.split('@')
-  if (localPart.length > 2) {
-    return `${localPart.substring(0, 2)}${'*'.repeat(
-      localPart.length - 2
-    )}@${domain}`
-  }
-  return email
+// Define a proper interface for the User data
+interface User {
+  id: string
+  name: string
+  email: string
+  phone: string
+  signupDate: string
+  status: 'Active' | 'Suspended' | 'Pending'
+  points: number
+  // serviceHistory would be fetched separately when needed
 }
 
-// --- Main Admin Panel Component ---
+// --- Main Admin Panel Content ---
 const UserManagementContent = () => {
-  const [users, setUsers] = useState(initialUsers)
-  const [selectedUser, setSelectedUser] = useState<any>(null)
+  const [users, setUsers] = useState<User[]>([])
+  const [loading, setLoading] = useState(true)
+  const [selectedUser, setSelectedUser] = useState<User | null>(null)
   const [isDetailsDrawerOpen, setIsDetailsDrawerOpen] = useState(false)
   const [openSuspendDialog, setOpenSuspendDialog] = useState(false)
   const [openResetDialog, setOpenResetDialog] = useState(false)
-  const [activeTab, setActiveTab] = useState(0)
-  const [pointsToAdd, setPointsToAdd] = useState(0)
-  const [pointReason, setPointReason] = useState('')
 
-  // --- Handlers for User Details Drawer ---
-  const handleViewDetails = (user: any) => {
-    // In a real app, you would fetch the full, unmasked data here
-    const fullUserData = {
-      ...user,
-      email: 'kminjun@example.com',
-      phone: '010-1234-1234',
+  // --- Fetch Users on Load ---
+  const fetchUsers = async () => {
+    setLoading(true)
+    try {
+      const response = await fetch('/api/users')
+      if (!response.ok) throw new Error('Failed to fetch users')
+      const data = await response.json()
+      setUsers(data)
+    } catch (error) {
+      console.error(error)
+    } finally {
+      setLoading(false)
     }
-    setSelectedUser(fullUserData)
+  }
+
+  useEffect(() => {
+    fetchUsers()
+  }, [])
+
+  // --- Handlers ---
+  const handleViewDetails = (user: User) => {
+    setSelectedUser(user)
     setIsDetailsDrawerOpen(true)
   }
 
   const handleCloseDetailsDrawer = () => {
     setIsDetailsDrawerOpen(false)
     setSelectedUser(null)
-    setActiveTab(0)
   }
 
-  // --- Handlers for Dialogs ---
-  const handleOpenSuspendDialog = (user: any) => {
+  const handleOpenSuspendDialog = (user: User) => {
     setSelectedUser(user)
     setOpenSuspendDialog(true)
   }
 
-  const handleCloseSuspendDialog = () => {
-    setOpenSuspendDialog(false)
-    setSelectedUser(null)
+  const handleSuspendUser = async () => {
+    if (!selectedUser) return
+    try {
+      await fetch('/api/users', {
+        method: 'PUT',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ userId: selectedUser.id, status: 'Suspended' }),
+      })
+      // Refresh the user list to show the change
+      fetchUsers()
+    } catch (error) {
+      console.error('Failed to suspend user', error)
+    } finally {
+      setOpenSuspendDialog(false)
+    }
   }
 
-  const handleSuspendUser = () => {
-    // Logic to suspend the user would go here
-    console.log(`Suspending user: ${selectedUser?.name}`)
-    handleCloseSuspendDialog()
-  }
-
-  const handleOpenResetDialog = () => setOpenResetDialog(true)
-  const handleCloseResetDialog = () => setOpenResetDialog(false)
-  const handleTriggerPasswordReset = () => {
-    // Logic to send reset link would go here
-    console.log(`Sending password reset to ${selectedUser?.email}`)
-    handleCloseResetDialog()
-  }
-
-  const handleAddPoints = () => {
-    // Logic to add points would go here
-    console.log(
-      `Adding ${pointsToAdd} points to ${selectedUser?.name} for: ${pointReason}`
-    )
-    setPointsToAdd(0)
-    setPointReason('')
+  const handleTriggerPasswordReset = async () => {
+    if (!selectedUser) return
+    try {
+      // This uses the same API as the public "find password" page
+      await fetch('/api/auth/find-password', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ email: selectedUser.email }),
+      })
+      alert(`Password reset link sent to ${selectedUser.email}`)
+    } catch (error) {
+      console.error('Failed to send reset link', error)
+    } finally {
+      setOpenResetDialog(false)
+    }
   }
 
   return (
@@ -162,7 +135,6 @@ const UserManagementContent = () => {
       <CssBaseline />
       <Box component='main' sx={{ flexGrow: 1, p: 3 }}>
         <Toolbar />
-        {/* --- Main Content --- */}
         <Card>
           <CardContent>
             <Box
@@ -173,13 +145,10 @@ const UserManagementContent = () => {
                 mb: 2,
               }}
             >
-              <Typography variant='h5' component='h2'>
-                User Management
-              </Typography>
+              <Typography variant='h5'>User Management</Typography>
               <TextField
                 size='small'
-                variant='outlined'
-                placeholder='Search by name or email...'
+                placeholder='Search...'
                 InputProps={{
                   startAdornment: (
                     <InputAdornment position='start'>
@@ -190,51 +159,56 @@ const UserManagementContent = () => {
               />
             </Box>
 
-            {/* View - Data Table */}
             <TableContainer component={Paper} variant='outlined'>
-              <Table sx={{ minWidth: 650 }} aria-label='users table'>
+              <Table>
                 <TableHead sx={{ backgroundColor: 'grey.100' }}>
                   <TableRow>
                     <TableCell>User Name</TableCell>
-                    <TableCell>Email (Masked)</TableCell>
-                    <TableCell>Phone (Masked)</TableCell>
+                    <TableCell>Email</TableCell>
                     <TableCell>Signup Date</TableCell>
                     <TableCell>Status</TableCell>
                     <TableCell align='right'>Actions</TableCell>
                   </TableRow>
                 </TableHead>
                 <TableBody>
-                  {users.map((user) => (
-                    <TableRow key={user.id}>
-                      <TableCell>{user.name}</TableCell>
-                      <TableCell>{user.email}</TableCell>
-                      <TableCell>{user.phone}</TableCell>
-                      <TableCell>{user.signupDate}</TableCell>
-                      <TableCell>
-                        <Chip
-                          label={user.status}
-                          color={
-                            user.status === 'Active' ? 'success' : 'warning'
-                          }
-                          size='small'
-                        />
-                      </TableCell>
-                      <TableCell align='right'>
-                        <IconButton
-                          size='small'
-                          onClick={() => handleViewDetails(user)}
-                        >
-                          <VisibilityIcon />
-                        </IconButton>
-                        <IconButton
-                          size='small'
-                          onClick={() => handleOpenSuspendDialog(user)}
-                        >
-                          <BlockIcon />
-                        </IconButton>
+                  {loading ? (
+                    <TableRow>
+                      <TableCell colSpan={5} align='center'>
+                        <CircularProgress />
                       </TableCell>
                     </TableRow>
-                  ))}
+                  ) : (
+                    users.map((user) => (
+                      <TableRow key={user.id}>
+                        <TableCell>{user.name}</TableCell>
+                        <TableCell>{user.email}</TableCell>
+                        <TableCell>{user.signupDate}</TableCell>
+                        <TableCell>
+                          <Chip
+                            label={user.status}
+                            color={
+                              user.status === 'Active' ? 'success' : 'warning'
+                            }
+                            size='small'
+                          />
+                        </TableCell>
+                        <TableCell align='right'>
+                          <IconButton
+                            size='small'
+                            onClick={() => handleViewDetails(user)}
+                          >
+                            <VisibilityIcon />
+                          </IconButton>
+                          <IconButton
+                            size='small'
+                            onClick={() => handleOpenSuspendDialog(user)}
+                          >
+                            <BlockIcon />
+                          </IconButton>
+                        </TableCell>
+                      </TableRow>
+                    ))
+                  )}
                 </TableBody>
               </Table>
             </TableContainer>
@@ -287,109 +261,52 @@ const UserManagementContent = () => {
                 variant='outlined'
                 size='small'
                 startIcon={<LockResetIcon />}
-                onClick={handleOpenResetDialog}
+                onClick={() => setOpenResetDialog(true)}
                 sx={{ my: 2 }}
               >
                 Trigger Password Reset
               </Button>
-              <Tabs
-                value={activeTab}
-                onChange={(e, newValue) => setActiveTab(newValue)}
-                sx={{ borderBottom: 1, borderColor: 'divider' }}
-              >
-                <Tab label='Service History' />
-                <Tab label='Points Management' />
-              </Tabs>
-              <Box sx={{ pt: 2 }}>
-                {activeTab === 0 && (
-                  <TableContainer>
-                    <Table size='small'>
-                      <TableHead>
-                        <TableRow>
-                          <TableCell>Service</TableCell>
-                          <TableCell>Case Number</TableCell>
-                          <TableCell>Status</TableCell>
-                        </TableRow>
-                      </TableHead>
-                      <TableBody>
-                        {selectedUser.serviceHistory.map((item: any) => (
-                          <TableRow key={item.id}>
-                            <TableCell>{item.type}</TableCell>
-                            <TableCell>{item.caseNumber}</TableCell>
-                            <TableCell>
-                              <Chip label={item.status} size='small' />
-                            </TableCell>
-                          </TableRow>
-                        ))}
-                      </TableBody>
-                    </Table>
-                  </TableContainer>
-                )}
-                {activeTab === 1 && (
-                  <Box>
-                    <Typography variant='h6'>
-                      Current Points: {selectedUser.points.toLocaleString()} P
-                    </Typography>
-                    <TextField
-                      type='number'
-                      label='Points to Add/Subtract'
-                      value={pointsToAdd}
-                      onChange={(e) => setPointsToAdd(parseInt(e.target.value))}
-                      fullWidth
-                      margin='normal'
-                    />
-                    <TextField
-                      label='Reason'
-                      value={pointReason}
-                      onChange={(e) => setPointReason(e.target.value)}
-                      fullWidth
-                      margin='normal'
-                    />
-                    <Button variant='contained' onClick={handleAddPoints}>
-                      Update Points
-                    </Button>
-                  </Box>
-                )}
-              </Box>
+              {/* Tabs for more details can be added here */}
             </>
           )}
         </Box>
       </Drawer>
 
       {/* --- Confirmation Dialogs --- */}
-      <Dialog open={openSuspendDialog} onClose={handleCloseSuspendDialog}>
+      <Dialog
+        open={openSuspendDialog}
+        onClose={() => setOpenSuspendDialog(false)}
+      >
         <DialogTitle>Confirm Suspension</DialogTitle>
         <DialogContent>
           <DialogContentText>
-            Are you sure you want to suspend the user "{selectedUser?.name}"?
+            Are you sure you want to suspend "{selectedUser?.name}"?
           </DialogContentText>
         </DialogContent>
         <DialogActions>
-          <Button onClick={handleCloseSuspendDialog}>Cancel</Button>
+          <Button onClick={() => setOpenSuspendDialog(false)}>Cancel</Button>
           <Button onClick={handleSuspendUser} color='warning'>
             Suspend
           </Button>
         </DialogActions>
       </Dialog>
-      <Dialog open={openResetDialog} onClose={handleCloseResetDialog}>
+      <Dialog open={openResetDialog} onClose={() => setOpenResetDialog(false)}>
         <DialogTitle>Confirm Password Reset</DialogTitle>
         <DialogContent>
           <DialogContentText>
-            This will send a password reset link to {selectedUser?.email}. Are
-            you sure?
+            Send a password reset link to {selectedUser?.email}?
           </DialogContentText>
         </DialogContent>
         <DialogActions>
-          <Button onClick={handleCloseResetDialog}>Cancel</Button>
-          <Button onClick={handleTriggerPasswordReset} color='primary'>
-            Send Link
-          </Button>
+          <Button onClick={() => setOpenResetDialog(false)}>Cancel</Button>
+          <Button onClick={handleTriggerPasswordReset}>Send Link</Button>
         </DialogActions>
       </Dialog>
     </Box>
   )
 }
 
+// Wrapper component to include the main layout
 export default function UserManagementPanel() {
   return (
     <AdminLayout>
