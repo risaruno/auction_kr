@@ -15,6 +15,9 @@ import CloseRoundedIcon from "@mui/icons-material/CloseRounded";
 import ColorModeIconDropdown from "../../shared-theme/ColorModeIconDropdown";
 import Sitemark from "./SitemarkIcon";
 import { Typography } from "@mui/material";
+import { useAuth } from "../../components/auth/AuthProvider";
+import { supabase } from "../../utils/supabase";
+import { useRouter } from "next/navigation";
 
 const StyledToolbar = styled(Toolbar)(({ theme }) => ({
   display: "flex",
@@ -33,6 +36,25 @@ const StyledToolbar = styled(Toolbar)(({ theme }) => ({
 }));
 
 export default function AppAppBar() {
+  const { user, loading } = useAuth();
+  const router = useRouter();
+
+  console.log("user", user);
+  console.log("loading", loading);
+  React.useEffect(() => {
+    // This effect runs once on mount to check if the user is logged in
+    console.log("Auth state changed:", user);
+  }, [user]);
+
+  React.useEffect(() => {
+    // This effect runs once on mount to check if the user is logged in
+    console.log("Loading state changed:", loading);
+  }, [loading]);
+
+  const handleLogout = async () => {
+    await supabase.auth.signOut();
+    router.push("/");
+  };
   const [open, setOpen] = React.useState(false);
 
   const toggleDrawer = (newOpen: boolean) => () => {
@@ -56,7 +78,12 @@ export default function AppAppBar() {
             sx={{ flexGrow: 1, display: "flex", alignItems: "center", px: 0 }}
           >
             <Sitemark />
-            <Box sx={{ display: { xs: "none", md: "flex" }, marginLeft: {md: 2} }}>
+            <Box
+              sx={{
+                display: { xs: "none", md: "flex" },
+                marginLeft: { md: 2 },
+              }}
+            >
               <Button href="/info" variant="text" color="info" size="small">
                 이용 안내
               </Button>
@@ -87,12 +114,51 @@ export default function AppAppBar() {
               alignItems: "center",
             }}
           >
-            <Button href="/sign/in" color="primary" variant="text" size="small">
-              로그인/회원가입
-            </Button>
-            <Button href="/apply-bid" color="primary" variant="contained" size="small">
-              대리입찰 신청
-            </Button>
+            {/* 3. Conditional Rendering based on auth state */}
+            {loading ? (
+              // Optional: Show a placeholder while loading to prevent layout shift
+              <Box sx={{ width: 180, height: 32 }} />
+            ) : user ? (
+              // If the user is logged in:
+              <>
+                <Button
+                  href="/auth/user"
+                  color="primary"
+                  variant="text"
+                  size="small"
+                >
+                  마이페이지
+                </Button>
+                <Button
+                  onClick={handleLogout}
+                  color="primary"
+                  variant="outlined"
+                  size="small"
+                >
+                  로그아웃
+                </Button>
+              </>
+            ) : (
+              // If the user is logged out:
+              <>
+                <Button
+                  href="/sign/in"
+                  color="primary"
+                  variant="text"
+                  size="small"
+                >
+                  로그인/회원가입
+                </Button>
+                <Button
+                  href="/apply-bid"
+                  color="primary"
+                  variant="contained"
+                  size="small"
+                >
+                  대리입찰 신청
+                </Button>
+              </>
+            )}
             {/* <ColorModeIconDropdown /> */}
           </Box>
           <Box sx={{ display: { xs: "flex", md: "none" }, gap: 1 }}>
@@ -121,19 +187,82 @@ export default function AppAppBar() {
                     <CloseRoundedIcon />
                   </IconButton>
                 </Box>
-                <MenuItem component="a" href="/info">이용 안내</MenuItem>
-                <MenuItem component="a" href="/experts">전문가 서비스</MenuItem>
-                <MenuItem component="a" href="/area">서비스 지역</MenuItem>
-                <MenuItem component="a" href="/faq">자주하는 질문</MenuItem>
-                <MenuItem component="a" href="/contact">1:1 문의</MenuItem>
-                <Divider sx={{ my: 3 }} />
-                <MenuItem>
-                  <Button color="primary" variant="contained" fullWidth>
-                    로그인/회원가입
-                  </Button>
+                <MenuItem component="a" href="/info">
+                  이용 안내
                 </MenuItem>
+                <MenuItem component="a" href="/experts">
+                  전문가 서비스
+                </MenuItem>
+                <MenuItem component="a" href="/area">
+                  서비스 지역
+                </MenuItem>
+                <MenuItem component="a" href="/faq">
+                  자주하는 질문
+                </MenuItem>
+                <MenuItem component="a" href="/contact">
+                  1:1 문의
+                </MenuItem>
+                <Divider sx={{ my: 3 }} />
+                <Box
+                  sx={{
+                    display: { xs: "none", md: "flex" },
+                    gap: 1,
+                    alignItems: "center",
+                  }}
+                >
+                  {/* 3. Conditional Rendering based on auth state */}
+                  {loading ? (
+                    // Optional: Show a placeholder while loading to prevent layout shift
+                    <Box sx={{ width: 180, height: 32 }} />
+                  ) : user ? (
+                    // If the user is logged in:
+                    <>
+                      <Button
+                        href="/my-page"
+                        color="primary"
+                        variant="text"
+                        size="small"
+                      >
+                        마이페이지
+                      </Button>
+                      <Button
+                        onClick={handleLogout}
+                        color="primary"
+                        variant="outlined"
+                        size="small"
+                      >
+                        로그아웃
+                      </Button>
+                    </>
+                  ) : (
+                    // If the user is logged out:
+                    <>
+                      <Button
+                        href="/sign/in"
+                        color="primary"
+                        variant="text"
+                        size="small"
+                      >
+                        로그인/회원가입
+                      </Button>
+                      <Button
+                        href="/apply-bid"
+                        color="primary"
+                        variant="contained"
+                        size="small"
+                      >
+                        대리입찰 신청
+                      </Button>
+                    </>
+                  )}
+                </Box>
                 <MenuItem>
-                  <Button color="primary" variant="outlined" fullWidth href="/apply-bid">
+                  <Button
+                    color="primary"
+                    variant="outlined"
+                    fullWidth
+                    href="/apply-bid"
+                  >
                     대리입찰 신청
                   </Button>
                 </MenuItem>

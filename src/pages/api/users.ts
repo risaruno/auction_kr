@@ -17,7 +17,7 @@ export default async function handler(
       if (listError) throw listError
 
       // Now fetch the corresponding profiles for each user
-      const userIds = users.map((user) => user.id)
+      const userIds = users.map((user: { id: any; }) => user.id)
       const { data: profiles, error: profileError } = await supabaseAdmin
         .from('profiles')
         .select('*')
@@ -26,8 +26,8 @@ export default async function handler(
       if (profileError) throw profileError
 
       // Combine the auth user data with the profile data
-      const combinedUsers = users.map((user) => {
-        const profile = profiles?.find((p) => p.id === user.id)
+      const combinedUsers = users.map((user: { id: any; email: any; created_at: string | number | Date; email_confirmed_at: any; }) => {
+        const profile = profiles?.find((p: { id: any; }) => p.id === user.id)
         return {
           id: user.id,
           name: profile?.full_name || 'N/A',

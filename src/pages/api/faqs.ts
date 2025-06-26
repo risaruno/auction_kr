@@ -1,10 +1,6 @@
 import { NextApiRequest, NextApiResponse } from 'next'
 import { supabase } from '../../utils/supabase'
 
-// NOTE: For this API, we can use the public 'supabase' client if your
-// Row Level Security policies are set up to allow admins to perform these actions.
-// If not, you would switch to the 'supabaseAdmin' client.
-
 export default async function handler(
   req: NextApiRequest,
   res: NextApiResponse

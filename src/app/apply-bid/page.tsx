@@ -9,19 +9,20 @@ import Step from "@mui/material/Step";
 import StepLabel from "@mui/material/StepLabel";
 import Stepper from "@mui/material/Stepper";
 import Typography from "@mui/material/Typography";
+import Alert from "@mui/material/Alert";
 import ChevronLeftRoundedIcon from "@mui/icons-material/ChevronLeftRounded";
 import ChevronRightRoundedIcon from "@mui/icons-material/ChevronRightRounded";
 
 import AppTheme from "../../shared-theme/AppTheme";
 import AppAppBar from "@/marketing-page/components/AppAppBar";
 import Footer from "@/marketing-page/components/Footer";
-import CaseFind from "@/app/apply-bid/components/CaseFind";
-import InputForm from "@/app/apply-bid/components/InputForm";
-import ContractSign from "@/app/apply-bid/components/ContractSign";
-import PaymentForm from "@/app/apply-bid/components/PaymentForm";
-import Review from "@/app/apply-bid/components/Review";
-import { CaseResult } from "@/interfaces/CaseResult";
+import CaseFind from "./components/CaseFind";
+import InputForm from "./components/InputForm";
+import ContractSign from "./components/ContractSign";
+import PaymentForm from "./components/PaymentForm";
+import Review from "./components/Review";
 import { FormData, InitialFormData } from "@/interfaces/FormData";
+import { supabase } from "../../utils/supabase";
 
 const steps = [
   "사건조회",
@@ -33,17 +34,20 @@ const steps = [
 
 export default function ApplyBid() {
   const [activeStep, setActiveStep] = React.useState(0);
-
-  // The complete, centralized state for the entire multi-step form
   const [formData, setFormData] = React.useState<FormData>(InitialFormData);
 
+  // State for handling the final submission
+  const [isSubmitting, setIsSubmitting] = React.useState(false);
+  const [submitError, setSubmitError] = React.useState<string | null>(null);
+
+  // --- All your state handlers (handleFormChange, updateFormData) remain the same ---
   const handleFormChange = (
     event: React.ChangeEvent<{ name?: string; value: unknown }>
   ) => {
     const { name, value, type } = event.target as HTMLInputElement;
     if (name) {
-      setFormData((prevData) => ({
-        ...prevData,
+      setFormData((prev) => ({
+        ...prev,
         [name]:
           type === "checkbox"
             ? (event.target as HTMLInputElement).checked
@@ -52,11 +56,9 @@ export default function ApplyBid() {
     }
   };
 
+  // FIX: Changed the signature to match the type expected by the child components' props.
   const updateFormData = (field: string, value: any) => {
-    setFormData((prevData) => ({
-      ...prevData,
-      [field]: value,
-    }));
+    setFormData((prev) => ({ ...prev, [field]: value }));
   };
 
   const getStepContent = (step: number) => {
@@ -65,7 +67,7 @@ export default function ApplyBid() {
         return (
           <CaseFind
             caseResult={formData.caseResult}
-            setCaseResult={(result) => updateFormData("caseResult", result)}
+            setCaseResult={(r) => updateFormData("caseResult", r)}
           />
         );
       case 1:
@@ -80,7 +82,7 @@ export default function ApplyBid() {
         return (
           <ContractSign
             formData={formData}
-            setSignature={(sig) => updateFormData("signature", sig)}
+            setSignature={(s) => updateFormData("signature", s)}
           />
         );
       case 3:
@@ -91,21 +93,54 @@ export default function ApplyBid() {
           />
         );
       case 4:
-        // Pass the entire formData object to the Review component for display
         return <Review formData={formData} />;
       default:
         throw new Error("Unknown step");
     }
   };
 
-  const handleNext = () => {
-    setActiveStep(activeStep + 1);
-    // If it's the last step, log the final data
+  const handleNext = async () => {
+    // If we are on the last step (Review page), submit the form.
     if (activeStep === steps.length - 1) {
-      console.log("Submitting Final Form Data:", formData);
-      // Here you would make your final API call to the backend
+      setIsSubmitting(true);
+      setSubmitError(null);
+      try {
+        const {
+          data: { session },
+        } = await supabase.auth.getSession();
+        if (!session) throw new Error("User not authenticated");
+
+        const response = await fetch("/api/bids", {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+            Authorization: `Bearer ${session.access_token}`,
+          },
+          body: JSON.stringify(formData),
+        });
+
+        if (!response.ok) {
+          const errorResult = await response.json();
+          throw new Error(
+            errorResult.error || "An error occurred during submission."
+          );
+        }
+
+        // Move to the "Thank You" screen on success
+        setActiveStep(activeStep + 1);
+      } catch (error) {
+        setSubmitError(
+          error instanceof Error ? error.message : "An unknown error occurred."
+        );
+      } finally {
+        setIsSubmitting(false);
+      }
+    } else {
+      // Otherwise, just go to the next step
+      setActiveStep(activeStep + 1);
     }
   };
+
   const handleBack = () => setActiveStep(activeStep - 1);
 
   return (
@@ -165,11 +200,22 @@ export default function ApplyBid() {
             {activeStep === steps.length ? (
               <Stack spacing={2} useFlexGap>
                 <Typography variant="h1">📦</Typography>
-                <Typography variant="h5">신청해주셔서 감사합니다!</Typography>
+                <Typography variant="h5">신청이 완료되었습니다!</Typography>
+                <Typography variant="body1" color="text.secondary">
+                  신청 내역은 마이페이지에서 확인하실 수 있습니다.
+                </Typography>
               </Stack>
             ) : (
               <React.Fragment>
+                {/* Display submission error on the last step if it exists */}
+                {activeStep === steps.length - 1 && submitError && (
+                  <Alert severity="error" sx={{ mb: 2 }}>
+                    {submitError}
+                  </Alert>
+                )}
+
                 {getStepContent(activeStep)}
+
                 <Box
                   sx={{
                     display: "flex",
@@ -197,9 +243,14 @@ export default function ApplyBid() {
                     variant="contained"
                     endIcon={<ChevronRightRoundedIcon />}
                     onClick={handleNext}
+                    disabled={isSubmitting} // Disable button while submitting
                     sx={{ width: { xs: "100%", sm: "fit-content" } }}
                   >
-                    {activeStep === steps.length - 1 ? "제출하기" : "다음"}
+                    {activeStep === steps.length - 1
+                      ? isSubmitting
+                        ? "제출 중..."
+                        : "제출하기"
+                      : "다음"}
                   </Button>
                 </Box>
               </React.Fragment>
