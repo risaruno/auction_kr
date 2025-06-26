@@ -15,11 +15,11 @@ import ChevronRightRoundedIcon from "@mui/icons-material/ChevronRightRounded";
 import AppTheme from "../../shared-theme/AppTheme";
 import AppAppBar from "@/marketing-page/components/AppAppBar";
 import Footer from "@/marketing-page/components/Footer";
-import CaseFind from "@/checkout/components/CaseFind";
-import InputForm from "@/checkout/components/InputForm";
-import ContractSign from "@/checkout/components/ContractSign";
-import PaymentForm from "@/checkout/components/PaymentForm";
-import Review from "@/checkout/components/Review";
+import CaseFind from "@/app/apply-bid/components/CaseFind";
+import InputForm from "@/app/apply-bid/components/InputForm";
+import ContractSign from "@/app/apply-bid/components/ContractSign";
+import PaymentForm from "@/app/apply-bid/components/PaymentForm";
+import Review from "@/app/apply-bid/components/Review";
 import { CaseResult } from "@/interfaces/CaseResult";
 import { FormData, InitialFormData } from "@/interfaces/FormData";
 

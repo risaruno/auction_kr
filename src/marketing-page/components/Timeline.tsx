@@ -80,15 +80,6 @@ const timelineSteps = [
 export default function Features() {
   return (
     <Container sx={{ py: { xs: 4, sm: 8 } }}>
-      {/* Main Title */}
-      <Typography
-        variant='h3'
-        component='h1'
-        textAlign='center'
-        sx={{ fontWeight: 'bold', mb: 6 }}
-      >
-        전문가의 발빠른 대리입찰, 체르토
-      </Typography>
 
       {/* Top Feature Cards Section */}
       <Box
