@@ -1,10 +1,11 @@
 import { NextApiRequest, NextApiResponse } from "next";
-import { supabase } from "../../../utils/supabase";
+import { createClient } from "@/utils/supabase/server";
 
 export default async function loginHandler(
   req: NextApiRequest,
   res: NextApiResponse
 ) {
+  const supabase = createClient();
   // 1. Only allow POST requests for security
   if (req.method !== "POST") {
     res.setHeader("Allow", ["POST"]);

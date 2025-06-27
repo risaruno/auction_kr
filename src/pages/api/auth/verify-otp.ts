@@ -1,5 +1,6 @@
+"use server";
 import { NextApiRequest, NextApiResponse } from "next";
-import { supabase } from "../../../utils/supabase";
+import { createClient } from "@/utils/supabase/server";
 
 export default async function handler(
   req: NextApiRequest,
@@ -34,12 +35,10 @@ export default async function handler(
     }
 
     // The user's phone number is now confirmed in the auth.users table.
-    return res
-      .status(200)
-      .json({
-        message: "Phone number verified successfully.",
-        user: data.user,
-      });
+    return res.status(200).json({
+      message: "Phone number verified successfully.",
+      user: data.user,
+    });
   } catch (err) {
     console.error("API route error:", err);
     return res.status(500).json({ error: "Internal Server Error" });

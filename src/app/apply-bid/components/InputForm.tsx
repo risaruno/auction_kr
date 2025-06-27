@@ -23,6 +23,7 @@ import CheckCircleIcon from "@mui/icons-material/CheckCircle";
 import DaumPostcodeEmbed from "react-daum-postcode";
 import { CaseResult } from "@/interfaces/CaseResult";
 import MoneyInput from "./MoneyInput";
+import { sendOtp, verifyOtp } from "@/utils/auth/otp";
 
 const FormGrid = styled(Grid)(() => ({
   display: "flex",
@@ -80,23 +81,44 @@ export default function InputForm({
     updateFormData("roadAddr", data.address);
     setIsModalOpen(false);
   };
+  
   const [otp, setOtp] = useState("");
   const [isOtpSent, setIsOtpSent] = useState(false);
   const [isVerified, setIsVerified] = useState(false);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
+  // Helper function to format phone number input
+  const handlePhoneNumberChange = (event: React.ChangeEvent<HTMLInputElement>) => {
+    const value = event.target.value.replace(/\D/g, ''); // Remove non-digits
+    if (value.length <= 11) {
+      handleFormChange({
+        ...event,
+        target: {
+          ...event.target,
+          name: 'phoneNumber',
+          value: value,
+        }
+      });
+    }
+  };
+
   const handleSendOtp = async () => {
+    // Basic validation before sending OTP
+    if (!formData.phoneNumber || formData.phoneNumber.length < 10) {
+      setError("올바른 휴대폰 번호를 입력해주세요. (010-XXXX-XXXX)");
+      return;
+    }
+
     setLoading(true);
     setError(null);
     try {
-      const response = await fetch("/api/auth/send-otp", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ phone: formData.phoneNumber }),
-      });
-      if (!response.ok) throw new Error("인증번호 전송에 실패했습니다.");
+      const result = await sendOtp(formData.phoneNumber);
+      if (result.error) {
+        throw new Error(result.error);
+      }
       setIsOtpSent(true);
+      setError(null);
     } catch (err) {
       setError(
         err instanceof Error ? err.message : "An unknown error occurred."
@@ -110,12 +132,10 @@ export default function InputForm({
     setLoading(true);
     setError(null);
     try {
-      const response = await fetch("/api/auth/verify-otp", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ phone: formData.phoneNumber, token: otp }),
-      });
-      if (!response.ok) throw new Error("인증번호가 올바르지 않습니다.");
+      const result = await verifyOtp(formData.phoneNumber, otp);
+      if (result.error) {
+        throw new Error(result.error);
+      }
       setIsVerified(true);
       setError(null); // Clear previous errors on success
     } catch (err) {
@@ -456,10 +476,11 @@ export default function InputForm({
                   name="phoneNumber"
                   type="tel"
                   fullWidth
-                  placeholder="- 없이 숫자만 입력"
+                  placeholder="01012345678 (- 없이 숫자만 입력)"
                   value={formData.phoneNumber}
-                  onChange={handleFormChange}
+                  onChange={handlePhoneNumberChange}
                   disabled={isOtpSent} // Disable after sending OTP
+                  inputProps={{ maxLength: 11 }}
                 />
               </Grid>
               {!isOtpSent && (

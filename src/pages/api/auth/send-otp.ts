@@ -1,5 +1,6 @@
+"use server";
 import { NextApiRequest, NextApiResponse } from "next";
-import { supabase } from "../../../utils/supabase";
+import { createClient } from "@/utils/supabase/server";
 
 export default async function handler(
   req: NextApiRequest,
@@ -10,6 +11,7 @@ export default async function handler(
   }
 
   try {
+    const supabase = createClient();
     const { phone } = req.body;
 
     if (!phone) {
