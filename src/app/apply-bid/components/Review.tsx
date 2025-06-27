@@ -6,29 +6,57 @@ import ListItem from "@mui/material/ListItem";
 import ListItemText from "@mui/material/ListItemText";
 import Stack from "@mui/material/Stack";
 import Typography from "@mui/material/Typography";
+import { FormData } from "@/interfaces/FormData";
 import { CaseResult } from "@/interfaces/CaseResult";
 
 // 1. Define the props interface for type safety.
 // It includes all the fields we want to display.
 interface ReviewProps {
-  formData: {
-    caseResult: CaseResult | null;
-    bidderName: string;
-    roadAddr: string;
-    addrDetail: string;
-    phoneNumber: string;
-    bidAmt: string;
-  };
+  formData: FormData;
 }
 
 export default function Review({ formData }: ReviewProps) {
   // Destructure the formData for easier access in the JSX
-  const { caseResult, bidderName, roadAddr, addrDetail, phoneNumber, bidAmt } =
+  const { caseResult, bidderName, roadAddr, addrDetail, phoneNumber, bidAmt, applicationType } =
     formData;
 
   // Calculate values for display, with fallbacks for safety
   const depositAmt = caseResult?.data?.depositAmt ?? 0;
   const serviceFee = 100000; // This can be made dynamic if needed
+
+  // Get display information based on application type
+  const getDisplayInfo = () => {
+    switch (applicationType) {
+      case 'personal':
+        return {
+          name: bidderName,
+          phone: phoneNumber,
+          address: `${roadAddr} ${addrDetail}`,
+        };
+      case 'company':
+        return {
+          name: formData.companyName || '',
+          phone: formData.companyPhoneNumber || '',
+          address: `${formData.companyRoadAddr || ''} ${formData.companyAddrDetail || ''}`,
+          businessInfo: `사업자번호: ${formData.businessNumber || ''}, 대표자: ${formData.representativeName || ''}`,
+        };
+      case 'group':
+        return {
+          name: formData.groupRepresentativeName || '',
+          phone: phoneNumber,
+          address: `${roadAddr} ${addrDetail}`,
+          groupInfo: `공동입찰 ${formData.groupMemberCount || 0}명`,
+        };
+      default:
+        return {
+          name: bidderName,
+          phone: phoneNumber,
+          address: `${roadAddr} ${addrDetail}`,
+        };
+    }
+  };
+
+  const displayInfo = getDisplayInfo();
 
   return (
     <Stack spacing={2} sx={{ p: 2 }}>
@@ -67,14 +95,24 @@ export default function Review({ formData }: ReviewProps) {
       >
         <div>
           <Typography variant="subtitle2" gutterBottom>
-            입찰자 정보
+            입찰자 정보 ({applicationType === 'personal' ? '개인' : applicationType === 'company' ? '법인' : '공동입찰'})
           </Typography>
-          <Typography gutterBottom>{bidderName}</Typography>
+          <Typography gutterBottom>{displayInfo.name}</Typography>
+          {displayInfo.businessInfo && (
+            <Typography gutterBottom sx={{ color: "text.secondary", fontSize: '0.9rem' }}>
+              {displayInfo.businessInfo}
+            </Typography>
+          )}
+          {displayInfo.groupInfo && (
+            <Typography gutterBottom sx={{ color: "text.secondary", fontSize: '0.9rem' }}>
+              {displayInfo.groupInfo}
+            </Typography>
+          )}
           <Typography gutterBottom sx={{ color: "text.secondary" }}>
-            {`${roadAddr} ${addrDetail}`}
+            {displayInfo.address}
           </Typography>
           <Typography gutterBottom sx={{ color: "text.secondary" }}>
-            {phoneNumber}
+            {displayInfo.phone}
           </Typography>
         </div>
         <div>

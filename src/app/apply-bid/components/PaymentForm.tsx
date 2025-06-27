@@ -1,4 +1,5 @@
 import { useState } from "react";
+import { FormData } from "@/interfaces/FormData";
 import {
   Box,
   Button,
@@ -25,10 +26,7 @@ import ExpandMoreIcon from "@mui/icons-material/ExpandMore";
 
 // 1. Define the props interface for type safety.
 interface PaymentFormProps {
-  formData: {
-    termsChecked: boolean;
-    pointsUsed: number;
-  };
+  formData: FormData;
   handleFormChange: (event: React.ChangeEvent<HTMLInputElement>) => void;
 }
 
@@ -56,10 +54,10 @@ export default function PaymentForm({
 
   const handleMainPayClick = () => {
     // Here you would typically validate the form (e.g., termsChecked)
-    if (!formData.termsChecked) {
-      alert("약관에 동의해주세요.");
-      return;
-    }
+    // if (!formData.termsChecked) {
+    //   alert("약관에 동의해주세요.");
+    //   return;
+    // }
     setOpenConfirmModal(true);
   };
 
@@ -157,7 +155,10 @@ export default function PaymentForm({
         <Box display="flex" alignItems="center">
           <Checkbox
             checked={formData.termsChecked}
-            onChange={handleFormChange}
+            onChange={() => {
+              formData.termsChecked = !formData.termsChecked;
+              handleFormChange;
+            }}
           />
           <Typography variant="body2">
             위 약관을 확인하였으며, 회원 본인은 약관 및 결제에 동의합니다.
@@ -275,7 +276,13 @@ export default function PaymentForm({
             >
               동의하지 않습니다
             </Button>
-            <Button fullWidth variant="contained" onClick={handleMainPayClick}>
+            <Button
+              fullWidth
+              variant="contained"
+              onClick={() => {
+                formData.termsChecked === true;
+              }}
+            >
               환불 정책에 동의합니다
             </Button>
           </Box>

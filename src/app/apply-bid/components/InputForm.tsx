@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useState, useCallback, useMemo } from "react";
 import {
   Box,
   Button,
@@ -6,11 +6,8 @@ import {
   Typography,
   TextField,
   MenuItem,
-  OutlinedInput,
   Modal,
   FormControl,
-  FormHelperText,
-  InputAdornment,
   FormLabel,
   CircularProgress,
   Alert,
@@ -18,11 +15,17 @@ import {
   CardMedia,
   CardContent,
   styled,
+  Chip,
+  IconButton,
+  Divider,
+  InputAdornment,
 } from "@mui/material";
 import CheckCircleIcon from "@mui/icons-material/CheckCircle";
+import AddIcon from "@mui/icons-material/Add";
+import DeleteIcon from "@mui/icons-material/Delete";
 import DaumPostcodeEmbed from "react-daum-postcode";
+import { FormData, ApplicationType } from "@/interfaces/FormData";
 import { CaseResult } from "@/interfaces/CaseResult";
-import MoneyInput from "./MoneyInput";
 import { sendOtp, verifyOtp } from "@/utils/auth/otp";
 
 const FormGrid = styled(Grid)(() => ({
@@ -30,32 +33,19 @@ const FormGrid = styled(Grid)(() => ({
   flexDirection: "column",
 }));
 
-// 1. Define the props interface to be type-safe.
 interface InputFormProps {
-  formData: {
-    bidAmt: string;
-    residentId1: string;
-    residentId2: string;
-    bank: string;
-    accountNumber: string;
-    bidderName: string;
-    phoneNumber: string;
-    zipNo: string;
-    roadAddr: string;
-    addrDetail: string;
-    caseResult: CaseResult | null;
-  };
+  formData: FormData;
   handleFormChange: (
-    event:
-      | React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>
-      | React.ChangeEvent<{ name?: string; value: unknown }>
+    event: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement> | 
+    { target: { name: string; value: any } }
   ) => void;
   updateFormData: (field: string, value: any) => void;
+  validationErrors?: Array<{ field: string; message: string }>;
 }
 
 const banks = [
   "KB국민은행",
-  "신한은행",
+  "신한은행", 
   "우리은행",
   "하나은행",
   "NH농협은행",
@@ -64,91 +54,151 @@ const banks = [
   "케이뱅크",
 ];
 
-// 2. The component now accepts props to be fully controlled by the parent.
+const applicationTypes: { value: ApplicationType; label: string }[] = [
+  { value: 'personal', label: '개인 입찰' },
+  { value: 'company', label: '법인 입찰' }, 
+  { value: 'group', label: '공동 입찰' },
+];
+
 export default function InputForm({
   formData,
   handleFormChange,
   updateFormData,
+  validationErrors = [],
 }: InputFormProps) {
-  // State to control the Daum Postcode modal
+  // Local state for UI interactions
   const [isModalOpen, setIsModalOpen] = useState(false);
-
-  const handleOpenModal = () => setIsModalOpen(true);
-  const handleCloseModal = () => setIsModalOpen(false);
-
-  const handleDaumComplete = (data: any) => {
-    updateFormData("zipNo", data.zonecode);
-    updateFormData("roadAddr", data.address);
-    setIsModalOpen(false);
-  };
-  
   const [otp, setOtp] = useState("");
   const [isOtpSent, setIsOtpSent] = useState(false);
-  const [isVerified, setIsVerified] = useState(false);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
-  // Helper function to format phone number input
-  const handlePhoneNumberChange = (event: React.ChangeEvent<HTMLInputElement>) => {
-    const value = event.target.value.replace(/\D/g, ''); // Remove non-digits
+  // Memoized error lookup function for performance
+  const getFieldError = useCallback((fieldName: string) => {
+    return validationErrors.find(error => error.field === fieldName)?.message;
+  }, [validationErrors]);
+
+  // Optimized change handlers with useCallback
+  const handleApplicationTypeChange = useCallback((event: React.ChangeEvent<HTMLInputElement>) => {
+    updateFormData('applicationType', event.target.value as ApplicationType);
+  }, [updateFormData]);
+
+  const handlePhoneNumberChange = useCallback((event: React.ChangeEvent<HTMLInputElement>) => {
+    const value = event.target.value.replace(/\D/g, '');
     if (value.length <= 11) {
       handleFormChange({
-        ...event,
-        target: {
-          ...event.target,
-          name: 'phoneNumber',
-          value: value,
-        }
+        target: { name: 'phoneNumber', value }
       });
     }
-  };
+  }, [handleFormChange]);
 
-  const handleSendOtp = async () => {
-    // Basic validation before sending OTP
-    if (!formData.phoneNumber || formData.phoneNumber.length < 10) {
-      setError("올바른 휴대폰 번호를 입력해주세요. (010-XXXX-XXXX)");
+  const handleResidentIdChange = useCallback((field: 'residentId1' | 'residentId2') => (
+    event: React.ChangeEvent<HTMLInputElement>
+  ) => {
+    const value = event.target.value.replace(/\D/g, '');
+    const maxLength = field === 'residentId1' ? 6 : 7;
+    if (value.length <= maxLength) {
+      handleFormChange({
+        target: { name: field, value }
+      });
+    }
+  }, [handleFormChange]);
+
+  const handleBusinessNumberChange = useCallback((event: React.ChangeEvent<HTMLInputElement>) => {
+    const value = event.target.value.replace(/\D/g, '');
+    if (value.length <= 10) {
+      handleFormChange({
+        target: { name: 'businessNumber', value }
+      });
+    }
+  }, [handleFormChange]);
+
+  const handleDaumComplete = useCallback((data: any) => {
+    const addressField = formData.applicationType === 'company' ? 'company' : '';
+    updateFormData(`${addressField}zipNo`, data.zonecode);
+    updateFormData(`${addressField}roadAddr`, data.address);
+    setIsModalOpen(false);
+  }, [formData.applicationType, updateFormData]);
+
+  // OTP handling
+  const handleSendOtp = useCallback(async () => {
+    const phoneToVerify = formData.applicationType === 'company' 
+      ? formData.companyPhoneNumber 
+      : formData.phoneNumber;
+
+    if (!phoneToVerify || phoneToVerify.length < 10) {
+      setError("올바른 휴대폰 번호를 입력해주세요.");
       return;
     }
 
     setLoading(true);
     setError(null);
     try {
-      const result = await sendOtp(formData.phoneNumber);
+      const result = await sendOtp(phoneToVerify);
       if (result.error) {
         throw new Error(result.error);
       }
       setIsOtpSent(true);
-      setError(null);
     } catch (err) {
-      setError(
-        err instanceof Error ? err.message : "An unknown error occurred."
-      );
+      setError(err instanceof Error ? err.message : "오류가 발생했습니다.");
     } finally {
       setLoading(false);
     }
-  };
+  }, [formData.phoneNumber, formData.companyPhoneNumber, formData.applicationType]);
 
-  const handleVerifyOtp = async () => {
+  const handleVerifyOtp = useCallback(async () => {
+    const phoneToVerify = formData.applicationType === 'company' 
+      ? formData.companyPhoneNumber 
+      : formData.phoneNumber;
+
     setLoading(true);
     setError(null);
     try {
-      const result = await verifyOtp(formData.phoneNumber, otp);
+      const result = await verifyOtp(phoneToVerify!, otp);
       if (result.error) {
         throw new Error(result.error);
       }
-      setIsVerified(true);
-      setError(null); // Clear previous errors on success
+      updateFormData('isPhoneVerified', true);
+      setError(null);
     } catch (err) {
-      setError(
-        err instanceof Error ? err.message : "An unknown error occurred."
-      );
+      setError(err instanceof Error ? err.message : "인증에 실패했습니다.");
     } finally {
       setLoading(false);
     }
-  };
+  }, [formData.phoneNumber, formData.companyPhoneNumber, formData.applicationType, otp, updateFormData]);
 
-  return (
-    <>
+  // Group member management
+  const addGroupMember = useCallback(() => {
+    const currentMembers = formData.groupMembers || [];
+    const newMember = { name: '', residentId1: '', residentId2: '' };
+    updateFormData('groupMembers', [...currentMembers, newMember]);
+    updateFormData('groupMemberCount', currentMembers.length + 1);
+  }, [formData.groupMembers, updateFormData]);
+
+  const removeGroupMember = useCallback((index: number) => {
+    const currentMembers = formData.groupMembers || [];
+    const newMembers = currentMembers.filter((_, i) => i !== index);
+    updateFormData('groupMembers', newMembers);
+    updateFormData('groupMemberCount', newMembers.length);
+  }, [formData.groupMembers, updateFormData]);
+
+  const updateGroupMember = useCallback((index: number, field: string, value: string) => {
+    const currentMembers = formData.groupMembers || [];
+    const newMembers = [...currentMembers];
+    if (field === 'residentId1' || field === 'residentId2') {
+      value = value.replace(/\D/g, '');
+      const maxLength = field === 'residentId1' ? 6 : 7;
+      if (value.length > maxLength) return;
+    }
+    newMembers[index] = { ...newMembers[index], [field]: value };
+    updateFormData('groupMembers', newMembers);
+  }, [formData.groupMembers, updateFormData]);
+
+  // Memoized components for better performance
+  const CaseDisplay = useMemo(() => {
+    if (!formData.caseResult?.data) return null;
+
+    return (
       <Grid container spacing={3} size={{ xs: 12 }}>
         <Grid container size={{ xs: 12 }}>
           <Card
@@ -162,7 +212,7 @@ export default function InputForm({
           >
             <CardMedia
               component="img"
-              image={`data:image/jpeg;base64,${formData.caseResult?.data?.picFile}`}
+              image={`data:image/jpeg;base64,${formData.caseResult.data.picFile}`}
               alt="Case Image"
               sx={{
                 flex: 1,
@@ -172,108 +222,38 @@ export default function InputForm({
                 width: { xs: "100%", sm: "auto" },
               }}
             />
-            <Box
-              sx={{
-                display: "flex",
-                flex: { sm: "0", md: "1" },
-                alignItems: "center",
-              }}
-            >
-              <CardContent
-                sx={{
-                  width: "100%",
-                  height: "100%",
-                  display: "flex",
-                  flexDirection: "column",
-                  justifyContent: "space-evenly",
-                }}
-              >
-                <Box
-                  sx={{
-                    display: "flex",
-                    flexDirection: "row",
-                    alignItems: "center",
-                    justifyContent: "space-between",
-                  }}
-                >
-                  <Typography variant="body2">법원명</Typography>
-                  <Typography variant="body1" fontWeight={"bold"}>
-                    {formData.caseResult?.data?.courtName}
-                  </Typography>
-                </Box>
-                <Box
-                  sx={{
-                    display: "flex",
-                    flexDirection: "row",
-                    alignItems: "center",
-                    justifyContent: "space-between",
-                  }}
-                >
-                  <Typography variant="body2">사건번호</Typography>
-                  <Typography variant="body1" fontWeight={"bold"}>
-                    {formData.caseResult?.data?.printCaseNumber}
-                  </Typography>
-                </Box>
-                <Box
-                  sx={{
-                    display: "flex",
-                    flexDirection: "row",
-                    alignItems: "center",
-                    justifyContent: "space-between",
-                  }}
-                >
-                  <Typography variant="body2">감정가</Typography>
-                  <Typography variant="body1" fontWeight={"bold"}>
-                    {formData.caseResult?.data?.evaluationAmt.toLocaleString()}
-                    원
-                  </Typography>
-                </Box>
-                <Box
-                  sx={{
-                    display: "flex",
-                    flexDirection: "row",
-                    alignItems: "center",
-                    justifyContent: "space-between",
-                  }}
-                >
-                  <Typography variant="body2">최저 입찰가</Typography>
-                  <Typography variant="body1" fontWeight={"bold"}>
-                    {formData.caseResult?.data?.lowestBidAmt.toLocaleString()}원
-                  </Typography>
-                </Box>
-                <Box
-                  sx={{
-                    display: "flex",
-                    flexDirection: "row",
-                    alignItems: "center",
-                    justifyContent: "space-between",
-                  }}
-                >
-                  <Typography variant="body2">보증금</Typography>
-                  <Typography variant="body1" fontWeight={"bold"}>
-                    {formData.caseResult?.data?.depositAmt?.toLocaleString() ??
-                      0}
-                    원
-                  </Typography>
-                </Box>
-                <Box
-                  sx={{
-                    display: "flex",
-                    flexDirection: "row",
-                    alignItems: "center",
-                    justifyContent: "space-between",
-                  }}
-                >
-                  <Typography variant="body2">매각기일</Typography>
-                  <Typography variant="body1" fontWeight={"bold"}>
-                    {formData.caseResult?.data?.bidDate}
-                  </Typography>
-                </Box>
-              </CardContent>
-            </Box>
+            <CardContent sx={{ flex: 2, p: 3 }}>
+              <Typography variant="h6" gutterBottom>
+                {formData.caseResult.data.printCaseNumber}
+              </Typography>
+              <Typography variant="body2" color="text.secondary" gutterBottom>
+                {formData.caseResult.data.courtName}
+              </Typography>
+              <Box sx={{ mt: 2 }}>
+                <Typography variant="body2">
+                  <strong>감정가:</strong> {formData.caseResult.data.evaluationAmt?.toLocaleString()}원
+                </Typography>
+                <Typography variant="body2">
+                  <strong>최저입찰가:</strong> {formData.caseResult.data.lowestBidAmt?.toLocaleString()}원
+                </Typography>
+                <Typography variant="body2">
+                  <strong>입찰보증금:</strong> {formData.caseResult.data.depositAmt?.toLocaleString()}원
+                </Typography>
+                <Typography variant="body2">
+                  <strong>매각기일:</strong> {formData.caseResult.data.bidDate}
+                </Typography>
+              </Box>
+            </CardContent>
           </Card>
         </Grid>
       </Grid>
+    );
+  }, [formData.caseResult]);
+
+  return (
+    <>
+      {CaseDisplay}
+      
       <Grid
         container
         spacing={3}
@@ -284,330 +264,516 @@ export default function InputForm({
           p: { xs: 2, sm: 3 },
           border: "1px solid",
           borderColor: "divider",
+          mt: 2,
         }}
       >
-        {/* SECTION 1: Bid Amount */}
+        {/* Application Type Selection */}
         <Grid container spacing={3} size={{ xs: 12 }}>
-          <Grid container spacing={2} size={{ xs: 12 }}>
-            <Typography variant="h4" fontWeight={"bold"} gutterBottom>
-              입찰가를 입력해주세요
-            </Typography>
-            <Grid
-              container
-              size={{ xs: 12 }}
-              sx={{
-                backgroundColor: "#fef3f3",
-                border: "1px solid",
-                borderColor: "divider",
-                borderRadius: 2,
-                padding: 2,
-                width: "100%",
-              }}
-            >
-              <Typography variant="body1" color="error">
-                대리인만 입찰가를 확인할 수 있습니다.
-              </Typography>
-            </Grid>
-          </Grid>
-          <Grid container spacing={3} size={{ xs: 12 }}>
-            <FormGrid size={{ xs: 12, md: 6 }}>
-              <FormControl fullWidth>
-                <FormLabel htmlFor="bidAmt" required>
-                  입찰가
-                </FormLabel>
-                <MoneyInput
-                  name="bidAmt"
-                  required
-                  value={formData.bidAmt.toString()}
-                  placeholder={
-                    formData.caseResult?.data?.lowestBidAmt?.toString() ?? "0"
-                  }
-                  onChange={handleFormChange}
-                />
-                <FormHelperText>
-                  {formData.caseResult?.data?.lowestBidAmt?.toLocaleString() ??
-                    "0"}
-                  원 이상 입력해주세요.
-                </FormHelperText>
-              </FormControl>
-            </FormGrid>
-            <FormGrid size={{ xs: 12, md: 6 }}>
-              <FormControl fullWidth>
-                <FormLabel htmlFor="depositAmt" required>
-                  입찰 보증금
-                </FormLabel>
-                <MoneyInput
-                  name="depositAmt"
-                  required
-                  disabled
-                  value={
-                    formData.caseResult?.data?.depositAmt.toString() ?? "0"
-                  }
-                  onChange={(e) => {}}
-                />
-                <FormHelperText>자동 계산됩니다.</FormHelperText>
-              </FormControl>
-            </FormGrid>
-          </Grid>
-        </Grid>
-        {/* SECTION 2: Bidder Information */}
-        <Grid container spacing={3} size={{ xs: 12 }} mt={4}>
-          <Grid container spacing={2} size={{ xs: 12 }}>
-            <Typography variant="h4" fontWeight={"bold"} gutterBottom>
+          <FormGrid size={{ xs: 12 }}>
+            <Typography variant="h5" fontWeight="bold" gutterBottom>
               입찰자 정보를 입력해주세요
             </Typography>
-            <Grid
-              container
-              size={{ xs: 12 }}
-              sx={{
-                backgroundColor: "#fef3f3",
-                border: "1px solid",
-                borderColor: "#fdbfb3",
-                borderRadius: 2,
-                padding: 2,
-                width: "100%",
-              }}
+          </FormGrid>
+
+          <FormGrid size={{ xs: 12 }}>
+            <FormLabel htmlFor="applicationType">신청 유형 *</FormLabel>
+            <TextField
+              id="applicationType"
+              name="applicationType"
+              select
+              value={formData.applicationType}
+              onChange={handleApplicationTypeChange}
+              fullWidth
             >
-              <Typography variant="body1" color="#b42318">
-                입찰정보는 입찰표에 그대로 반영되므로, 정확하게 기재해주세요.
-                오기재로 인한 낙찰무효는 책임지지 않습니다.
+              {applicationTypes.map((option) => (
+                <MenuItem key={option.value} value={option.value}>
+                  {option.label}
+                </MenuItem>
+              ))}
+            </TextField>
+          </FormGrid>
+        </Grid>
+
+        {/* Bid Amount Section */}
+        <Grid container spacing={3} size={{ xs: 12 }}>
+          <FormGrid size={{ xs: 12 }}>
+            <Typography variant="h6" gutterBottom>
+              입찰 정보
+            </Typography>
+          </FormGrid>
+
+          <FormGrid size={{ xs: 12, md: 6 }}>
+            <FormLabel htmlFor="bidAmt">입찰가 *</FormLabel>
+            <TextField
+              id="bidAmt"
+              name="bidAmt"
+              value={formData.bidAmt}
+              onChange={handleFormChange}
+              placeholder="입찰가를 입력해주세요"
+              error={!!getFieldError('bidAmt')}
+              helperText={getFieldError('bidAmt') || 
+                `최저입찰가: ${formData.caseResult?.data?.lowestBidAmt?.toLocaleString()}원`}
+              InputProps={{
+                endAdornment: <InputAdornment position="end">원</InputAdornment>
+              }}
+              fullWidth
+            />
+          </FormGrid>
+        </Grid>
+
+        {/* Personal Application Fields */}
+        {formData.applicationType === 'personal' && (
+          <Grid container spacing={3} size={{ xs: 12 }} mt={2}>
+            <FormGrid size={{ xs: 12 }}>
+              <Typography variant="h6" gutterBottom>
+                개인 정보
               </Typography>
-            </Grid>
-          </Grid>
-
-          {/* Resident Registration Number */}
-          <Grid container spacing={2} size={{ xs: 12 }}>
-            <FormGrid size={{ xs: 12 }}>
-              <FormLabel htmlFor="residentId1">주민등록번호</FormLabel>
-              <Grid container spacing={2}>
-                <TextField
-                  id="residentId1"
-                  name="residentId1"
-                  required
-                  type="number"
-                  fullWidth // fullWidth now applies to the Grid item's space
-                  placeholder="주민등록번호 앞자리"
-                  value={formData.residentId1}
-                  onChange={handleFormChange}
-                  sx={{ alignItems: "center", flex: 20 }}
-                />
-                <Typography sx={{ textAlign: "center", flex: 1 }}>-</Typography>
-                <TextField
-                  id="residentId2"
-                  name="residentId2"
-                  required
-                  type="password"
-                  fullWidth // fullWidth now applies to the Grid item's space
-                  placeholder="주민등록번호 뒷자리"
-                  value={formData.residentId2}
-                  onChange={handleFormChange}
-                  sx={{ alignItems: "center", flex: 20 }}
-                />
-              </Grid>
-              <FormHelperText sx={{ color: "#b42318" }}>
-                주민등록번호는 입찰표 작성에만 사용됩니다.
-              </FormHelperText>
             </FormGrid>
-          </Grid>
 
-          {/* Deposit Refund Account */}
-          <Grid container spacing={2} size={{ xs: 12 }}>
-            <FormGrid size={{ xs: 12 }}>
-              <FormLabel htmlFor="bank">보증금 반환계좌</FormLabel>
-              <Grid container spacing={2}>
-                <Grid size={{ xs: 12, sm: 4 }}>
-                  <TextField
-                    id="bank"
-                    name="bank"
-                    select
-                    fullWidth
-                    value={formData.bank || "default"}
-                    onChange={handleFormChange}
-                  >
-                    <MenuItem value="default" disabled>
-                      은행 선택
-                    </MenuItem>
-                    {banks.map((option) => (
-                      <MenuItem key={option} value={option}>
-                        {option}
-                      </MenuItem>
-                    ))}
-                  </TextField>
-                </Grid>
-                <Grid size={{ xs: 12, sm: 8 }}>
-                  <TextField
-                    id="accountNumber"
-                    name="accountNumber"
-                    fullWidth
-                    placeholder="계좌번호 입력"
-                    value={formData.accountNumber}
-                    onChange={handleFormChange}
-                  />
-                </Grid>
-              </Grid>
-              <FormHelperText sx={{ color: "#b42318" }}>
-                보증금 반환계좌를 잘못 입력시 보증금 반환이 지연될 수 있습니다.
-              </FormHelperText>
-            </FormGrid>
-          </Grid>
-
-          {/* Bidder Name */}
-          <Grid container spacing={2} size={{ xs: 12 }}>
-            <FormGrid size={{ xs: 12 }}>
-              <FormLabel htmlFor="bidderName">입찰자 성명</FormLabel>
+            <FormGrid size={{ xs: 12, md: 6 }}>
+              <FormLabel htmlFor="bidderName">이름 *</FormLabel>
               <TextField
                 id="bidderName"
                 name="bidderName"
-                fullWidth
-                placeholder="입찰자 성명"
                 value={formData.bidderName}
                 onChange={handleFormChange}
+                placeholder="홍길동"
+                error={!!getFieldError('bidderName')}
+                helperText={getFieldError('bidderName')}
+                fullWidth
               />
             </FormGrid>
-          </Grid>
 
-          {/* Phone Number */}
-          <Grid spacing={2} size={{ xs: 12 }}>
-            <FormLabel htmlFor="phoneNumber">휴대폰 번호</FormLabel>
-            <Grid container spacing={1} alignItems="center">
-              <Grid size={{ xs: 12, sm: isOtpSent ? 6 : 9 }}>
-                <TextField
-                  id="phoneNumber"
-                  name="phoneNumber"
-                  type="tel"
-                  fullWidth
-                  placeholder="01012345678 (- 없이 숫자만 입력)"
-                  value={formData.phoneNumber}
-                  onChange={handlePhoneNumberChange}
-                  disabled={isOtpSent} // Disable after sending OTP
-                  inputProps={{ maxLength: 11 }}
-                />
-              </Grid>
-              {!isOtpSent && (
-                <Grid size={{ xs: 12, sm: 3 }}>
-                  <Button
-                    variant="contained"
-                    sx={{ width: "100%" }}
-                    onClick={handleSendOtp}
-                    disabled={loading}
-                  >
-                    {loading ? <CircularProgress size={24} /> : "인증번호 받기"}
-                  </Button>
-                </Grid>
-              )}
-              {isOtpSent && !isVerified && (
-                <>
-                  <Grid size={{ xs: 12, sm: 3 }}>
-                    <TextField
-                      id="otp"
-                      name="otp"
-                      fullWidth
-                      placeholder="인증번호 6자리"
-                      value={otp}
-                      onChange={(e) => setOtp(e.target.value)}
-                    />
-                  </Grid>
-                  <Grid size={{ xs: 12, sm: 3 }}>
-                    <Button
-                      variant="contained"
-                      color="secondary"
-                      sx={{ width: "100%" }}
-                      onClick={handleVerifyOtp}
-                      disabled={loading || otp.length !== 6}
-                    >
-                      {loading ? <CircularProgress size={24} /> : "인증 확인"}
-                    </Button>
-                  </Grid>
-                </>
-              )}
-            </Grid>
-            {/* Verification Status Feedback */}
-            {error && (
-              <Alert severity="error" sx={{ mt: 1 }}>
-                {error}
-              </Alert>
-            )}
-            {isVerified && (
-              <Box
-                display="flex"
-                alignItems="center"
-                sx={{ mt: 1, color: "success.main" }}
+            <FormGrid size={{ xs: 6, md: 3 }}>
+              <FormLabel htmlFor="residentId1">주민등록번호 앞자리 *</FormLabel>
+              <TextField
+                id="residentId1"
+                name="residentId1"
+                value={formData.residentId1}
+                onChange={handleResidentIdChange('residentId1')}
+                placeholder="123456"
+                inputProps={{ maxLength: 6 }}
+                error={!!getFieldError('residentId')}
+                fullWidth
+              />
+            </FormGrid>
+
+            <FormGrid size={{ xs: 6, md: 3 }}>
+              <FormLabel htmlFor="residentId2">주민등록번호 뒷자리 *</FormLabel>
+              <TextField
+                id="residentId2"
+                name="residentId2"
+                type="password"
+                value={formData.residentId2}
+                onChange={handleResidentIdChange('residentId2')}
+                placeholder="1234567"
+                inputProps={{ maxLength: 7 }}
+                error={!!getFieldError('residentId')}
+                helperText={getFieldError('residentId')}
+                fullWidth
+              />
+            </FormGrid>
+
+            <FormGrid size={{ xs: 12, md: 8 }}>
+              <FormLabel htmlFor="phoneNumber">휴대폰 번호 *</FormLabel>
+              <TextField
+                id="phoneNumber"
+                name="phoneNumber"
+                value={formData.phoneNumber}
+                onChange={handlePhoneNumberChange}
+                placeholder="01012345678"
+                error={!!getFieldError('phoneNumber')}
+                helperText={getFieldError('phoneNumber')}
+                InputProps={{
+                  endAdornment: formData.isPhoneVerified ? (
+                    <InputAdornment position="end">
+                      <CheckCircleIcon color="success" />
+                    </InputAdornment>
+                  ) : undefined
+                }}
+                fullWidth
+              />
+            </FormGrid>
+
+            <FormGrid size={{ xs: 12, md: 4 }}>
+              <FormLabel>&nbsp;</FormLabel>
+              <Button
+                variant="outlined"
+                onClick={handleSendOtp}
+                disabled={loading || formData.isPhoneVerified || !formData.phoneNumber}
+                fullWidth
               >
-                <CheckCircleIcon sx={{ mr: 1 }} />
-                <Typography>휴대폰 번호가 인증되었습니다.</Typography>
-              </Box>
-            )}
-          </Grid>
+                {loading ? <CircularProgress size={20} /> : '인증번호 발송'}
+              </Button>
+            </FormGrid>
 
-          {/* --- ADDRESS FORM using React Daum Postcode --- */}
-          <Grid container spacing={2} size={{ xs: 12 }}>
-            <FormGrid size={{ xs: 12 }}>
-              <FormLabel htmlFor="roadAddr">주소</FormLabel>
-              <Grid container spacing={2} alignItems="center">
-                <Grid size={{ xs: 12, sm: 9 }}>
+            {isOtpSent && !formData.isPhoneVerified && (
+              <>
+                <FormGrid size={{ xs: 12, md: 8 }}>
+                  <FormLabel htmlFor="otp">인증번호</FormLabel>
                   <TextField
-                    id="zipNo"
-                    name="zipNo"
+                    id="otp"
+                    value={otp}
+                    onChange={(e) => setOtp(e.target.value)}
+                    placeholder="인증번호 6자리"
+                    inputProps={{ maxLength: 6 }}
                     fullWidth
-                    placeholder="우편번호"
-                    value={formData.zipNo}
                   />
-                </Grid>
-                <Grid size={{ xs: 12, sm: 3 }}>
+                </FormGrid>
+
+                <FormGrid size={{ xs: 12, md: 4 }}>
+                  <FormLabel>&nbsp;</FormLabel>
                   <Button
                     variant="contained"
-                    onClick={handleOpenModal} // Open modal on click
-                    sx={{
-                      width: "100%",
-                    }}
+                    onClick={handleVerifyOtp}
+                    disabled={loading || !otp}
+                    fullWidth
                   >
-                    주소찾기
+                    {loading ? <CircularProgress size={20} /> : '인증확인'}
                   </Button>
-                </Grid>
-              </Grid>
+                </FormGrid>
+              </>
+            )}
+          </Grid>
+        )}
+
+        {/* Company Application Fields */}
+        {formData.applicationType === 'company' && (
+          <Grid container spacing={3} size={{ xs: 12 }} mt={2}>
+            <FormGrid size={{ xs: 12 }}>
+              <Typography variant="h6" gutterBottom>
+                법인 정보
+              </Typography>
+            </FormGrid>
+
+            <FormGrid size={{ xs: 12, md: 6 }}>
+              <FormLabel htmlFor="companyName">회사명 *</FormLabel>
               <TextField
-                id="roadAddr"
-                name="roadAddr"
-                fullWidth
-                placeholder="주소"
-                value={formData.roadAddr}
-                sx={{ mt: 2 }}
-              />
-              <TextField
-                id="addrDetail"
-                name="addrDetail"
-                required
-                fullWidth
-                placeholder="상세주소 입력"
-                value={formData.addrDetail}
+                id="companyName"
+                name="companyName"
+                value={formData.companyName || ''}
                 onChange={handleFormChange}
-                sx={{ mt: 2 }}
+                placeholder="주식회사 OO"
+                error={!!getFieldError('companyName')}
+                helperText={getFieldError('companyName')}
+                fullWidth
+              />
+            </FormGrid>
+
+            <FormGrid size={{ xs: 12, md: 6 }}>
+              <FormLabel htmlFor="businessNumber">사업자등록번호 *</FormLabel>
+              <TextField
+                id="businessNumber"
+                name="businessNumber"
+                value={formData.businessNumber || ''}
+                onChange={handleBusinessNumberChange}
+                placeholder="1234567890"
+                inputProps={{ maxLength: 10 }}
+                error={!!getFieldError('businessNumber')}
+                helperText={getFieldError('businessNumber')}
+                fullWidth
+              />
+            </FormGrid>
+
+            <FormGrid size={{ xs: 12, md: 6 }}>
+              <FormLabel htmlFor="representativeName">대표자명 *</FormLabel>
+              <TextField
+                id="representativeName"
+                name="representativeName"
+                value={formData.representativeName || ''}
+                onChange={handleFormChange}
+                placeholder="홍길동"
+                error={!!getFieldError('representativeName')}
+                helperText={getFieldError('representativeName')}
+                fullWidth
+              />
+            </FormGrid>
+
+            <FormGrid size={{ xs: 12, md: 6 }}>
+              <FormLabel htmlFor="companyPhoneNumber">회사 전화번호 *</FormLabel>
+              <TextField
+                id="companyPhoneNumber"
+                name="companyPhoneNumber"
+                value={formData.companyPhoneNumber || ''}
+                onChange={handleFormChange}
+                placeholder="02-1234-5678"
+                error={!!getFieldError('companyPhoneNumber')}
+                helperText={getFieldError('companyPhoneNumber')}
+                fullWidth
               />
             </FormGrid>
           </Grid>
-        </Grid>{" "}
-        {/* --- DAUM POSTCODE MODAL --- */}
-        <Modal
-          open={isModalOpen}
-          onClose={handleCloseModal}
-          aria-labelledby="modal-address-search"
-        >
-          <Box
-            sx={{
-              position: "absolute",
-              top: "50%",
-              left: "50%",
-              transform: "translate(-50%, -50%)",
-              width: 600,
-              ba: "background.paper",
-              border: "2px solid #000",
-              boxShadow: 24,
-            }}
-          >
-            <DaumPostcodeEmbed onComplete={handleDaumComplete} />
-          </Box>
-        </Modal>
+        )}
+
+        {/* Group Application Fields */}
+        {formData.applicationType === 'group' && (
+          <Grid container spacing={3} size={{ xs: 12 }} mt={2}>
+            <FormGrid size={{ xs: 12 }}>
+              <Typography variant="h6" gutterBottom>
+                공동입찰 대표자 정보
+              </Typography>
+            </FormGrid>
+
+            <FormGrid size={{ xs: 12, md: 6 }}>
+              <FormLabel htmlFor="groupRepresentativeName">대표자명 *</FormLabel>
+              <TextField
+                id="groupRepresentativeName"
+                name="groupRepresentativeName"
+                value={formData.groupRepresentativeName || ''}
+                onChange={handleFormChange}
+                placeholder="홍길동"
+                error={!!getFieldError('groupRepresentativeName')}
+                helperText={getFieldError('groupRepresentativeName')}
+                fullWidth
+              />
+            </FormGrid>
+
+            <FormGrid size={{ xs: 6, md: 3 }}>
+              <FormLabel htmlFor="groupRepresentativeId1">주민등록번호 앞자리 *</FormLabel>
+              <TextField
+                id="groupRepresentativeId1"
+                name="groupRepresentativeId1"
+                value={formData.groupRepresentativeId1 || ''}
+                onChange={(e) => {
+                  const value = e.target.value.replace(/\D/g, '');
+                  if (value.length <= 6) {
+                    handleFormChange({ target: { name: 'groupRepresentativeId1', value } });
+                  }
+                }}
+                placeholder="123456"
+                inputProps={{ maxLength: 6 }}
+                error={!!getFieldError('groupRepresentativeId')}
+                fullWidth
+              />
+            </FormGrid>
+
+            <FormGrid size={{ xs: 6, md: 3 }}>
+              <FormLabel htmlFor="groupRepresentativeId2">주민등록번호 뒷자리 *</FormLabel>
+              <TextField
+                id="groupRepresentativeId2"
+                name="groupRepresentativeId2"
+                type="password"
+                value={formData.groupRepresentativeId2 || ''}
+                onChange={(e) => {
+                  const value = e.target.value.replace(/\D/g, '');
+                  if (value.length <= 7) {
+                    handleFormChange({ target: { name: 'groupRepresentativeId2', value } });
+                  }
+                }}
+                placeholder="1234567"
+                inputProps={{ maxLength: 7 }}
+                error={!!getFieldError('groupRepresentativeId')}
+                helperText={getFieldError('groupRepresentativeId')}
+                fullWidth
+              />
+            </FormGrid>
+
+            <FormGrid size={{ xs: 12 }}>
+              <Divider sx={{ my: 2 }} />
+              <Typography variant="h6" gutterBottom>
+                공동입찰자 정보
+              </Typography>
+            </FormGrid>
+
+            {(formData.groupMembers || []).map((member, index) => (
+              <React.Fragment key={index}>
+                <FormGrid size={{ xs: 12, md: 4 }}>
+                  <FormLabel>입찰자 {index + 1} 이름</FormLabel>
+                  <TextField
+                    value={member.name}
+                    onChange={(e) => updateGroupMember(index, 'name', e.target.value)}
+                    placeholder="홍길동"
+                    fullWidth
+                  />
+                </FormGrid>
+                
+                <FormGrid size={{ xs: 5, md: 3 }}>
+                  <FormLabel>주민등록번호 앞자리</FormLabel>
+                  <TextField
+                    value={member.residentId1}
+                    onChange={(e) => updateGroupMember(index, 'residentId1', e.target.value)}
+                    placeholder="123456"
+                    inputProps={{ maxLength: 6 }}
+                    fullWidth
+                  />
+                </FormGrid>
+                
+                <FormGrid size={{ xs: 5, md: 3 }}>
+                  <FormLabel>주민등록번호 뒷자리</FormLabel>
+                  <TextField
+                    type="password"
+                    value={member.residentId2}
+                    onChange={(e) => updateGroupMember(index, 'residentId2', e.target.value)}
+                    placeholder="1234567"
+                    inputProps={{ maxLength: 7 }}
+                    fullWidth
+                  />
+                </FormGrid>
+                
+                <FormGrid size={{ xs: 2, md: 2 }}>
+                  <FormLabel>&nbsp;</FormLabel>
+                  <IconButton 
+                    onClick={() => removeGroupMember(index)}
+                    color="error"
+                    disabled={(formData.groupMembers || []).length <= 1}
+                  >
+                    <DeleteIcon />
+                  </IconButton>
+                </FormGrid>
+              </React.Fragment>
+            ))}
+
+            <FormGrid size={{ xs: 12 }}>
+              <Button
+                variant="outlined"
+                startIcon={<AddIcon />}
+                onClick={addGroupMember}
+                sx={{ alignSelf: 'flex-start' }}
+              >
+                입찰자 추가
+              </Button>
+            </FormGrid>
+          </Grid>
+        )}
+
+        {/* Address Section */}
+        <Grid container spacing={3} size={{ xs: 12 }} mt={2}>
+          <FormGrid size={{ xs: 12 }}>
+            <Typography variant="h6" gutterBottom>
+              {formData.applicationType === 'company' ? '회사 주소' : '주소'} *
+            </Typography>
+          </FormGrid>
+
+          <FormGrid size={{ xs: 12, md: 3 }}>
+            <FormLabel htmlFor="zipNo">우편번호</FormLabel>
+            <TextField
+              id="zipNo"
+              name="zipNo"
+              value={formData.applicationType === 'company' ? formData.companyZipNo || '' : formData.zipNo}
+              placeholder="12345"
+              error={!!getFieldError('address')}
+              InputProps={{ readOnly: true }}
+              fullWidth
+            />
+          </FormGrid>
+
+          <FormGrid size={{ xs: 12, md: 2 }}>
+            <FormLabel>&nbsp;</FormLabel>
+            <Button
+              variant="outlined"
+              onClick={() => setIsModalOpen(true)}
+              fullWidth
+            >
+              주소검색
+            </Button>
+          </FormGrid>
+
+          <FormGrid size={{ xs: 12, md: 7 }}>
+            <FormLabel htmlFor="roadAddr">도로명주소</FormLabel>
+            <TextField
+              id="roadAddr"
+              name="roadAddr"
+              value={formData.applicationType === 'company' ? formData.companyRoadAddr || '' : formData.roadAddr}
+              placeholder="도로명주소"
+              error={!!getFieldError('address')}
+              helperText={getFieldError('address')}
+              InputProps={{ readOnly: true }}
+              fullWidth
+            />
+          </FormGrid>
+
+          <FormGrid size={{ xs: 12 }}>
+            <FormLabel htmlFor="addrDetail">상세주소</FormLabel>
+            <TextField
+              id="addrDetail"
+              name="addrDetail"
+              value={formData.applicationType === 'company' ? formData.companyAddrDetail || '' : formData.addrDetail}
+              onChange={handleFormChange}
+              placeholder="상세주소를 입력해주세요"
+              fullWidth
+            />
+          </FormGrid>
+        </Grid>
+
+        {/* Bank Account Section */}
+        <Grid container spacing={3} size={{ xs: 12 }} mt={2}>
+          <FormGrid size={{ xs: 12 }}>
+            <Typography variant="h6" gutterBottom>
+              입찰보증금 입금계좌
+            </Typography>
+          </FormGrid>
+
+          <FormGrid size={{ xs: 12, md: 6 }}>
+            <FormLabel htmlFor="bank">은행 *</FormLabel>
+            <TextField
+              id="bank"
+              name="bank"
+              select
+              value={formData.bank}
+              onChange={handleFormChange}
+              error={!!getFieldError('bank')}
+              helperText={getFieldError('bank')}
+              fullWidth
+            >
+              <MenuItem value="">은행을 선택해주세요</MenuItem>
+              {banks.map((bank) => (
+                <MenuItem key={bank} value={bank}>
+                  {bank}
+                </MenuItem>
+              ))}
+            </TextField>
+          </FormGrid>
+
+          <FormGrid size={{ xs: 12, md: 6 }}>
+            <FormLabel htmlFor="accountNumber">계좌번호 *</FormLabel>
+            <TextField
+              id="accountNumber"
+              name="accountNumber"
+              value={formData.accountNumber}
+              onChange={handleFormChange}
+              placeholder="계좌번호를 입력해주세요"
+              error={!!getFieldError('accountNumber')}
+              helperText={getFieldError('accountNumber')}
+              fullWidth
+            />
+          </FormGrid>
+        </Grid>
+
+        {/* Error Display */}
+        {error && (
+          <Grid size={{ xs: 12 }}>
+            <Alert severity="error" onClose={() => setError(null)}>
+              {error}
+            </Alert>
+          </Grid>
+        )}
       </Grid>
+
+      {/* Address Search Modal */}
+      <Modal
+        open={isModalOpen}
+        onClose={() => setIsModalOpen(false)}
+        aria-labelledby="modal-address-search"
+      >
+        <Box
+          sx={{
+            position: 'absolute',
+            top: '50%',
+            left: '50%',
+            transform: 'translate(-50%, -50%)',
+            width: { xs: '90%', sm: 500 },
+            bgcolor: 'background.paper',
+            boxShadow: 24,
+            p: 0,
+            borderRadius: 1,
+          }}
+        >
+          <DaumPostcodeEmbed
+            onComplete={handleDaumComplete}
+            style={{ height: '400px' }}
+          />
+        </Box>
+      </Modal>
     </>
   );
 }

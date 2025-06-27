@@ -10,20 +10,12 @@ import {
   Typography,
 } from "@mui/material";
 import SignatureCanvas from "react-signature-canvas";
+import { FormData } from "@/interfaces/FormData";
 import { CaseResult } from "@/interfaces/CaseResult";
 
 // 1. Defined a TypeScript interface for the component's props.
 interface ContractSignProps {
-  formData: {
-    bidderName: string;
-    phoneNumber: string;
-    roadAddr: string;
-    addrDetail: string;
-    signature: string | null;
-    caseResult: CaseResult | null;
-    fee: string;
-    feePaidOn: string;
-  };
+  formData: FormData;
   setSignature: (signature: string | null) => void;
 }
 
@@ -115,12 +107,39 @@ export default function ContractSign({
         </Typography>
 
         <ContractSection title="입찰인 정보">
-          <InfoRow label="입찰인 (성명)" value={formData.bidderName} />
-          <InfoRow label="연락처" value={formData.phoneNumber} />
-          <InfoRow
-            label="주소"
-            value={`${formData.roadAddr} ${formData.addrDetail}`}
-          />
+          {formData.applicationType === 'personal' && (
+            <>
+              <InfoRow label="입찰인 (성명)" value={formData.bidderName} />
+              <InfoRow label="연락처" value={formData.phoneNumber} />
+              <InfoRow
+                label="주소"
+                value={`${formData.roadAddr} ${formData.addrDetail}`}
+              />
+            </>
+          )}
+          {formData.applicationType === 'company' && (
+            <>
+              <InfoRow label="회사명" value={formData.companyName || ''} />
+              <InfoRow label="사업자등록번호" value={formData.businessNumber || ''} />
+              <InfoRow label="대표자명" value={formData.representativeName || ''} />
+              <InfoRow label="연락처" value={formData.companyPhoneNumber || ''} />
+              <InfoRow
+                label="주소"
+                value={`${formData.companyRoadAddr || ''} ${formData.companyAddrDetail || ''}`}
+              />
+            </>
+          )}
+          {formData.applicationType === 'group' && (
+            <>
+              <InfoRow label="공동입찰 대표자" value={formData.groupRepresentativeName || ''} />
+              <InfoRow label="연락처" value={formData.phoneNumber} />
+              <InfoRow
+                label="주소"
+                value={`${formData.roadAddr} ${formData.addrDetail}`}
+              />
+              <InfoRow label="공동입찰자 수" value={`${formData.groupMemberCount || 0}명`} />
+            </>
+          )}
         </ContractSection>
 
         <ContractSection title="경매 사건 정보">
