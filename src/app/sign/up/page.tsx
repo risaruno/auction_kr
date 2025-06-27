@@ -1,6 +1,7 @@
 "use client";
 import * as React from "react";
 import { useRouter } from "next/navigation";
+import { useFormState, useFormStatus } from "react-dom";
 import Box from "@mui/material/Box";
 import Button from "@mui/material/Button";
 import CssBaseline from "@mui/material/CssBaseline";
@@ -17,6 +18,7 @@ import AppAppBar from "@/marketing-page/components/AppAppBar";
 import Footer from "@/marketing-page/components/Footer";
 import { SitemarkIcon } from "../../../sign-in/components/CustomIcons";
 import Alert from "@mui/material/Alert";
+import { signup, FormState } from "../actions";
 
 const Card = styled(MuiCard)(({ theme }) => ({
   display: "flex",
@@ -46,47 +48,22 @@ const SignContainer = styled(Stack)(({ theme }) => ({
   },
 }));
 
+// A component to get the form's pending status
+function SignUpButton() {
+  const { pending } = useFormStatus()
+  return (
+    <Button type="submit" fullWidth variant="contained" disabled={pending}>
+      {pending ? "가입 중..." : "가입하기"}
+    </Button>
+  )
+}
+
 export default function SignUp() {
   const router = useRouter();
-  const [name, setName] = React.useState("");
-  const [email, setEmail] = React.useState("");
-  const [password, setPassword] = React.useState("");
-  const [error, setError] = React.useState<string | null>(null);
-  const [message, setMessage] = React.useState<string | null>(null);
-  const [loading, setLoading] = React.useState(false);
-
-  const handleSubmit = async (event: React.FormEvent<HTMLFormElement>) => {
-    event.preventDefault();
-    setLoading(true);
-    setError(null);
-    setMessage(null);
-
-    // Call the backend API route for sign-up
-    try {
-      const response = await fetch("/api/auth/sign-up", {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify({ name, email, password }),
-      });
-
-      const result = await response.json();
-
-      if (!response.ok) {
-        throw new Error(result.error || "Sign-up failed. Please try again.");
-      }
-
-      // On successful sign-up, show the confirmation message
-      setMessage(result.message);
-    } catch (err) {
-      const errorMessage =
-        err instanceof Error ? err.message : "An unknown error occurred.";
-      setError(errorMessage);
-    } finally {
-      setLoading(false);
-    }
-  };
+  
+  // Initialize useFormState to manage the response from the server action
+  const initialState: FormState = { error: null, message: null }
+  const [state, formAction] = useFormState(signup, initialState)
 
   return (
     <AppTheme>
@@ -104,7 +81,7 @@ export default function SignUp() {
           </Typography>
           <Box
             component="form"
-            onSubmit={handleSubmit}
+            action={formAction}
             noValidate
             sx={{
               display: "flex",
@@ -113,8 +90,8 @@ export default function SignUp() {
               gap: 2,
             }}
           >
-            {error && <Alert severity="error">{error}</Alert>}
-            {message && <Alert severity="success">{message}</Alert>}
+            {state.error && <Alert severity="error">{state.error}</Alert>}
+            {state.message && <Alert severity="success">{state.message}</Alert>}
 
             <FormControl>
               <FormLabel htmlFor="name">이름</FormLabel>
@@ -128,8 +105,6 @@ export default function SignUp() {
                 required
                 fullWidth
                 variant="outlined"
-                value={name}
-                onChange={(e) => setName(e.target.value)}
               />
             </FormControl>
             <FormControl>
@@ -143,39 +118,29 @@ export default function SignUp() {
                 required
                 fullWidth
                 variant="outlined"
-                value={email}
-                onChange={(e) => setEmail(e.target.value)}
               />
             </FormControl>
             <FormControl>
               <FormLabel htmlFor="password">비밀번호</FormLabel>
               <TextField
                 name="password"
-                placeholder="6자 이상 입력해주세요"
+                placeholder="8-16자 사이로 입력해주세요"
                 type="password"
                 id="password"
                 autoComplete="new-password"
                 required
                 fullWidth
                 variant="outlined"
-                value={password}
-                onChange={(e) => setPassword(e.target.value)}
               />
             </FormControl>
-            <Button
-              type="submit"
-              fullWidth
-              variant="contained"
-              disabled={loading || !!message} // Disable button while loading or after success
-            >
-              {loading ? "가입 중..." : "가입하기"}
-            </Button>
+            <SignUpButton />
             <Divider>or</Divider>
             <Button
               type="button"
               fullWidth
               variant="outlined"
-              onClick={() => router.push("/sign-in")}
+              onClick={() => router.push("/sign/in")}
+              disabled={!!state.message} // Disable after successful signup
             >
               로그인
             </Button>

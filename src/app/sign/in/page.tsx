@@ -104,7 +104,7 @@ export default function SignIn() {
               <FormLabel htmlFor='password'>비밀번호</FormLabel>
               <TextField
                 name='password'
-                placeholder='••••••'
+                placeholder='8-16자 사이의 비밀번호'
                 type='password'
                 id='password'
                 autoComplete='current-password'

@@ -1,5 +1,6 @@
 "use client";
 import * as React from "react";
+import { useFormState, useFormStatus } from "react-dom";
 import Box from "@mui/material/Box";
 import Button from "@mui/material/Button";
 import CssBaseline from "@mui/material/CssBaseline";
@@ -16,6 +17,7 @@ import AppAppBar from "@/marketing-page/components/AppAppBar";
 import Footer from "@/marketing-page/components/Footer";
 import { SitemarkIcon } from "../../../sign-in/components/CustomIcons";
 import Alert from "@mui/material/Alert";
+import { findPassword, FormState } from "../actions";
 
 const Card = styled(MuiCard)(({ theme }) => ({
   display: "flex",
@@ -45,45 +47,20 @@ const SignContainer = styled(Stack)(({ theme }) => ({
   },
 }));
 
+// A component to get the form's pending status
+function FindPasswordButton() {
+  const { pending } = useFormStatus()
+  return (
+    <Button type="submit" fullWidth variant="contained" disabled={pending}>
+      {pending ? "전송 중..." : "비밀번호 재설정 링크 보내기"}
+    </Button>
+  )
+}
+
 export default function FindPassword() {
-  const [email, setEmail] = React.useState("");
-  const [error, setError] = React.useState<string | null>(null);
-  const [message, setMessage] = React.useState<string | null>(null); // State for the success message
-  const [loading, setLoading] = React.useState(false);
-
-  const handleSubmit = async (event: React.FormEvent<HTMLFormElement>) => {
-    event.preventDefault();
-    setLoading(true);
-    setError(null);
-    setMessage(null);
-
-    try {
-      // Call the new backend API route
-      const response = await fetch("/api/auth/find-password", {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify({ email }),
-      });
-
-      const result = await response.json();
-
-      if (!response.ok) {
-        throw new Error(result.error || "Failed to send reset link.");
-      }
-      
-      // On success, show the confirmation message
-      setMessage(result.message);
-
-    } catch (err) {
-      const errorMessage =
-        err instanceof Error ? err.message : "An unknown error occurred.";
-      setError(errorMessage);
-    } finally {
-      setLoading(false);
-    }
-  };
+  // Initialize useFormState to manage the response from the server action
+  const initialState: FormState = { error: null, message: null }
+  const [state, formAction] = useFormState(findPassword, initialState)
 
   return (
     <AppTheme>
@@ -101,7 +78,7 @@ export default function FindPassword() {
           </Typography>
           <Box
             component="form"
-            onSubmit={handleSubmit}
+            action={formAction}
             noValidate
             sx={{
               display: "flex",
@@ -111,8 +88,8 @@ export default function FindPassword() {
             }}
           >
             {/* Display success or error messages */}
-            {error && <Alert severity="error">{error}</Alert>}
-            {message && <Alert severity="success">{message}</Alert>}
+            {state.error && <Alert severity="error">{state.error}</Alert>}
+            {state.message && <Alert severity="success">{state.message}</Alert>}
 
             <FormControl>
               <FormLabel htmlFor="email">가입하신 이메일을 입력해주세요</FormLabel>
@@ -126,18 +103,9 @@ export default function FindPassword() {
                 required
                 fullWidth
                 variant="outlined"
-                value={email}
-                onChange={(e) => setEmail(e.target.value)}
               />
             </FormControl>
-            <Button
-              type="submit"
-              fullWidth
-              variant="contained"
-              disabled={loading} // Disable button while loading or after success
-            >
-              {loading ? "전송 중..." : "비밀번호 재설정 링크 보내기"}
-            </Button>
+            <FindPasswordButton />
           </Box>
         </Card>
       </SignContainer>

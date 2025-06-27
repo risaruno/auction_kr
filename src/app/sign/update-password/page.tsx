@@ -1,6 +1,7 @@
 "use client";
 import * as React from "react";
 import { useRouter } from "next/navigation";
+import { useFormState, useFormStatus } from "react-dom";
 import Box from "@mui/material/Box";
 import Button from "@mui/material/Button";
 import CssBaseline from "@mui/material/CssBaseline";
@@ -17,6 +18,7 @@ import AppAppBar from "@/marketing-page/components/AppAppBar";
 import Footer from "@/marketing-page/components/Footer";
 import { SitemarkIcon } from "../../../sign-in/components/CustomIcons";
 import Alert from "@mui/material/Alert";
+import { updatePassword, FormState } from "../actions";
 
 const Card = styled(MuiCard)(({ theme }) => ({
   display: "flex",
@@ -40,77 +42,22 @@ const SignContainer = styled(Stack)(({ theme }) => ({
   },
 }));
 
+// A component to get the form's pending status
+function UpdatePasswordButton() {
+  const { pending } = useFormStatus()
+  return (
+    <Button type="submit" fullWidth variant="contained" disabled={pending}>
+      {pending ? "변경 중..." : "비밀번호 변경하기"}
+    </Button>
+  )
+}
+
 export default function UpdatePasswordPage() {
   const router = useRouter();
-  const [password, setPassword] = React.useState("");
-  const [confirmPassword, setConfirmPassword] = React.useState("");
-  const [accessToken, setAccessToken] = React.useState<string | null>(null);
-  const [error, setError] = React.useState<string | null>(null);
-  const [message, setMessage] = React.useState<string | null>(null);
-  const [loading, setLoading] = React.useState(false);
-
-  // This effect runs once on page load to capture the token from the URL
-  React.useEffect(() => {
-    // The token is in the URL hash fragment, e.g., #access_token=...&...
-    const hash = window.location.hash;
-    const params = new URLSearchParams(hash.substring(1)); // remove the '#'
-    const token = params.get("access_token");
-
-    if (token) {
-      setAccessToken(token);
-    } else {
-      setError(
-        "Invalid or missing password reset token. Please request a new link."
-      );
-    }
-  }, []);
-
-  const handleSubmit = async (event: React.FormEvent<HTMLFormElement>) => {
-    event.preventDefault();
-    setError(null);
-    setMessage(null);
-
-    if (password !== confirmPassword) {
-      setError("Passwords do not match.");
-      return;
-    }
-
-    if (!accessToken) {
-      setError(
-        "Missing access token. Please use the link from your email again."
-      );
-      return;
-    }
-
-    setLoading(true);
-
-    try {
-      const response = await fetch("/api/auth/update-password", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ accessToken, newPassword: password }),
-      });
-
-      const result = await response.json();
-
-      if (!response.ok) {
-        throw new Error(result.error || "Failed to update password.");
-      }
-
-      setMessage("Password updated successfully! Redirecting to login...");
-
-      // Redirect to login page after a short delay
-      setTimeout(() => {
-        router.push("/sign-in");
-      }, 3000);
-    } catch (err) {
-      const errorMessage =
-        err instanceof Error ? err.message : "An unknown error occurred.";
-      setError(errorMessage);
-    } finally {
-      setLoading(false);
-    }
-  };
+  
+  // Initialize useFormState to manage the response from the server action
+  const initialState: FormState = { error: null, message: null }
+  const [state, formAction] = useFormState(updatePassword, initialState)
 
   return (
     <AppTheme>
@@ -128,48 +75,53 @@ export default function UpdatePasswordPage() {
           </Typography>
           <Box
             component="form"
-            onSubmit={handleSubmit}
+            action={formAction}
             noValidate
             sx={{ display: "flex", flexDirection: "column", gap: 2 }}
           >
-            {error && <Alert severity="error">{error}</Alert>}
-            {message && <Alert severity="success">{message}</Alert>}
+            {state.error && <Alert severity="error">{state.error}</Alert>}
+            {state.message && (
+              <Alert severity="success" sx={{ mb: 2 }}>
+                {state.message}
+                <Button
+                  variant="contained"
+                  color="primary"
+                  onClick={() => router.push('/sign/in')}
+                  sx={{ mt: 2, width: '100%' }}
+                >
+                  로그인 페이지로 이동
+                </Button>
+              </Alert>
+            )}
 
-            <FormControl>
-              <FormLabel htmlFor="password">새 비밀번호</FormLabel>
-              <TextField
-                id="password"
-                type="password"
-                name="password"
-                placeholder="••••••"
-                autoFocus
-                required
-                fullWidth
-                value={password}
-                onChange={(e) => setPassword(e.target.value)}
-              />
-            </FormControl>
-            <FormControl>
-              <FormLabel htmlFor="confirmPassword">새 비밀번호 확인</FormLabel>
-              <TextField
-                id="confirmPassword"
-                type="password"
-                name="confirmPassword"
-                placeholder="••••••"
-                required
-                fullWidth
-                value={confirmPassword}
-                onChange={(e) => setConfirmPassword(e.target.value)}
-              />
-            </FormControl>
-            <Button
-              type="submit"
-              fullWidth
-              variant="contained"
-              disabled={loading || !accessToken || !!message}
-            >
-              {loading ? "변경 중..." : "비밀번호 변경하기"}
-            </Button>
+            {!state.message && (
+              <>
+                <FormControl>
+                  <FormLabel htmlFor="newPassword">새 비밀번호</FormLabel>
+                  <TextField
+                    id="newPassword"
+                    type="password"
+                    name="newPassword"
+                    placeholder="8-16자 사이로 입력해주세요"
+                    autoFocus
+                    required
+                    fullWidth
+                  />
+                </FormControl>
+                <FormControl>
+                  <FormLabel htmlFor="confirmPassword">새 비밀번호 확인</FormLabel>
+                  <TextField
+                    id="confirmPassword"
+                    type="password"
+                    name="confirmPassword"
+                    placeholder="비밀번호를 다시 입력해주세요"
+                    required
+                    fullWidth
+                  />
+                </FormControl>
+                <UpdatePasswordButton />
+              </>
+            )}
           </Box>
         </Card>
       </SignContainer>
