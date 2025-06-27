@@ -1,10 +1,11 @@
 import { NextApiRequest, NextApiResponse } from 'next'
-import { supabase } from "../../utils/supabase";
+import { createClient } from "@/utils/supabase/server";
 
 export default async function handler(
   req: NextApiRequest,
   res: NextApiResponse
 ) {
+  const supabase = await createClient();
   console.log(`Received ${req.method} request at /api/experts`);
 
   // --- READ (GET) ---

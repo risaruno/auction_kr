@@ -7,7 +7,7 @@ import {
   useEffect,
   ReactNode,
 } from "react";
-import { supabase } from "../../utils/supabase"; // Adjust path to your Supabase client
+import { createClient } from "@/utils/supabase/client"; // Adjust path to your Supabase client
 import { Session, User } from "@supabase/supabase-js";
 
 // 1. Define the shape of your context data
@@ -26,6 +26,7 @@ const AuthContext = createContext<AuthContextType>({
 
 // 3. Create the provider component
 export const AuthProvider = ({ children }: { children: ReactNode }) => {
+  const supabase = createClient();
   const [user, setUser] = useState<User | null>(null);
   const [session, setSession] = useState<Session | null>(null);
   const [loading, setLoading] = useState(true);

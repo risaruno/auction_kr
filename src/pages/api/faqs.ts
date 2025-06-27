@@ -1,10 +1,11 @@
 import { NextApiRequest, NextApiResponse } from 'next'
-import { supabase } from '../../utils/supabase'
+import { createClient } from '@/utils/supabase/server'
 
 export default async function handler(
   req: NextApiRequest,
   res: NextApiResponse
 ) {
+  const supabase = await createClient()
   // --- READ (GET) - Fetch all FAQs ---
   if (req.method === 'GET') {
     try {

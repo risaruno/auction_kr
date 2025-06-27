@@ -1,11 +1,11 @@
 'use client'
+
 import React, { useState, useMemo, useEffect } from 'react'
 import CssBaseline from '@mui/material/CssBaseline'
 import Divider from '@mui/material/Divider'
 import AppTheme from '../../shared-theme/AppTheme'
 import AppAppBar from '../../marketing-page/components/AppAppBar'
 import Footer from '@/marketing-page/components/Footer'
-import Headline from '@/marketing-page/components/Headline'
 import {
   Typography,
   Container,
@@ -20,6 +20,7 @@ import {
   Paper,
   Button,
 } from '@mui/material'
+import { fetchExperts } from './actions'
 
 interface Expert {
   id: number
@@ -65,12 +66,11 @@ export default function ExpertPage() {
   const [selectedRegion, setSelectedRegion] = useState('전체')
   const [selectedService, setSelectedService] = useState('전체')
 
-  const fetchExperts = async () => {
+  // Fetch experts using the server action
+  const fetchExpertsData = async () => {
     setLoading(true)
     try {
-      const response = await fetch('/api/experts')
-      if (!response.ok) throw new Error('Failed to fetch experts')
-      const data = await response.json()
+      const data = await fetchExperts() // Call the server action
       setExperts(data)
     } catch (error) {
       console.error(error)
@@ -80,7 +80,7 @@ export default function ExpertPage() {
   }
 
   useEffect(() => {
-    fetchExperts()
+    fetchExpertsData()
   }, [])
 
   const handleRegionChange = (
@@ -209,12 +209,13 @@ export default function ExpertPage() {
         {/* Experts Grid */}
         <Grid container spacing={4}>
           {loading ? (
-            <div style={{ width: '100%', textAlign: 'center', padding: '20px' }}>
-                Loading...
+            <div
+              style={{ width: '100%', textAlign: 'center', padding: '20px' }}
+            >
+              Loading...
             </div>
           ) : (
             filteredExperts.map((expert, index) => (
-              // Grid component now uses the requested 'size' prop
               <Grid container size={{ xs: 12, sm: 6 }} key={index}>
                 <Card
                   sx={{

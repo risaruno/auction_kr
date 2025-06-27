@@ -1,10 +1,11 @@
 import { NextApiRequest, NextApiResponse } from 'next'
-import { supabaseAdmin } from "../../utils/supabase";
+import { createAdminClient } from '@/utils/supabase/server'
 
 export default async function handler(
   req: NextApiRequest,
   res: NextApiResponse
 ) {
+  const supabaseAdmin = await createAdminClient()
   // --- READ (GET) - Fetch all users with their profiles ---
   if (req.method === 'GET') {
     try {
@@ -17,7 +18,7 @@ export default async function handler(
       if (listError) throw listError
 
       // Now fetch the corresponding profiles for each user
-      const userIds = users.map((user: { id: any; }) => user.id)
+      const userIds = users.map((user: { id: any }) => user.id)
       const { data: profiles, error: profileError } = await supabaseAdmin
         .from('profiles')
         .select('*')
@@ -26,18 +27,25 @@ export default async function handler(
       if (profileError) throw profileError
 
       // Combine the auth user data with the profile data
-      const combinedUsers = users.map((user: { id: any; email: any; created_at: string | number | Date; email_confirmed_at: any; }) => {
-        const profile = profiles?.find((p: { id: any; }) => p.id === user.id)
-        return {
-          id: user.id,
-          name: profile?.full_name || 'N/A',
-          email: user.email,
-          phone: profile?.phone_number || 'N/A',
-          signupDate: new Date(user.created_at).toLocaleDateString(),
-          status: user.email_confirmed_at ? 'Active' : 'Pending', // Example status logic
-          points: profile?.points || 0,
+      const combinedUsers = users.map(
+        (user: {
+          id: string
+          email?: string
+          created_at: string | number | Date
+          email_confirmed_at?: string | null
+        }) => {
+          const profile = profiles?.find((p: { id: any }) => p.id === user.id)
+          return {
+            id: user.id,
+            name: profile?.full_name || 'N/A',
+            email: user.email,
+            phone: profile?.phone_number || 'N/A',
+            signupDate: new Date(user.created_at).toLocaleDateString(),
+            status: user.email_confirmed_at ? 'Active' : 'Pending', // Example status logic
+            points: profile?.points || 0,
+          }
         }
-      })
+      )
 
       return res.status(200).json(combinedUsers)
     } catch (error: any) {

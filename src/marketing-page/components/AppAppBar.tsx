@@ -1,61 +1,69 @@
-import * as React from "react";
-import { styled, alpha } from "@mui/material/styles";
-import type {} from "@mui/material/themeCssVarsAugmentation";
-import Box from "@mui/material/Box";
-import AppBar from "@mui/material/AppBar";
-import Toolbar from "@mui/material/Toolbar";
-import Button from "@mui/material/Button";
-import IconButton from "@mui/material/IconButton";
-import Container from "@mui/material/Container";
-import Divider from "@mui/material/Divider";
-import MenuItem from "@mui/material/MenuItem";
-import Drawer from "@mui/material/Drawer";
-import MenuIcon from "@mui/icons-material/Menu";
-import CloseRoundedIcon from "@mui/icons-material/CloseRounded";
-import ColorModeIconDropdown from "../../shared-theme/ColorModeIconDropdown";
-import Sitemark from "./SitemarkIcon";
-import { Typography } from "@mui/material";
-import { useAuth } from "../../components/auth/AuthProvider";
-import { supabase } from "../../utils/supabase";
-import { useRouter } from "next/navigation";
+import * as React from 'react'
+import { useState, useEffect } from 'react'
+import { styled, alpha } from '@mui/material/styles'
+import type {} from '@mui/material/themeCssVarsAugmentation'
+import Box from '@mui/material/Box'
+import AppBar from '@mui/material/AppBar'
+import Toolbar from '@mui/material/Toolbar'
+import Button from '@mui/material/Button'
+import IconButton from '@mui/material/IconButton'
+import Container from '@mui/material/Container'
+import Divider from '@mui/material/Divider'
+import MenuItem from '@mui/material/MenuItem'
+import Drawer from '@mui/material/Drawer'
+import MenuIcon from '@mui/icons-material/Menu'
+import CloseRoundedIcon from '@mui/icons-material/CloseRounded'
+import ColorModeIconDropdown from '../../shared-theme/ColorModeIconDropdown'
+import Sitemark from './SitemarkIcon'
+import { Typography } from '@mui/material'
+import { createClient } from '@/utils/supabase/client'
+import { useRouter } from 'next/navigation'
+import type { User } from '@supabase/supabase-js'
 
 const StyledToolbar = styled(Toolbar)(({ theme }) => ({
-  display: "flex",
-  alignItems: "center",
-  justifyContent: "space-between",
+  display: 'flex',
+  alignItems: 'center',
+  justifyContent: 'space-between',
   flexShrink: 0,
   borderRadius: `calc(${theme.shape.borderRadius}px + 8px)`,
-  backdropFilter: "blur(24px)",
-  border: "1px solid",
+  backdropFilter: 'blur(24px)',
+  border: '1px solid',
   borderColor: (theme.vars || theme).palette.divider,
   backgroundColor: theme.vars
     ? `rgba(${theme.vars.palette.background.defaultChannel} / 0.4)`
     : alpha(theme.palette.background.default, 0.4),
   boxShadow: (theme.vars || theme).shadows[1],
-  padding: "8px 12px",
-}));
+  padding: '8px 12px',
+}))
 
 export default function AppAppBar() {
-  const { user, loading } = useAuth();
-  const router = useRouter();
+  const [user, setUser] = useState<{ email: string } | null>(null);
 
-  console.log("user", user);
-  console.log("loading", loading);
-  React.useEffect(() => {
-    // This effect runs once on mount to check if the user is logged in
-    console.log("Auth state changed:", user);
+  useEffect(() => {
+    const supabase = createClient();
+
+    const fetchUser = async () => {
+      const {
+        data: { user },
+      } = await supabase.auth.getUser();
+      setUser(user ? { email: user.email || '' } : null);
+    };
+
+    fetchUser();
+  }, []);
+
+  useEffect(() => {
+    console.log('User state updated:', user);
   }, [user]);
 
-  React.useEffect(() => {
-    // This effect runs once on mount to check if the user is logged in
-    console.log("Loading state changed:", loading);
-  }, [loading]);
+  const router = useRouter()
 
   const handleLogout = async () => {
+    const supabase = createClient();
     await supabase.auth.signOut();
-    router.push("/");
+    router.push('/');
   };
-  const [open, setOpen] = React.useState(false);
+  const [open, setOpen] = useState(false);
 
   const toggleDrawer = (newOpen: boolean) => () => {
     setOpen(newOpen);
@@ -63,44 +71,44 @@ export default function AppAppBar() {
 
   return (
     <AppBar
-      position="fixed"
+      position='fixed'
       enableColorOnDark
       sx={{
         boxShadow: 0,
-        bgcolor: "transparent",
-        backgroundImage: "none",
-        mt: "calc(var(--template-frame-height, 0px) + 28px)",
+        bgcolor: 'transparent',
+        backgroundImage: 'none',
+        mt: 'calc(var(--template-frame-height, 0px) + 28px)',
       }}
     >
-      <Container maxWidth="lg">
-        <StyledToolbar variant="dense" disableGutters>
+      <Container maxWidth='lg'>
+        <StyledToolbar variant='dense' disableGutters>
           <Box
-            sx={{ flexGrow: 1, display: "flex", alignItems: "center", px: 0 }}
+            sx={{ flexGrow: 1, display: 'flex', alignItems: 'center', px: 0 }}
           >
             <Sitemark />
             <Box
               sx={{
-                display: { xs: "none", md: "flex" },
+                display: { xs: 'none', md: 'flex' },
                 marginLeft: { md: 2 },
               }}
             >
-              <Button href="/info" variant="text" color="info" size="small">
+              <Button href='/info' variant='text' color='info' size='small'>
                 이용 안내
               </Button>
-              <Button href="/experts" variant="text" color="info" size="small">
+              <Button href='/experts' variant='text' color='info' size='small'>
                 전문가 서비스
               </Button>
               {/* <Button href="/area" variant="text" color="info" size="small">
                 서비스 지역
               </Button> */}
-              <Button href="/faq" variant="text" color="info" size="small">
+              <Button href='/faq' variant='text' color='info' size='small'>
                 자주하는 질문
               </Button>
               <Button
-                href="/contact"
-                variant="text"
-                color="info"
-                size="small"
+                href='/contact'
+                variant='text'
+                color='info'
+                size='small'
                 sx={{ minWidth: 0 }}
               >
                 1:1 문의
@@ -109,51 +117,56 @@ export default function AppAppBar() {
           </Box>
           <Box
             sx={{
-              display: { xs: "none", md: "flex" },
+              display: { xs: 'none', md: 'flex' },
               gap: 1,
-              alignItems: "center",
+              alignItems: 'center',
             }}
           >
             {/* 3. Conditional Rendering based on auth state */}
-            {loading ? (
-              // Optional: Show a placeholder while loading to prevent layout shift
-              <Box sx={{ width: 180, height: 32 }} />
-            ) : user ? (
+            {user ? (
               // If the user is logged in:
               <>
                 <Button
-                  href="/auth/user"
-                  color="primary"
-                  variant="text"
-                  size="small"
+                  href='/auth/user/history'
+                  color='primary'
+                  variant='text'
+                  size='small'
                 >
                   마이페이지
                 </Button>
                 <Button
                   onClick={handleLogout}
-                  color="primary"
-                  variant="outlined"
-                  size="small"
+                  color='primary'
+                  variant='outlined'
+                  size='small'
                 >
                   로그아웃
+                </Button>
+                <Button
+                  href='/apply-bid'
+                  color='primary'
+                  variant='contained'
+                  size='small'
+                >
+                  대리입찰 신청
                 </Button>
               </>
             ) : (
               // If the user is logged out:
               <>
                 <Button
-                  href="/sign/in"
-                  color="primary"
-                  variant="text"
-                  size="small"
+                  href='/sign/in'
+                  color='primary'
+                  variant='text'
+                  size='small'
                 >
                   로그인/회원가입
                 </Button>
                 <Button
-                  href="/apply-bid"
-                  color="primary"
-                  variant="contained"
-                  size="small"
+                  href='/apply-bid'
+                  color='primary'
+                  variant='contained'
+                  size='small'
                 >
                   대리입찰 신청
                 </Button>
@@ -161,95 +174,100 @@ export default function AppAppBar() {
             )}
             {/* <ColorModeIconDropdown /> */}
           </Box>
-          <Box sx={{ display: { xs: "flex", md: "none" }, gap: 1 }}>
+          <Box sx={{ display: { xs: 'flex', md: 'none' }, gap: 1 }}>
             {/* <ColorModeIconDropdown size="medium" /> */}
-            <IconButton aria-label="Menu button" onClick={toggleDrawer(true)}>
+            <IconButton aria-label='Menu button' onClick={toggleDrawer(true)}>
               <MenuIcon />
             </IconButton>
             <Drawer
-              anchor="top"
+              anchor='top'
               open={open}
               onClose={toggleDrawer(false)}
               PaperProps={{
                 sx: {
-                  top: "var(--template-frame-height, 0px)",
+                  top: 'var(--template-frame-height, 0px)',
                 },
               }}
             >
-              <Box sx={{ p: 2, backgroundColor: "background.default" }}>
+              <Box sx={{ p: 2, backgroundColor: 'background.default' }}>
                 <Box
                   sx={{
-                    display: "flex",
-                    justifyContent: "flex-end",
+                    display: 'flex',
+                    justifyContent: 'flex-end',
                   }}
                 >
                   <IconButton onClick={toggleDrawer(false)}>
                     <CloseRoundedIcon />
                   </IconButton>
                 </Box>
-                <MenuItem component="a" href="/info">
+                <MenuItem component='a' href='/info'>
                   이용 안내
                 </MenuItem>
-                <MenuItem component="a" href="/experts">
+                <MenuItem component='a' href='/experts'>
                   전문가 서비스
                 </MenuItem>
-                <MenuItem component="a" href="/area">
+                <MenuItem component='a' href='/area'>
                   서비스 지역
                 </MenuItem>
-                <MenuItem component="a" href="/faq">
+                <MenuItem component='a' href='/faq'>
                   자주하는 질문
                 </MenuItem>
-                <MenuItem component="a" href="/contact">
+                <MenuItem component='a' href='/contact'>
                   1:1 문의
                 </MenuItem>
                 <Divider sx={{ my: 3 }} />
                 <Box
                   sx={{
-                    display: { xs: "none", md: "flex" },
+                    display: { xs: 'none', md: 'flex' },
                     gap: 1,
-                    alignItems: "center",
+                    alignItems: 'center',
                   }}
                 >
                   {/* 3. Conditional Rendering based on auth state */}
-                  {loading ? (
-                    // Optional: Show a placeholder while loading to prevent layout shift
-                    <Box sx={{ width: 180, height: 32 }} />
-                  ) : user ? (
+                  {user ? (
                     // If the user is logged in:
                     <>
                       <Button
-                        href="/my-page"
-                        color="primary"
-                        variant="text"
-                        size="small"
+                        href='/my-page'
+                        color='primary'
+                        variant='text'
+                        size='small'
                       >
                         마이페이지
                       </Button>
                       <Button
                         onClick={handleLogout}
-                        color="primary"
-                        variant="outlined"
-                        size="small"
+                        color='primary'
+                        variant='outlined'
+                        size='small'
                       >
                         로그아웃
+                      </Button>
+                      <Button
+                        href='/apply-bid'
+                        color='primary'
+                        variant='contained'
+                        size='small'
+                      >
+                        대리입찰 신청
                       </Button>
                     </>
                   ) : (
                     // If the user is logged out:
                     <>
                       <Button
-                        href="/sign/in"
-                        color="primary"
-                        variant="text"
-                        size="small"
+                        href='/sign/in'
+                        color='primary'
+                        variant='text'
+                        size='small'
                       >
                         로그인/회원가입
                       </Button>
                       <Button
-                        href="/apply-bid"
-                        color="primary"
-                        variant="contained"
-                        size="small"
+                        href='/apply-bid'
+                        color='primary'
+                        variant='contained'
+                        size='small'
                       >
                         대리입찰 신청
                       </Button>
@@ -258,10 +276,10 @@ export default function AppAppBar() {
                 </Box>
                 <MenuItem>
                   <Button
-                    color="primary"
-                    variant="outlined"
+                    color='primary'
+                    variant='outlined'
                     fullWidth
-                    href="/apply-bid"
+                    href='/apply-bid'
                   >
                     대리입찰 신청
                   </Button>
@@ -272,5 +290,5 @@ export default function AppAppBar() {
         </StyledToolbar>
       </Container>
     </AppBar>
-  );
+  )
 }
