@@ -6,7 +6,7 @@ import CssBaseline from '@mui/material/CssBaseline'
 import theme from '@/theme'
 import InitColorSchemeScript from '@mui/material/InitColorSchemeScript'
 import ModeSwitch from '@/components/ModeSwitch'
-import { AuthProvider } from '@/components/auth/AuthProvider'
+import { AuthProvider } from '@/contexts/AuthContext'
 
 export const metadata: Metadata = {
   // This is the default title if a specific page doesn't set one.
@@ -22,10 +22,12 @@ export default function RootLayout(props: { children: React.ReactNode }) {
         <InitColorSchemeScript attribute='class' />
         <AppRouterCacheProvider options={{ enableCssLayer: true }}>
           <ThemeProvider theme={theme}>
-            {/* CssBaseline kickstart an elegant, consistent, and simple baseline to build upon. */}
-            <CssBaseline />
-            <ModeSwitch />
-            {props.children}
+            <AuthProvider>
+              {/* CssBaseline kickstart an elegant, consistent, and simple baseline to build upon. */}
+              <CssBaseline />
+              <ModeSwitch />
+              {props.children}
+            </AuthProvider>
           </ThemeProvider>
         </AppRouterCacheProvider>
       </body>

@@ -14,6 +14,7 @@ import { Card, CardContent, CardMedia, FormControl } from '@mui/material'
 import { CaseResult } from '@/interfaces/CaseResult'
 import { CourtHouses } from '@/constants/CourtHouses'
 import CircularProgress from '@mui/material/CircularProgress'
+import { getCourtAuctionData } from '../actions'
 
 const FormGrid = styled(Grid)(() => ({
   display: 'flex',
@@ -41,22 +42,20 @@ export default function CaseFind({ caseResult, setCaseResult }: CaseFindProps) {
         setLoading(false)
         return
       }
-      const response = await fetch(`/api/courtAuction`, {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({
-          cortOfcCd,
-          csNo,
-        }),
-      })
-
-      if (!response.ok) throw new Error('Failed to fetch data')
-
-      const result = await response.json()
-      console.log('Result:', result)
-      setCaseResult(result)
+      
+      const response = await getCourtAuctionData(cortOfcCd, csNo)
+      
+      if (response.success && response.data) {
+        setCaseResult({
+          data: response.data,
+          error: '',
+        })
+      } else {
+        setCaseResult({
+          error: response.error || 'Failed to fetch auction data',
+          data: null,
+        })
+      }
     } catch (error) {
       setCaseResult({
         error: error instanceof Error ? error.message : String(error),
@@ -110,7 +109,7 @@ export default function CaseFind({ caseResult, setCaseResult }: CaseFindProps) {
               >
                 <CardMedia
                   component='img'
-                  image={`data:image/jpeg;base64,${caseResult.data.picFile}`}
+                  image={caseResult.data.picFile ? `data:image/jpeg;base64,${caseResult.data.picFile}` : '/hero-background.jpg'}
                   alt='Case Image'
                   sx={{
                     flex: 1,

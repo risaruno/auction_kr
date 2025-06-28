@@ -24,6 +24,9 @@ import {
   AccordionSummary,
   AccordionDetails,
   CircularProgress,
+  Alert,
+  Snackbar,
+  TablePagination,
 } from '@mui/material'
 import {
   Edit as EditIcon,
@@ -31,16 +34,16 @@ import {
   AddCircle as AddCircleIcon,
   Close as CloseIcon,
   ExpandMore as ExpandMoreIcon,
+  Search as SearchIcon,
 } from '@mui/icons-material'
 import AdminLayout from '../AdminLayout'
-
-// Define a proper interface for the FAQ data
-interface FAQ {
-  id: string
-  question: string
-  answer: string
-  category: string
-}
+import { 
+  fetchFaqs,
+  createFaq,
+  updateFaq,
+  deleteFaq 
+} from '@/app/faqs/actions'
+import { FAQ, FAQCreateRequest, FAQUpdateRequest } from '@/types/api'
 
 const faqTypes = ['전문가 서비스', '기타', '결제', '계정']
 
@@ -61,29 +64,46 @@ const modalStyle = {
 const FAQManagementContent = () => {
   const [faqs, setFaqs] = useState<FAQ[]>([])
   const [loading, setLoading] = useState(true)
+  const [error, setError] = useState<string | null>(null)
+  const [successMessage, setSuccessMessage] = useState<string | null>(null)
   const [openFormModal, setOpenFormModal] = useState(false)
   const [openDeleteDialog, setOpenDeleteDialog] = useState(false)
   const [selectedFaq, setSelectedFaq] = useState<Partial<FAQ> | null>(null)
   const [isEditing, setIsEditing] = useState(false)
+  
+  // Pagination and search states
+  const [page, setPage] = useState(0)
+  const [rowsPerPage, setRowsPerPage] = useState(10)
+  const [totalCount, setTotalCount] = useState(0)
+  const [searchQuery, setSearchQuery] = useState('')
+  const [selectedCategory, setSelectedCategory] = useState('')
 
-  // --- Fetch FAQs on Load ---
-  const fetchFaqs = async () => {
+  // --- Fetch FAQs with pagination and search ---
+  const loadFaqs = async () => {
     setLoading(true)
+    setError(null)
     try {
-      const response = await fetch('/api/faqs')
-      if (!response.ok) throw new Error('Failed to fetch FAQs')
-      const data = await response.json()
-      setFaqs(data)
+      const result = await fetchFaqs({
+        page: page + 1,
+        limit: rowsPerPage,
+        search: searchQuery || undefined,
+        category: selectedCategory || undefined,
+        sortBy: 'created_at',
+        sortOrder: 'desc',
+      })
+      
+      setFaqs(result.data)
+      setTotalCount(result.total)
     } catch (error) {
-      console.error(error)
+      setError(error instanceof Error ? error.message : 'Failed to fetch FAQs')
     } finally {
       setLoading(false)
     }
   }
 
   useEffect(() => {
-    fetchFaqs()
-  }, [])
+    loadFaqs()
+  }, [page, rowsPerPage, searchQuery, selectedCategory])
 
   // --- Modal & Form Handlers ---
   const handleOpenCreateModal = () => {
@@ -114,40 +134,38 @@ const FAQManagementContent = () => {
     }
   }
 
-  // --- CRUD API Handlers ---
+  // --- CRUD Action Handlers ---
   const handleSaveFaq = async () => {
     if (!selectedFaq) return
-    const method = isEditing ? 'PUT' : 'POST'
+    
+    setError(null)
     try {
-      const response = await fetch('/api/faqs', {
-        method,
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(selectedFaq),
-      })
-      if (!response.ok) throw new Error('Failed to save FAQ')
-      await fetchFaqs() // Refresh the list with the latest data
-    } catch (error) {
-      console.error(error)
-    } finally {
+      if (isEditing && selectedFaq.id) {
+        await updateFaq(selectedFaq as FAQUpdateRequest)
+        setSuccessMessage('FAQ updated successfully')
+      } else {
+        await createFaq(selectedFaq as FAQCreateRequest)
+        setSuccessMessage('FAQ created successfully')
+      }
+
+      await loadFaqs() // Refresh the list
       handleCloseFormModal()
+    } catch (error) {
+      setError(error instanceof Error ? error.message : 'Failed to save FAQ')
     }
   }
 
   const handleDeleteFaq = async () => {
     if (!selectedFaq?.id) return
+    
+    setError(null)
     try {
-      const response = await fetch('/api/faqs', {
-        method: 'DELETE',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ id: selectedFaq.id }),
-      })
-      if (!response.ok) throw new Error('Failed to delete FAQ')
-      // Update UI optimistically
-      setFaqs((prev) => prev.filter((faq) => faq.id !== selectedFaq.id))
-    } catch (error) {
-      console.error(error)
-    } finally {
+      await deleteFaq(selectedFaq.id)
+      setSuccessMessage('FAQ deleted successfully')
+      await loadFaqs() // Refresh the list
       handleCloseDeleteDialog()
+    } catch (error) {
+      setError(error instanceof Error ? error.message : 'Failed to delete FAQ')
     }
   }
 
@@ -159,6 +177,15 @@ const FAQManagementContent = () => {
   const handleCloseDeleteDialog = () => {
     setOpenDeleteDialog(false)
     setSelectedFaq(null)
+  }
+
+  // Close snackbars
+  const handleCloseError = () => {
+    setError(null)
+  }
+
+  const handleCloseSuccess = () => {
+    setSuccessMessage(null)
   }
 
   return (

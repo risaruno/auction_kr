@@ -1,5 +1,5 @@
 'use client'
-import React, { useState, useEffect } from 'react' // Import useEffect
+import React, { useState, useEffect } from 'react'
 import {
   Box,
   CssBaseline,
@@ -32,24 +32,25 @@ import {
   DialogContent,
   DialogContentText,
   DialogActions,
+  Alert,
+  Snackbar,
+  TablePagination,
 } from '@mui/material'
 import {
   Edit as EditIcon,
   Delete as DeleteIcon,
   AddCircle as AddCircleIcon,
   Close as CloseIcon,
+  Search as SearchIcon,
 } from '@mui/icons-material'
 import AdminLayout from '../AdminLayout'
-
-// In a real app, you might want to create a proper interface file for this
-interface Expert {
-  id: number
-  name: string
-  location: string
-  description: string
-  photo?: string
-  services: string[]
-}
+import { 
+  fetchExperts,
+  createExpert,
+  updateExpert,
+  deleteExpert 
+} from '@/app/experts/actions'
+import { Expert, ExpertCreateRequest, ExpertUpdateRequest } from '@/types/api'
 
 const allLocations = [
   '서울',
@@ -95,31 +96,67 @@ const modalStyle = {
 const ExpertsContent = () => {
   const [experts, setExperts] = useState<Expert[]>([])
   const [loading, setLoading] = useState(true)
+  const [error, setError] = useState<string | null>(null)
+  const [successMessage, setSuccessMessage] = useState<string | null>(null)
   const [openFormModal, setOpenFormModal] = useState(false)
   const [openDeleteDialog, setOpenDeleteDialog] = useState(false)
-  const [selectedExpert, setSelectedExpert] = useState<Partial<Expert> | null>(
-    null
-  )
+  const [selectedExpert, setSelectedExpert] = useState<Partial<Expert> | null>(null)
   const [isEditing, setIsEditing] = useState(false)
+  
+  // Pagination and search states
+  const [page, setPage] = useState(0)
+  const [rowsPerPage, setRowsPerPage] = useState(10)
+  const [totalCount, setTotalCount] = useState(0)
+  const [searchQuery, setSearchQuery] = useState('')
+  const [selectedLocation, setSelectedLocation] = useState('')
 
-  // --- Fetch Experts on Load ---
-  const fetchExperts = async () => {
+  // --- Fetch Experts with pagination and search ---
+  const loadExperts = async () => {
     setLoading(true)
+    setError(null)
     try {
-      const response = await fetch('/api/experts')
-      if (!response.ok) throw new Error('Failed to fetch experts')
-      const data = await response.json()
-      setExperts(data)
+      const result = await fetchExperts({
+        page: page + 1, // API expects 1-based pagination
+        limit: rowsPerPage,
+        search: searchQuery || undefined,
+        location: selectedLocation || undefined,
+        sortBy: 'created_at',
+        sortOrder: 'desc',
+      })
+      
+      setExperts(result.data)
+      setTotalCount(result.total)
     } catch (error) {
-      console.error(error)
+      setError(error instanceof Error ? error.message : 'Failed to fetch experts')
     } finally {
       setLoading(false)
     }
   }
 
   useEffect(() => {
-    fetchExperts()
-  }, [])
+    loadExperts()
+  }, [page, rowsPerPage, searchQuery, selectedLocation])
+
+  // Search handlers
+  const handleSearch = () => {
+    setPage(0) // Reset to first page on new search
+    loadExperts()
+  }
+
+  const handleLocationFilter = (event: SelectChangeEvent<string>) => {
+    setSelectedLocation(event.target.value)
+    setPage(0) // Reset to first page on filter change
+  }
+
+  // Pagination handlers
+  const handleChangePage = (event: unknown, newPage: number) => {
+    setPage(newPage)
+  }
+
+  const handleChangeRowsPerPage = (event: React.ChangeEvent<HTMLInputElement>) => {
+    setRowsPerPage(parseInt(event.target.value, 10))
+    setPage(0)
+  }
 
   // --- Modal & Form Handlers ---
   const handleOpenCreateModal = () => {
@@ -154,49 +191,38 @@ const ExpertsContent = () => {
     }))
   }
 
-  // --- CRUD API Handlers ---
+  // --- CRUD Action Handlers ---
   const handleSaveExpert = async () => {
     if (!selectedExpert) return
 
-    const method = isEditing ? 'PUT' : 'POST'
-    const body = JSON.stringify(selectedExpert)
-
+    setError(null)
     try {
-      const response = await fetch('/api/experts', {
-        method,
-        headers: { 'Content-Type': 'application/json' },
-        body,
-      })
-
-      if (!response.ok) throw new Error('Failed to save expert')
-
-      // Refresh data from the server to get the latest state
-      await fetchExperts()
-    } catch (error) {
-      console.error(error)
-    } finally {
+      if (isEditing && selectedExpert.id) {
+        await updateExpert(selectedExpert as ExpertUpdateRequest)
+        setSuccessMessage('Expert updated successfully')
+      } else {
+        await createExpert(selectedExpert as ExpertCreateRequest)
+        setSuccessMessage('Expert created successfully')
+      }
+      
+      await loadExperts() // Refresh the list
       handleCloseFormModal()
+    } catch (error) {
+      setError(error instanceof Error ? error.message : 'Failed to save expert')
     }
   }
 
   const handleDeleteExpert = async () => {
     if (!selectedExpert || !selectedExpert.id) return
 
+    setError(null)
     try {
-      const response = await fetch('/api/experts', {
-        method: 'DELETE',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ id: selectedExpert.id }),
-      })
-
-      if (!response.ok) throw new Error('Failed to delete expert')
-
-      // Update UI optimistically or refetch
-      setExperts((prev) => prev.filter((exp) => exp.id !== selectedExpert.id))
-    } catch (error) {
-      console.error(error)
-    } finally {
+      await deleteExpert(selectedExpert.id)
+      setSuccessMessage('Expert deleted successfully')
+      await loadExperts() // Refresh the list
       handleCloseDeleteDialog()
+    } catch (error) {
+      setError(error instanceof Error ? error.message : 'Failed to delete expert')
     }
   }
 
@@ -208,6 +234,15 @@ const ExpertsContent = () => {
   const handleCloseDeleteDialog = () => {
     setOpenDeleteDialog(false)
     setSelectedExpert(null)
+  }
+
+  // Close snackbars
+  const handleCloseError = () => {
+    setError(null)
+  }
+
+  const handleCloseSuccess = () => {
+    setSuccessMessage(null)
   }
 
   return (
@@ -235,6 +270,38 @@ const ExpertsContent = () => {
               >
                 Add New Expert
               </Button>
+            </Box>
+
+            {/* Search and Filter Controls */}
+            <Box sx={{ mb: 2, display: 'flex', gap: 2, alignItems: 'center' }}>
+              <TextField
+                label="Search experts..."
+                value={searchQuery}
+                onChange={(e) => setSearchQuery(e.target.value)}
+                sx={{ minWidth: 250 }}
+                InputProps={{
+                  endAdornment: (
+                    <IconButton onClick={handleSearch}>
+                      <SearchIcon />
+                    </IconButton>
+                  ),
+                }}
+              />
+              <FormControl sx={{ minWidth: 150 }}>
+                <InputLabel>Location</InputLabel>
+                <Select
+                  value={selectedLocation}
+                  label="Location"
+                  onChange={handleLocationFilter}
+                >
+                  <MenuItem value="">All Locations</MenuItem>
+                  {allLocations.map((location) => (
+                    <MenuItem key={location} value={location}>
+                      {location}
+                    </MenuItem>
+                  ))}
+                </Select>
+              </FormControl>
             </Box>
 
             <TableContainer component={Paper} variant='outlined'>
@@ -306,6 +373,17 @@ const ExpertsContent = () => {
                 </TableBody>
               </Table>
             </TableContainer>
+
+            {/* Pagination */}
+            <TablePagination
+              component="div"
+              count={totalCount}
+              page={page}
+              onPageChange={handleChangePage}
+              rowsPerPage={rowsPerPage}
+              onRowsPerPageChange={handleChangeRowsPerPage}
+              rowsPerPageOptions={[5, 10, 25, 50]}
+            />
           </CardContent>
         </Card>
       </Box>
@@ -418,6 +496,29 @@ const ExpertsContent = () => {
           </Button>
         </DialogActions>
       </Dialog>
+
+      {/* Error/Success Snackbars */}
+      <Snackbar
+        open={!!error}
+        autoHideDuration={6000}
+        onClose={handleCloseError}
+        anchorOrigin={{ vertical: 'bottom', horizontal: 'center' }}
+      >
+        <Alert onClose={handleCloseError} severity="error" sx={{ width: '100%' }}>
+          {error}
+        </Alert>
+      </Snackbar>
+
+      <Snackbar
+        open={!!successMessage}
+        autoHideDuration={4000}
+        onClose={handleCloseSuccess}
+        anchorOrigin={{ vertical: 'bottom', horizontal: 'center' }}
+      >
+        <Alert onClose={handleCloseSuccess} severity="success" sx={{ width: '100%' }}>
+          {successMessage}
+        </Alert>
+      </Snackbar>
     </Box>
   )
 }

@@ -30,6 +30,8 @@ import {
   Tabs,
   Tab,
   CircularProgress,
+  Alert,
+  Snackbar,
 } from '@mui/material'
 import {
   Search as SearchIcon,
@@ -39,18 +41,13 @@ import {
   Close as CloseIcon,
 } from '@mui/icons-material'
 import AdminLayout from '../AdminLayout'
-
-// Define a proper interface for the User data
-interface User {
-  id: string
-  name: string
-  email: string
-  phone: string
-  signupDate: string
-  status: 'Active' | 'Suspended' | 'Pending'
-  points: number
-  // serviceHistory would be fetched separately when needed
-}
+import { 
+  fetchUsers,
+  suspendUser,
+  updateUserPoints,
+  getUserById 
+} from '@/app/users/actions'
+import { User } from '@/types/api'
 
 // --- Main Admin Panel Content ---
 const UserManagementContent = () => {
@@ -60,25 +57,47 @@ const UserManagementContent = () => {
   const [isDetailsDrawerOpen, setIsDetailsDrawerOpen] = useState(false)
   const [openSuspendDialog, setOpenSuspendDialog] = useState(false)
   const [openResetDialog, setOpenResetDialog] = useState(false)
+  const [searchQuery, setSearchQuery] = useState('')
+  const [page, setPage] = useState(1)
+  const [totalPages, setTotalPages] = useState(1)
+  const [snackbar, setSnackbar] = useState({ open: false, message: '', severity: 'success' as 'success' | 'error' })
 
-  // --- Fetch Users on Load ---
-  const fetchUsers = async () => {
+  // --- Fetch Users with pagination and search ---
+  const loadUsers = async (searchTerm?: string, pageNum: number = 1) => {
     setLoading(true)
     try {
-      const response = await fetch('/api/users')
-      if (!response.ok) throw new Error('Failed to fetch users')
-      const data = await response.json()
-      setUsers(data)
+      const result = await fetchUsers({
+        search: searchTerm,
+        page: pageNum,
+        limit: 10,
+        sortBy: 'created_at',
+        sortOrder: 'desc'
+      })
+
+      setUsers(result.data)
+      setTotalPages(result.totalPages || 1)
     } catch (error) {
-      console.error(error)
+      console.error('Error fetching users:', error)
+      setSnackbar({
+        open: true,
+        message: error instanceof Error ? error.message : 'Failed to fetch users',
+        severity: 'error'
+      })
     } finally {
       setLoading(false)
     }
   }
 
   useEffect(() => {
-    fetchUsers()
-  }, [])
+    loadUsers(searchQuery, page)
+  }, [page])
+
+  // --- Search handler ---
+  const handleSearch = (event: React.FormEvent) => {
+    event.preventDefault()
+    setPage(1)
+    loadUsers(searchQuery, 1)
+  }
 
   // --- Handlers ---
   const handleViewDetails = (user: User) => {
@@ -99,15 +118,19 @@ const UserManagementContent = () => {
   const handleSuspendUser = async () => {
     if (!selectedUser) return
     try {
-      await fetch('/api/users', {
-        method: 'PUT',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ userId: selectedUser.id, status: 'Suspended' }),
+      await suspendUser(selectedUser.id)
+      setSnackbar({
+        open: true,
+        message: 'User suspended successfully',
+        severity: 'success'
       })
-      // Refresh the user list to show the change
-      fetchUsers()
+      loadUsers(searchQuery, page) // Refresh the list
     } catch (error) {
-      console.error('Failed to suspend user', error)
+      setSnackbar({
+        open: true,
+        message: error instanceof Error ? error.message : 'Failed to suspend user',
+        severity: 'error'
+      })
     } finally {
       setOpenSuspendDialog(false)
     }
@@ -116,18 +139,44 @@ const UserManagementContent = () => {
   const handleTriggerPasswordReset = async () => {
     if (!selectedUser) return
     try {
-      // This uses the same API as the public "find password" page
-      await fetch('/api/auth/find-password', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ email: selectedUser.email }),
-      })
-      alert(`Password reset link sent to ${selectedUser.email}`)
+      // Create FormData for the findPassword action
+      const formData = new FormData()
+      formData.append('email', selectedUser.email)
+      
+      // Import and use the findPassword action
+      const { findPassword } = await import('@/app/sign/actions')
+      const result = await findPassword({ error: null, message: null }, formData)
+      
+      if (result.error) {
+        setSnackbar({
+          open: true,
+          message: result.error,
+          severity: 'error'
+        })
+      } else {
+        setSnackbar({
+          open: true,
+          message: `Password reset link sent to ${selectedUser.email}`,
+          severity: 'success'
+        })
+      }
     } catch (error) {
-      console.error('Failed to send reset link', error)
+      setSnackbar({
+        open: true,
+        message: error instanceof Error ? error.message : 'Failed to send password reset',
+        severity: 'error'
+      })
     } finally {
       setOpenResetDialog(false)
     }
+  }
+
+  const handlePageChange = (newPage: number) => {
+    setPage(newPage)
+  }
+
+  const handleCloseSnackbar = () => {
+    setSnackbar({ ...snackbar, open: false })
   }
 
   return (
@@ -146,17 +195,24 @@ const UserManagementContent = () => {
               }}
             >
               <Typography variant='h5'>User Management</Typography>
-              <TextField
-                size='small'
-                placeholder='Search...'
-                InputProps={{
-                  startAdornment: (
-                    <InputAdornment position='start'>
-                      <SearchIcon />
-                    </InputAdornment>
-                  ),
-                }}
-              />
+              <Box component="form" onSubmit={handleSearch} sx={{ display: 'flex', gap: 1 }}>
+                <TextField
+                  size='small'
+                  placeholder='Search users...'
+                  value={searchQuery}
+                  onChange={(e) => setSearchQuery(e.target.value)}
+                  InputProps={{
+                    startAdornment: (
+                      <InputAdornment position='start'>
+                        <SearchIcon />
+                      </InputAdornment>
+                    ),
+                  }}
+                />
+                <Button type="submit" variant="contained" size="small">
+                  Search
+                </Button>
+              </Box>
             </Box>
 
             <TableContainer component={Paper} variant='outlined'>
@@ -167,14 +223,23 @@ const UserManagementContent = () => {
                     <TableCell>Email</TableCell>
                     <TableCell>Signup Date</TableCell>
                     <TableCell>Status</TableCell>
+                    <TableCell>Points</TableCell>
                     <TableCell align='right'>Actions</TableCell>
                   </TableRow>
                 </TableHead>
                 <TableBody>
                   {loading ? (
                     <TableRow>
-                      <TableCell colSpan={5} align='center'>
+                      <TableCell colSpan={6} align='center'>
                         <CircularProgress />
+                      </TableCell>
+                    </TableRow>
+                  ) : users.length === 0 ? (
+                    <TableRow>
+                      <TableCell colSpan={6} align='center'>
+                        <Typography color="text.secondary">
+                          No users found
+                        </Typography>
                       </TableCell>
                     </TableRow>
                   ) : (
@@ -187,11 +252,16 @@ const UserManagementContent = () => {
                           <Chip
                             label={user.status}
                             color={
-                              user.status === 'Active' ? 'success' : 'warning'
+                              user.status === 'Active' 
+                                ? 'success' 
+                                : user.status === 'Suspended' 
+                                ? 'error' 
+                                : 'warning'
                             }
                             size='small'
                           />
                         </TableCell>
+                        <TableCell>{user.points}</TableCell>
                         <TableCell align='right'>
                           <IconButton
                             size='small'
@@ -202,6 +272,7 @@ const UserManagementContent = () => {
                           <IconButton
                             size='small'
                             onClick={() => handleOpenSuspendDialog(user)}
+                            disabled={user.status === 'Suspended'}
                           >
                             <BlockIcon />
                           </IconButton>
@@ -212,6 +283,29 @@ const UserManagementContent = () => {
                 </TableBody>
               </Table>
             </TableContainer>
+
+            {/* Pagination */}
+            {totalPages > 1 && (
+              <Box sx={{ display: 'flex', justifyContent: 'center', mt: 2 }}>
+                <Button
+                  onClick={() => handlePageChange(page - 1)}
+                  disabled={page === 1}
+                  sx={{ mr: 1 }}
+                >
+                  Previous
+                </Button>
+                <Typography sx={{ mx: 2, alignSelf: 'center' }}>
+                  Page {page} of {totalPages}
+                </Typography>
+                <Button
+                  onClick={() => handlePageChange(page + 1)}
+                  disabled={page === totalPages}
+                  sx={{ ml: 1 }}
+                >
+                  Next
+                </Button>
+              </Box>
+            )}
           </CardContent>
         </Card>
       </Box>
@@ -290,6 +384,7 @@ const UserManagementContent = () => {
           </Button>
         </DialogActions>
       </Dialog>
+
       <Dialog open={openResetDialog} onClose={() => setOpenResetDialog(false)}>
         <DialogTitle>Confirm Password Reset</DialogTitle>
         <DialogContent>
@@ -302,6 +397,22 @@ const UserManagementContent = () => {
           <Button onClick={handleTriggerPasswordReset}>Send Link</Button>
         </DialogActions>
       </Dialog>
+
+      {/* Snackbar for notifications */}
+      <Snackbar
+        open={snackbar.open}
+        autoHideDuration={6000}
+        onClose={handleCloseSnackbar}
+        anchorOrigin={{ vertical: 'bottom', horizontal: 'right' }}
+      >
+        <Alert
+          onClose={handleCloseSnackbar}
+          severity={snackbar.severity}
+          sx={{ width: '100%' }}
+        >
+          {snackbar.message}
+        </Alert>
+      </Snackbar>
     </Box>
   )
 }

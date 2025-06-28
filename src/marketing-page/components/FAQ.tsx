@@ -7,6 +7,7 @@ import Box from '@mui/material/Box'
 import Container from '@mui/material/Container'
 import Typography from '@mui/material/Typography'
 import ExpandMoreIcon from '@mui/icons-material/ExpandMore'
+import { faqsApi } from '@/utils/api-client'
 import CircularProgress from '@mui/material/CircularProgress'
 import Alert from '@mui/material/Alert'
 
@@ -30,12 +31,13 @@ export default function FAQ() {
     const fetchFaqs = async () => {
       try {
         setLoading(true)
-        const response = await fetch('/api/faqs')
-        if (!response.ok) {
-          throw new Error('Failed to load FAQs. Please try again later.')
+        const response = await faqsApi.getFaqs({ published: true })
+        
+        if (response.success && response.data) {
+          setFaqs(response.data as any) // Type assertion for compatibility
+        } else {
+          throw new Error(response.error || 'Failed to load FAQs')
         }
-        const data = await response.json()
-        setFaqs(data)
       } catch (err) {
         setError(
           err instanceof Error ? err.message : 'An unknown error occurred.'

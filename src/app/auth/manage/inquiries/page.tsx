@@ -1,5 +1,5 @@
 'use client'
-import React, { useState } from 'react'
+import React, { useState, useEffect } from 'react'
 import {
   Box,
   Drawer,
@@ -23,219 +23,257 @@ import {
   MenuItem,
   FormControl,
   InputLabel,
+  Alert,
+  Snackbar,
+  CircularProgress,
+  TablePagination,
 } from '@mui/material'
 import AdminLayout from '../AdminLayout'
+import { inquiriesApi } from '@/utils/api-client'
+import { Inquiry, InquiryMessage } from '@/types/api'
 
-// --- Sample Data ---
-const initialInquiries = [
-  {
-    id: 'inq-001',
-    title: '보증금 환불 절차가 궁금합니다.',
-    userName: '김민준',
-    date: '2025-06-20',
-    status: 'New',
-    messages: [
-      {
-        from: 'user',
-        text: '안녕하세요. 얼마 전 낙찰받지 못한 사건의 보증금은 언제쯤 환불되는지 궁금합니다. 사건번호는 2024타경9999입니다.',
-      },
-    ],
-  },
-  {
-    id: 'inq-002',
-    title: '전문가 변경 가능한가요?',
-    userName: '이서연',
-    date: '2025-06-19',
-    status: 'Awaiting Reply',
-    messages: [
-      {
-        from: 'user',
-        text: '배정된 전문가님과 일정이 맞지 않아 그런데, 다른 전문가님으로 변경이 가능할까요?',
-      },
-      {
-        from: 'admin',
-        text: '안녕하세요, 이서연님. 네, 담당자 확인 후 변경 가능한 다른 전문가님 목록과 함께 다시 연락드리겠습니다.',
-      },
-    ],
-  },
-  {
-    id: 'inq-003',
-    title: '전자본인서명확인서 발급 문의',
-    userName: '박지훈',
-    date: '2025-06-18',
-    status: 'Completed',
-    messages: [
-      { from: 'user', text: '전자본인서명확인서가 무엇인가요? 꼭 필요한가요?' },
-      {
-        from: 'admin',
-        text: '안녕하세요, 박지훈님. 대리입찰을 위해서는 법원에 대리인 위임장을 제출해야 하며, 이때 본인 인감을 증명하기 위해 필수적인 서류입니다. 최초 1회 가까운 주민센터에 방문하여 발급 신청을 하시면, 이후에는 온라인으로 편리하게 이용 가능합니다.',
-      },
-      { from: 'user', text: '아하, 감사합니다. 이해했습니다!' },
-      {
-        from: 'admin',
-        text: '네, 궁금한 점 있으시면 언제든지 다시 문의해주세요.',
-      },
-    ],
-  },
-]
-
-const inquiryStatuses = ['New', 'Awaiting Reply', 'Completed']
+const inquiryStatuses = ['new', 'in_progress', 'resolved', 'closed']
+const inquiryPriorities = ['low', 'medium', 'high']
 
 // --- Main Admin Panel Component ---
 const InquiryManagementContent = () => {
-  const [inquiries, setInquiries] = useState(initialInquiries)
-  const [selectedInquiry, setSelectedInquiry] = useState<any>(inquiries[0])
+  const [inquiries, setInquiries] = useState<Inquiry[]>([])
+  const [selectedInquiry, setSelectedInquiry] = useState<Inquiry | null>(null)
+  const [messages, setMessages] = useState<InquiryMessage[]>([])
+  const [loading, setLoading] = useState(true)
+  const [messagesLoading, setMessagesLoading] = useState(false)
+  const [error, setError] = useState<string | null>(null)
+  const [successMessage, setSuccessMessage] = useState<string | null>(null)
+  
+  // Pagination and filters
+  const [page, setPage] = useState(0)
+  const [rowsPerPage, setRowsPerPage] = useState(10)
+  const [totalCount, setTotalCount] = useState(0)
+  const [statusFilter, setStatusFilter] = useState('')
+  const [priorityFilter, setPriorityFilter] = useState('')
 
-  const handleSelectInquiry = (inquiry: any) => {
+  // Fetch inquiries
+  const fetchInquiries = async () => {
+    setLoading(true)
+    setError(null)
+    try {
+      const response = await inquiriesApi.getInquiries({
+        page: page + 1,
+        limit: rowsPerPage,
+        status: statusFilter || undefined,
+        priority: priorityFilter || undefined,
+        sortBy: 'created_at',
+        sortOrder: 'desc',
+      })
+      
+      if (response.success && response.data) {
+        setInquiries(response.data as Inquiry[])
+        setTotalCount(response.pagination?.total || 0)
+        if (response.data.length > 0 && !selectedInquiry) {
+          setSelectedInquiry(response.data[0] as Inquiry)
+        }
+      } else {
+        setError(response.error || 'Failed to fetch inquiries')
+      }
+    } catch (error) {
+      setError(error instanceof Error ? error.message : 'Failed to fetch inquiries')
+    } finally {
+      setLoading(false)
+    }
+  }
+
+  // Fetch messages for selected inquiry
+  const fetchMessages = async (inquiryId: string) => {
+    setMessagesLoading(true)
+    try {
+      const response = await inquiriesApi.getMessages(inquiryId, { page: 1, limit: 100 })
+      
+      if (response.success && response.data) {
+        setMessages(response.data as InquiryMessage[])
+      } else {
+        setError(response.error || 'Failed to fetch messages')
+      }
+    } catch (error) {
+      setError(error instanceof Error ? error.message : 'Failed to fetch messages')
+    } finally {
+      setMessagesLoading(false)
+    }
+  }
+
+  useEffect(() => {
+    fetchInquiries()
+  }, [page, rowsPerPage, statusFilter, priorityFilter])
+
+  useEffect(() => {
+    if (selectedInquiry) {
+      fetchMessages(selectedInquiry.id)
+    }
+  }, [selectedInquiry])
+
+  const handleSelectInquiry = (inquiry: Inquiry) => {
     setSelectedInquiry(inquiry)
   }
 
-  const handleStatusChange = (event: any) => {
+  const handleStatusChange = async (event: any) => {
+    if (!selectedInquiry) return
+    
     const newStatus = event.target.value
-    setSelectedInquiry((prev: any) => ({ ...prev, status: newStatus }))
-    // Also update the main list
-    setInquiries(
-      inquiries.map((inq) =>
-        inq.id === selectedInquiry.id ? { ...inq, status: newStatus } : inq
-      )
-    )
+    setError(null)
+    
+    try {
+      const response = await inquiriesApi.updateInquiry(selectedInquiry.id, {
+        status: newStatus,
+      })
+
+      if (response.success) {
+        setSuccessMessage('Inquiry status updated successfully')
+        setSelectedInquiry({ ...selectedInquiry, status: newStatus })
+        // Update the inquiry in the list
+        setInquiries(inquiries.map(inq => 
+          inq.id === selectedInquiry.id ? { ...inq, status: newStatus } : inq
+        ))
+      } else {
+        setError(response.error || 'Failed to update inquiry status')
+      }
+    } catch (error) {
+      setError(error instanceof Error ? error.message : 'Failed to update inquiry status')
+    }
   }
 
-  const handleSendReply = (event: React.FormEvent) => {
-    event.preventDefault()
-    const form = event.currentTarget as HTMLFormElement
-    const replyText = (form.elements.namedItem('replyText') as HTMLInputElement)
-      .value
-
-    if (!replyText.trim()) return
-
-    const newReply = { from: 'admin', text: replyText }
-    const updatedMessages = [...selectedInquiry.messages, newReply]
-
-    const updatedInquiry = {
-      ...selectedInquiry,
-      messages: updatedMessages,
-      status: 'Awaiting Reply',
-    }
-    setSelectedInquiry(updatedInquiry)
-    setInquiries(
-      inquiries.map((inq) =>
-        inq.id === selectedInquiry.id ? updatedInquiry : inq
-      )
-    )
-
-    form.reset()
+  // Close snackbars
+  const handleCloseError = () => {
+    setError(null)
   }
 
-  const getStatusChipColor = (status: string) => {
-    switch (status) {
-      case 'New':
-        return 'error'
-      case 'Awaiting Reply':
-        return 'warning'
-      case 'Completed':
-        return 'success'
-      default:
-        return 'default'
-    }
+  const handleCloseSuccess = () => {
+    setSuccessMessage(null)
   }
 
   return (
     <Box sx={{ display: 'flex' }}>
       <CssBaseline />
-      <Box
-        component='main'
-        sx={{
-          flexGrow: 1,
-          p: 0,
-          height: '100vh',
-          display: 'flex',
-          flexDirection: 'column',
-        }}
-      >
+      <Box component='main' sx={{ flexGrow: 1, p: 3 }}>
         <Toolbar />
-        {/* --- Main Content using Grid --- */}
-        <Grid container sx={{ flexGrow: 1, height: 'calc(100% - 64px)' }}>
-          {/* Inquiry List Panel */}
-          <Grid
-            size={{ xs: 12, md: 4 }}
-            sx={{
-              borderRight: { md: '1px solid #ddd' },
-              display: 'flex',
-              flexDirection: 'column',
-            }}
-          >
-            <Box sx={{ p: 2, borderBottom: '1px solid #ddd' }}>
-              <Typography variant='h6'>1:1 Inquiries</Typography>
-            </Box>
-            <List sx={{ flexGrow: 1, overflowY: 'auto' }}>
-              {inquiries.map((inquiry) => (
-                <ListItemButton
-                  key={inquiry.id}
-                  onClick={() => handleSelectInquiry(inquiry)}
-                  selected={selectedInquiry?.id === inquiry.id}
-                >
-                  <ListItemText
-                    primary={inquiry.title}
-                    secondary={
-                      <Box
-                        component='span'
-                        sx={{
-                          display: 'flex',
-                          justifyContent: 'space-between',
-                          alignItems: 'center',
-                        }}
-                      >
-                        <Typography
-                          component='span'
-                          variant='body2'
-                          color='text.primary'
-                        >
-                          {inquiry.userName}
-                        </Typography>
-                        <Chip
-                          label={inquiry.status}
-                          color={getStatusChipColor(inquiry.status)}
-                          size='small'
-                        />
-                      </Box>
-                    }
-                  />
-                </ListItemButton>
+        
+        {/* Error/Success Messages */}
+        <Snackbar open={!!error} autoHideDuration={6000} onClose={handleCloseError}>
+          <Alert onClose={handleCloseError} severity="error" sx={{ width: '100%' }}>
+            {error}
+          </Alert>
+        </Snackbar>
+        
+        <Snackbar open={!!successMessage} autoHideDuration={6000} onClose={handleCloseSuccess}>
+          <Alert onClose={handleCloseSuccess} severity="success" sx={{ width: '100%' }}>
+            {successMessage}
+          </Alert>
+        </Snackbar>
+
+        <Typography variant='h4' gutterBottom>
+          고객 문의 관리
+        </Typography>
+
+        {/* Filters */}
+        <Box sx={{ mb: 3, display: 'flex', gap: 2 }}>
+          <FormControl sx={{ minWidth: 120 }}>
+            <InputLabel>상태</InputLabel>
+            <Select
+              value={statusFilter}
+              label="상태"
+              onChange={(e) => setStatusFilter(e.target.value)}
+            >
+              <MenuItem value="">전체</MenuItem>
+              {inquiryStatuses.map((status) => (
+                <MenuItem key={status} value={status}>
+                  {status}
+                </MenuItem>
               ))}
-            </List>
+            </Select>
+          </FormControl>
+          
+          <FormControl sx={{ minWidth: 120 }}>
+            <InputLabel>우선순위</InputLabel>
+            <Select
+              value={priorityFilter}
+              label="우선순위"
+              onChange={(e) => setPriorityFilter(e.target.value)}
+            >
+              <MenuItem value="">전체</MenuItem>
+              {inquiryPriorities.map((priority) => (
+                <MenuItem key={priority} value={priority}>
+                  {priority}
+                </MenuItem>
+              ))}
+            </Select>
+          </FormControl>
+        </Box>
+
+        <Grid container spacing={3}>
+          {/* Inquiries List */}
+          <Grid size={{ xs: 12, md: 4 }}>
+            <Paper sx={{ height: '600px', overflow: 'auto' }}>
+              {loading ? (
+                <Box display="flex" justifyContent="center" p={3}>
+                  <CircularProgress />
+                </Box>
+              ) : (
+                <List>
+                  {inquiries.map((inquiry) => (
+                    <ListItem key={inquiry.id}>
+                      <ListItemButton
+                        selected={selectedInquiry?.id === inquiry.id}
+                        onClick={() => handleSelectInquiry(inquiry)}
+                      >
+                        <ListItemText
+                          primary={inquiry.title}
+                          secondary={
+                            <Box>
+                              <Typography variant="caption" display="block">
+                                {new Date(inquiry.created_at).toLocaleDateString()}
+                              </Typography>
+                              <Chip
+                                label={inquiry.status}
+                                size="small"
+                                color={
+                                  inquiry.status === 'new' ? 'error' :
+                                  inquiry.status === 'in_progress' ? 'warning' :
+                                  inquiry.status === 'resolved' ? 'success' : 'default'
+                                }
+                              />
+                            </Box>
+                          }
+                        />
+                      </ListItemButton>
+                    </ListItem>
+                  ))}
+                </List>
+              )}
+              
+              {/* Pagination */}
+              <TablePagination
+                component="div"
+                count={totalCount}
+                page={page}
+                onPageChange={(e, newPage) => setPage(newPage)}
+                rowsPerPage={rowsPerPage}
+                onRowsPerPageChange={(e) => {
+                  setRowsPerPage(parseInt(e.target.value, 10))
+                  setPage(0)
+                }}
+              />
+            </Paper>
           </Grid>
 
-          {/* Conversation View Panel */}
-          <Grid
-            size={{ xs: 12, md: 8 }}
-            sx={{ display: 'flex', flexDirection: 'column', height: '100%' }}
-          >
+          {/* Inquiry Details */}
+          <Grid size={{ xs: 12, md: 8 }}>
             {selectedInquiry ? (
-              <>
-                <Box
-                  sx={{
-                    p: 2,
-                    borderBottom: '1px solid #ddd',
-                    display: 'flex',
-                    justifyContent: 'space-between',
-                    alignItems: 'center',
-                  }}
-                >
-                  <Box>
-                    <Typography variant='h6'>
-                      {selectedInquiry.title}
-                    </Typography>
-                    <Typography variant='body2' color='text.secondary'>
-                      From: {selectedInquiry.userName} | Date:{' '}
-                      {selectedInquiry.date}
-                    </Typography>
-                  </Box>
-                  <FormControl size='small' sx={{ minWidth: 150 }}>
-                    <InputLabel>Status</InputLabel>
+              <Paper sx={{ p: 3, height: '600px', overflow: 'auto' }}>
+                <Box sx={{ mb: 2, display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                  <Typography variant="h6">{selectedInquiry.title}</Typography>
+                  <FormControl sx={{ minWidth: 150 }}>
+                    <InputLabel>상태 변경</InputLabel>
                     <Select
                       value={selectedInquiry.status}
-                      label='Status'
+                      label="상태 변경"
                       onChange={handleStatusChange}
                     >
                       {inquiryStatuses.map((status) => (
@@ -246,68 +284,45 @@ const InquiryManagementContent = () => {
                     </Select>
                   </FormControl>
                 </Box>
-
-                <Box
-                  sx={{
-                    flexGrow: 1,
-                    overflowY: 'auto',
-                    p: 3,
-                    display: 'flex',
-                    flexDirection: 'column',
-                    gap: 2,
-                  }}
-                >
-                  {selectedInquiry.messages.map((msg: any, index: number) => (
-                    <Paper
-                      key={index}
-                      elevation={0}
-                      sx={{
-                        p: 1.5,
-                        alignSelf:
-                          msg.from === 'admin' ? 'flex-end' : 'flex-start',
-                        backgroundColor:
-                          msg.from === 'admin' ? 'primary.main' : 'grey.200',
-                        color: msg.from === 'admin' ? 'white' : 'black',
-                        borderRadius: 2,
-                        maxWidth: '80%',
-                      }}
-                    >
-                      {msg.text}
-                    </Paper>
-                  ))}
-                </Box>
-
-                <Box
-                  component='form'
-                  onSubmit={handleSendReply}
-                  sx={{ p: 2, borderTop: '1px solid #ddd' }}
-                >
-                  <TextField
-                    name='replyText'
-                    fullWidth
-                    multiline
-                    rows={4}
-                    placeholder='Write your reply here...'
-                    variant='outlined'
-                  />
-                  <Button type='submit' variant='contained' sx={{ mt: 1 }}>
-                    Send Reply
-                  </Button>
-                </Box>
-              </>
+                
+                <Divider sx={{ mb: 2 }} />
+                
+                {/* Messages */}
+                {messagesLoading ? (
+                  <Box display="flex" justifyContent="center" p={3}>
+                    <CircularProgress />
+                  </Box>
+                ) : (
+                  <Box>
+                    {messages.map((message) => (
+                      <Box
+                        key={message.id}
+                        sx={{
+                          mb: 2,
+                          p: 2,
+                          bgcolor: message.sender_type === 'admin' ? 'primary.light' : 'grey.100',
+                          borderRadius: 1,
+                          ml: message.sender_type === 'admin' ? 0 : 4,
+                          mr: message.sender_type === 'admin' ? 4 : 0,
+                        }}
+                      >
+                        <Typography variant="body2" color="text.secondary">
+                          {message.sender_type === 'admin' ? '관리자' : '사용자'} • {new Date(message.created_at).toLocaleString()}
+                        </Typography>
+                        <Typography variant="body1" sx={{ mt: 1 }}>
+                          {message.message}
+                        </Typography>
+                      </Box>
+                    ))}
+                  </Box>
+                )}
+              </Paper>
             ) : (
-              <Box
-                sx={{
-                  flexGrow: 1,
-                  display: 'flex',
-                  alignItems: 'center',
-                  justifyContent: 'center',
-                }}
-              >
-                <Typography color='text.secondary'>
-                  Select an inquiry to view the conversation.
+              <Paper sx={{ p: 3, height: '600px', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+                <Typography variant="h6" color="text.secondary">
+                  문의를 선택해주세요
                 </Typography>
-              </Box>
+              </Paper>
             )}
           </Grid>
         </Grid>
@@ -316,7 +331,8 @@ const InquiryManagementContent = () => {
   )
 }
 
-export default function InquiryManagementPanel() {
+// --- Main Page Export ---
+export default function InquiryManagementPage() {
   return (
     <AdminLayout>
       <InquiryManagementContent />

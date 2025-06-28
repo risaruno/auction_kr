@@ -1,12 +1,148 @@
 'use server'
 
 import { createClient } from '@/utils/supabase/server'
-import { FormData, InitialFormData } from '@/interfaces/FormData';
+import { FormData, InitialFormData } from '@/interfaces/FormData'
+import axios from 'axios'
+import { CourtAuctionData } from '@/types/api'
 
 
 export interface ApplyBidState {
   error: string | null
   message: string | null
+}
+
+export interface CourtAuctionState {
+  success: boolean
+  data: CourtAuctionData | null
+  error: string | null
+}
+
+export async function getCourtAuctionData(
+  cortOfcCd: string,
+  csNo: string
+): Promise<CourtAuctionState> {
+  try {
+    // Validate required fields
+    if (!cortOfcCd || !csNo) {
+      return {
+        success: false,
+        data: null,
+        error: 'Court office code and case number are required'
+      }
+    }
+
+    const commonHeaders = {
+      'Content-Type': 'application/json',
+      'User-Agent': 'Mozilla/5.0',
+      'Accept': 'application/json',
+      'Accept-Language': 'ko-KR,ko;q=0.9',
+      'Origin': 'https://www.courtauction.go.kr',
+      'Referer': 'https://www.courtauction.go.kr/pgj/PGJ15A.jsp',
+      'X-Requested-With': 'XMLHttpRequest',
+    }
+
+    // --- Step 1: First fetch for auction base info ---
+    const url1 = 'https://www.courtauction.go.kr/pgj/pgj15A/selectAuctnCsSrchRslt.on'
+    const payload1 = { dma_srchCsDtlInf: { cortOfcCd, csNo } }
+
+    const response1 = await axios.post(url1, payload1, { 
+      headers: commonHeaders,
+      timeout: 10000 // 10 second timeout
+    })
+    
+    const json1 = response1.data
+
+    if (!json1.data || !json1.data.dlt_dspslGdsDspslObjctLst?.[0]) {
+      return {
+        success: false,
+        data: null,
+        error: 'No auction item found'
+      }
+    }
+
+    const item = json1.data.dlt_dspslGdsDspslObjctLst[0]
+    const auctionData: CourtAuctionData = {
+      courtName: json1.data.dma_csBasInf.cortOfcNm,
+      caseNumber: json1.data.dma_csBasInf.csNo,
+      printCaseNumber: json1.data.dma_csBasInf.userCsNo,
+      evaluationAmt: item.aeeEvlAmt,
+      lowestBidAmt: item.fstPbancLwsDspslPrc,
+      depositAmt: Math.floor(item.fstPbancLwsDspslPrc / 10),
+      bidDate: item.dspslDxdyYmd,
+    }
+
+    // --- Step 2: Second fetch for picture data ---
+    try {
+      const url2 = 'https://www.courtauction.go.kr/pgj/pgj15B/selectAuctnCsSrchRslt.on'
+      const payload2 = {
+        dma_srchGdsDtlSrch: {
+          csNo: auctionData.caseNumber,
+          cortOfcCd,
+          dspslGdsSeq: 1,
+          pgmId: 'PGJ15AF01',
+          srchInfo: { menuNm: '경매사건검색', sideDvsCd: '2' },
+        },
+      }
+
+      const response2 = await axios.post(url2, payload2, { 
+        headers: commonHeaders,
+        timeout: 5000 // 5 second timeout for images
+      })
+      
+      const json2 = response2.data
+      const picFile = json2?.data?.dma_result?.csPicLst?.[0]?.picFile || null
+      
+      auctionData.picFile = picFile
+    } catch (imageError) {
+      // Don't fail the entire request if image fetch fails
+      console.warn('Failed to fetch auction image:', imageError)
+      auctionData.picFile = undefined
+    }
+
+    return {
+      success: true,
+      data: auctionData,
+      error: null
+    }
+
+  } catch (error: any) {
+    console.error('Court auction lookup error:', error)
+
+    // Handle axios errors specifically
+    if (axios.isAxiosError(error)) {
+      if (error.code === 'ECONNABORTED') {
+        return {
+          success: false,
+          data: null,
+          error: 'Request timeout - court system may be slow'
+        }
+      } else if (error.response?.status === 404) {
+        return {
+          success: false,
+          data: null,
+          error: 'Auction case not found'
+        }
+      } else if (error.response && error.response.status >= 500) {
+        return {
+          success: false,
+          data: null,
+          error: 'Court system is temporarily unavailable'
+        }
+      } else {
+        return {
+          success: false,
+          data: null,
+          error: 'Failed to fetch auction data from court system'
+        }
+      }
+    }
+    
+    return {
+      success: false,
+      data: null,
+      error: 'An unexpected error occurred while fetching auction data'
+    }
+  }
 }
 
 export async function applyBid(

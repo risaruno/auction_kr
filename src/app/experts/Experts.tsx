@@ -1,18 +1,11 @@
-'use server';
-import { createClient } from '@/utils/server';
+import { fetchExperts } from './actions'
 
-export default async function fetchExperts() {
-  const supabase = await createClient();
-  let { data: experts, error } = await supabase.from('experts').select('*')
-
-  if (error) {
-    console.error('Error fetching experts:', error);
-    return null;
+export default async function getExperts() {
+  try {
+    const result = await fetchExperts()
+    return result.data
+  } catch (error) {
+    console.error('Error fetching experts:', error)
+    return null
   }
-
-  if (!experts) {
-    console.error('No experts found');
-    return null;
-  }
-  return experts;
 }

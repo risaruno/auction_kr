@@ -2,12 +2,7 @@
 
 import React from 'react'
 import { Box, Typography } from '@mui/material'
-
-interface Expert {
-  id: number
-  name: string
-  // Add other expert properties
-}
+import { Expert } from '@/types/api'
 
 interface ExpertListProps {
   experts: Expert[] | null

@@ -5,8 +5,6 @@ export async function updateSession(request: NextRequest) {
   let supabaseResponse = NextResponse.next({
     request,
   })
-  const session = request.cookies.get('session') // Example: Retrieve session cookie
-  console.log('Session in middleware:', session)
 
   const supabase = createServerClient(
     process.env.NEXT_PUBLIC_SUPABASE_URL!,
@@ -31,35 +29,74 @@ export async function updateSession(request: NextRequest) {
     }
   )
 
-  // Do not run code between createServerClient and
-  // supabase.auth.getUser(). A simple mistake could make it very hard to debug
-  // issues with users being randomly logged out.
-
-  // IMPORTANT: DO NOT REMOVE auth.getUser()
-
+  // Get the current user
   const {
     data: { user },
   } = await supabase.auth.getUser()
 
-  if (!user && !request.nextUrl.pathname.startsWith('/auth')) {
-    // no user, potentially respond by redirecting the user to the login page
-    const url = request.nextUrl.clone()
+  const url = request.nextUrl.clone()
+  const pathname = url.pathname
+
+  // Public routes that don't require authentication
+  const publicRoutes = [
+    '/',
+    '/sign/in',
+    '/sign/up',
+    '/sign/find-password',
+    '/about',
+    '/contact',
+    '/faq',
+    '/experts',
+    '/policy',
+    '/area'
+  ]
+
+  // Check if current path is public
+  const isPublicRoute = publicRoutes.some(route => 
+    pathname === route || pathname.startsWith(`${route}/`)
+  )
+
+  // If no user and trying to access protected route, redirect to login
+  if (!user && !isPublicRoute) {
     url.pathname = '/sign/in'
+    url.searchParams.set('redirectTo', pathname)
     return NextResponse.redirect(url)
   }
 
-  // IMPORTANT: You *must* return the supabaseResponse object as it is.
-  // If you're creating a new response object with NextResponse.next() make sure to:
-  // 1. Pass the request in it, like so:
-  //    const myNewResponse = NextResponse.next({ request })
-  // 2. Copy over the cookies, like so:
-  //    myNewResponse.cookies.setAll(supabaseResponse.cookies.getAll())
-  // 3. Change the myNewResponse object to fit your needs, but avoid changing
-  //    the cookies!
-  // 4. Finally:
-  //    return myNewResponse
-  // If this is not done, you may be causing the browser and server to go out
-  // of sync and terminate the user's session prematurely!
+  // If user exists, check role-based access for admin routes
+  if (user && pathname.startsWith('/auth/manage')) {
+    try {
+      // Get user profile with role
+      const { data: profile, error } = await supabase
+        .from('profiles')
+        .select('admin_role')
+        .eq('id', user.id)
+        .single()
+
+      if (error) {
+        console.error('Error fetching user profile:', error)
+        url.pathname = '/auth/user'
+        return NextResponse.redirect(url)
+      }
+
+      // Check if user has admin role
+      const adminRoles = ['super_admin', 'content_manager', 'customer_support']
+      if (!profile?.admin_role || !adminRoles.includes(profile.admin_role)) {
+        // User doesn't have admin role, redirect to user dashboard
+        url.pathname = '/auth/user'
+        return NextResponse.redirect(url)
+      }
+    } catch (error) {
+      console.error('Error in role check:', error)
+      url.pathname = '/auth/user'
+      return NextResponse.redirect(url)
+    }
+  }
+
+  // If user exists and trying to access user routes, ensure they're not trying to access admin routes
+  if (user && pathname.startsWith('/auth/user')) {
+    // This is fine, regular users can access user routes
+  }
 
   return supabaseResponse
 }

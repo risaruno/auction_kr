@@ -21,15 +21,7 @@ import {
   Button,
 } from '@mui/material'
 import { fetchExperts } from './actions'
-
-interface Expert {
-  id: number
-  name: string
-  location: string
-  description: string
-  photo?: string
-  services: string[]
-}
+import { Expert } from '@/types/api'
 
 const regions = [
   '전체',
@@ -70,8 +62,8 @@ export default function ExpertPage() {
   const fetchExpertsData = async () => {
     setLoading(true)
     try {
-      const data = await fetchExperts() // Call the server action
-      setExperts(data)
+      const result = await fetchExperts() // Call the server action with no filters for all experts
+      setExperts(result.data || [])
     } catch (error) {
       console.error(error)
     } finally {
@@ -227,7 +219,7 @@ export default function ExpertPage() {
                   <CardContent sx={{ p: 3 }}>
                     <Box sx={{ display: 'flex', alignItems: 'center', mb: 2 }}>
                       <Avatar
-                        src={expert.photo}
+                        src={expert.profile_image}
                         sx={{ width: 64, height: 64, mr: 2 }}
                       />
                       <Box>
