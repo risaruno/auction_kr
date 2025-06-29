@@ -21,7 +21,7 @@ import Sitemark from "./SitemarkIcon";
 import { Typography } from "@mui/material";
 import { useAuth } from "@/contexts/AuthContext";
 import { useRouter } from "next/navigation";
-import DebugAuth from "../../components/DebugAuth";
+import DebugAuth from "@/components/DebugAuth";
 
 const StyledToolbar = styled(Toolbar)(({ theme }) => ({
   display: "flex",

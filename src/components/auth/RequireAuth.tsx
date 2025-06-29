@@ -12,16 +12,17 @@ interface RequireAuthProps {
 }
 
 export function RequireAuth({ children, requiredRole, fallback }: RequireAuthProps) {
-  const { user, loading } = useAuth()
+  const { user, loading, isInitialized } = useAuth()
   const isAdmin = useIsAdmin()
   const isSuperAdmin = useIsSuperAdmin()
 
   // Debug info for development
   React.useEffect(() => {
-    console.log('RequireAuth state:', { loading, hasUser: !!user, userEmail: user?.email })
-  }, [loading, user])
+    console.log('RequireAuth state:', { loading, isInitialized, hasUser: !!user, userEmail: user?.email })
+  }, [loading, isInitialized, user])
 
-  if (loading) {
+  // Only show loading if we're not initialized yet
+  if (loading && !isInitialized) {
     return (
       <Box
         display="flex"

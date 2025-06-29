@@ -1,10 +1,9 @@
 "use client";
 
 import { useAuth } from "@/contexts/AuthContext";
-import { Box, Typography, Paper, Button, Menu } from "@mui/material";
+import { Box, Typography, Button, Popover } from "@mui/material";
 import { createClient } from "@/utils/supabase/client";
 import { useEffect, useState } from "react";
-import { warn } from "console";
 
 export default function DebugAuth() {
   const { user, loading, signOut, refreshUser } = useAuth();
@@ -78,21 +77,21 @@ export default function DebugAuth() {
       >
         Debug
       </Button>
-      <Menu
+      <Popover
         anchorEl={debugMenuAnchor}
         open={Boolean(debugMenuAnchor)}
         onClose={handleDebugMenuClose}
-        sx={{
-          position: "absolute",
-          width: "350px",
-          maxHeight: "400px",
-          p: 2,
-          bgcolor: "background.paper",
-          border: "1px solid red",
-          zIndex: 9999,
+        anchorOrigin={{
+          vertical: "bottom",
+          horizontal: "left",
         }}
+        transformOrigin={{
+          vertical: "top",
+          horizontal: "left",
+        }}
+        sx={{ backgroundColor: "#ffffff20"}}
       >
-        <Box sx={{ p: 2, width: '350px', height: '400px' }}>
+        <Box sx={{ p: 2, width: "350px", height: "400px", backgroundColor: "#ffffff20" }}>
           <Typography variant="h6" color="error">
             DEBUG: Auth State
           </Typography>
@@ -146,7 +145,7 @@ export default function DebugAuth() {
             </Button>
           </Box>
         </Box>
-      </Menu>
+      </Popover>
     </>
   );
 }

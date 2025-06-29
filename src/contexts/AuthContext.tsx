@@ -7,6 +7,7 @@ import { type AdminRole, type UserWithRole } from '@/utils/auth/roles'
 interface AuthContextType {
   user: UserWithRole | null
   loading: boolean
+  isInitialized: boolean
   signOut: () => Promise<void>
   refreshUser: () => Promise<void>
 }
@@ -16,12 +17,17 @@ const AuthContext = createContext<AuthContextType | undefined>(undefined)
 export function AuthProvider({ children }: { children: React.ReactNode }) {
   const [user, setUser] = useState<UserWithRole | null>(null)
   const [loading, setLoading] = useState(true)
+  const [isInitialized, setIsInitialized] = useState(false)
   const supabase = createClient()
 
-  const fetchUserWithRole = async () => {
+  const fetchUserWithRole = async (forceRefresh = false) => {
     try {
-      console.log('Fetching user with role...')
-      setLoading(true)
+      console.log('Fetching user with role...', { forceRefresh })
+      
+      // Don't set loading to true if we're already initialized and this is not a forced refresh
+      if (!isInitialized || forceRefresh) {
+        setLoading(true)
+      }
       
       // First check if there's a session
       const { data: { session }, error: sessionError } = await supabase.auth.getSession()
@@ -104,6 +110,9 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       setUser(null)
     } finally {
       setLoading(false)
+      if (!isInitialized) {
+        setIsInitialized(true)
+      }
     }
   }
 
@@ -142,18 +151,19 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   }
 
   const refreshUser = async () => {
-    setLoading(true)
-    await fetchUserWithRole()
+    await fetchUserWithRole(true) // Force refresh
   }
 
   useEffect(() => {
     let isMounted = true
+    let authChangeTimeout: NodeJS.Timeout | null = null
     
     // Set a maximum loading time of 8 seconds
     const loadingTimeout = setTimeout(() => {
-      if (isMounted && loading) {
+      if (isMounted && loading && !isInitialized) {
         console.warn('Auth loading timeout - forcing loading to false')
         setLoading(false)
+        setIsInitialized(true)
       }
     }, 8000)
 
@@ -166,36 +176,92 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     }
     initialFetch()
 
-    // Listen for auth state changes
+    // Listen for auth state changes with debouncing
     const { data: { subscription } } = supabase.auth.onAuthStateChange(
       async (event, session) => {
         if (!isMounted) return
         
-        console.log('Auth state changed:', event, session?.user?.email || 'no user')
-        
-        if (event === 'SIGNED_IN' && session?.user) {
-          console.log('User signed in, fetching user with role...')
-          await fetchUserWithRole()
-        } else if (event === 'SIGNED_OUT' || !session) {
-          console.log('User signed out, clearing user state')
-          setUser(null)
-          setLoading(false)
-        } else if (event === 'TOKEN_REFRESHED' && session?.user) {
-          console.log('Token refreshed, fetching user with role...')
-          await fetchUserWithRole()
+        // Clear any pending auth change timeout
+        if (authChangeTimeout) {
+          clearTimeout(authChangeTimeout)
         }
+        
+        // Debounce auth state changes to prevent rapid re-authentication
+        authChangeTimeout = setTimeout(async () => {
+          if (!isMounted) return
+          
+          console.log('Auth state changed:', event, session?.user?.email || 'no user')
+          
+          if (event === 'SIGNED_IN' && session?.user) {
+            console.log('User signed in, fetching user with role...')
+            await fetchUserWithRole(true)
+          } else if (event === 'SIGNED_OUT' || !session) {
+            console.log('User signed out, clearing user state')
+            setUser(null)
+            setLoading(false)
+            setIsInitialized(true)
+          } else if (event === 'TOKEN_REFRESHED' && session?.user) {
+            console.log('Token refreshed, updating user...')
+            // Don't show loading for token refresh if we already have a user
+            if (user) {
+              const { data: profile } = await supabase
+                .from('profiles')
+                .select('admin_role, full_name')
+                .eq('id', session.user.id)
+                .single()
+              
+              if (profile) {
+                const userWithRole = {
+                  id: session.user.id,
+                  email: session.user.email || '',
+                  admin_role: (profile?.admin_role || 'user') as AdminRole,
+                  full_name: profile?.full_name || session.user.user_metadata?.full_name || ''
+                }
+                setUser(userWithRole)
+              }
+            } else {
+              await fetchUserWithRole(true)
+            }
+          }
+        }, 500) // 500ms debounce
       }
     )
+
+    // Handle window visibility change to prevent unnecessary auth checks
+    const handleVisibilityChange = () => {
+      if (document.visibilityState === 'visible' && isInitialized) {
+        // Only check auth if the user was previously signed in and the page has been hidden for a while
+        console.log('Window became visible, checking auth state silently...')
+        // Don't show loading state for visibility changes
+        supabase.auth.getSession().then(({ data: { session } }) => {
+          if (!session && user) {
+            // User was signed out while away
+            console.log('User session expired while away')
+            setUser(null)
+          }
+        })
+      }
+    }
+
+    if (typeof window !== 'undefined') {
+      document.addEventListener('visibilitychange', handleVisibilityChange)
+    }
 
     return () => {
       isMounted = false
       clearTimeout(loadingTimeout)
+      if (authChangeTimeout) {
+        clearTimeout(authChangeTimeout)
+      }
       subscription.unsubscribe()
+      if (typeof window !== 'undefined') {
+        document.removeEventListener('visibilitychange', handleVisibilityChange)
+      }
     }
-  }, [])
+  }, []) // Only run once on mount
 
   return (
-    <AuthContext.Provider value={{ user, loading, signOut, refreshUser }}>
+    <AuthContext.Provider value={{ user, loading, isInitialized, signOut, refreshUser }}>
       {children}
     </AuthContext.Provider>
   )

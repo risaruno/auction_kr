@@ -42,7 +42,7 @@ import {
   createFaq,
   updateFaq,
   deleteFaq 
-} from '@/app/faqs/actions'
+} from '@/app/faq/actions'
 import { FAQ, FAQCreateRequest, FAQUpdateRequest } from '@/types/api'
 
 const faqTypes = ['전문가 서비스', '기타', '결제', '계정']

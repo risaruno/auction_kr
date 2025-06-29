@@ -11,22 +11,24 @@ export default function UserLayout({
   children: React.ReactNode;
 }) {
   return (
-    <Box sx={{ display: "flex" }}>
-      <CssBaseline />
-      <UserAppBar />
-      <UserSidebar />
-      <Box
-        component="main"
-        sx={{
-          flexGrow: 1,
-          p: 3,
-          backgroundColor: "grey.50",
-          minHeight: "100vh",
-        }}
-      >
-        <Toolbar />
-        <Container maxWidth="lg">{children}</Container>
+    <RequireAuth>
+      <Box sx={{ display: "flex" }}>
+        <CssBaseline />
+        <UserAppBar />
+        <UserSidebar />
+        <Box
+          component="main"
+          sx={{
+            flexGrow: 1,
+            p: 3,
+            backgroundColor: "grey.50",
+            minHeight: "100vh",
+          }}
+        >
+          <Toolbar />
+          <Container maxWidth="lg">{children}</Container>
+        </Box>
       </Box>
-    </Box>
+    </RequireAuth>
   );
 }
