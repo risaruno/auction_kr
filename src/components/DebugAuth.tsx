@@ -6,7 +6,7 @@ import { createClient } from '@/utils/supabase/client'
 import { useEffect, useState } from 'react'
 
 export default function DebugAuth() {
-  const { user, loading, signOut } = useAuth()
+  const { user, loading, signOut, refreshUser } = useAuth()
   const [rawSession, setRawSession] = useState<any>(null)
 
   useEffect(() => {
@@ -46,6 +46,9 @@ export default function DebugAuth() {
     const supabase = createClient()
     const { data: { session } } = await supabase.auth.getSession()
     setRawSession(session)
+    
+    // Also refresh the AuthContext
+    await refreshUser()
   }
 
   return (

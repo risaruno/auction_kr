@@ -165,12 +165,83 @@ export async function applyBid(
       }
     }
 
+    // 1.5. Ensure user has a profile (create one if missing)
+    const { data: existingProfile, error: profileError } = await supabase
+      .from('profiles')
+      .select('id')
+      .eq('id', user.id)
+      .single()
+
+    if (profileError && profileError.code === 'PGRST116') {
+      // Profile doesn't exist, create one
+      console.log('Profile not found, creating new profile for user:', user.id);
+      const { error: createProfileError } = await supabase
+        .from('profiles')
+        .insert([{
+          id: user.id,
+          email: user.email,
+          full_name: user.user_metadata?.full_name || '',
+          admin_role: 'user'
+        }])
+
+      if (createProfileError) {
+        console.error('Failed to create profile:', createProfileError);
+        return {
+          error: 'Failed to create user profile. Please contact support.',
+          message: null,
+        }
+      }
+      console.log('Profile created successfully for user:', user.id);
+    } else if (profileError) {
+      console.error('Error checking user profile:', profileError);
+      return {
+        error: 'Error verifying user profile. Please try again.',
+        message: null,
+      }
+    }
+
     // 2. Validate the form data
     const { caseResult, bidAmt } = formData
 
     if (!caseResult?.data || !bidAmt) {
       return {
         error: 'Case information and bid amount are required.',
+        message: null,
+      }
+    }
+
+    // Additional validation for required fields
+    if (!formData.bidderName) {
+      return {
+        error: 'Bidder name is required.',
+        message: null,
+      }
+    }
+
+    if (!formData.phoneNumber) {
+      return {
+        error: 'Phone number is required.',
+        message: null,
+      }
+    }
+
+    if (!formData.accountNumber) {
+      return {
+        error: 'Account number is required.',
+        message: null,
+      }
+    }
+
+    if (!formData.signature) {
+      return {
+        error: 'Electronic signature is required.',
+        message: null,
+      }
+    }
+
+    if (!formData.termsChecked) {
+      return {
+        error: 'Terms agreement is required.',
         message: null,
       }
     }
@@ -182,11 +253,15 @@ export async function applyBid(
       court_name: caseResult.data.courtName,
       bid_date: caseResult.data.bidDate,
       bid_amount: Number(bidAmt.replace(/[^0-9]/g, '')), // Ensure bidAmt is a number
+      evaluation_amount: caseResult.data.evaluationAmt,
+      lowest_bid_amount: caseResult.data.lowestBidAmt,
+      deposit_amount: caseResult.data.depositAmt,
       application_type: formData.applicationType,
-      phone_verified: formData.isPhoneVerified,
-      has_signature: formData.signature !== null,
-      bank: formData.bank,
       account_number: formData.accountNumber,
+      account_holder: formData.bidderName,
+      status: 'new',
+      payment_status: 'pending',
+      deposit_status: 'pending',
     };
 
     // Add type-specific data
@@ -199,9 +274,9 @@ export async function applyBid(
         resident_id1: formData.residentId1,
         resident_id2: formData.residentId2,
         phone_number: formData.phoneNumber,
-        zip_no: formData.zipNo,
-        road_addr: formData.roadAddr,
-        addr_detail: formData.addrDetail,
+        zip_code: formData.zipNo,
+        road_address: formData.roadAddr,
+        address_detail: formData.addrDetail,
       };
     } else if (formData.applicationType === 'company') {
       applicationData = {
@@ -210,9 +285,9 @@ export async function applyBid(
         business_number: formData.businessNumber,
         representative_name: formData.representativeName,
         company_phone: formData.companyPhoneNumber,
-        company_zip_no: formData.companyZipNo,
-        company_road_addr: formData.companyRoadAddr,
-        company_addr_detail: formData.companyAddrDetail,
+        company_zip_code: formData.companyZipNo,
+        company_road_address: formData.companyRoadAddr,
+        company_address_detail: formData.companyAddrDetail,
       };
     } else if (formData.applicationType === 'group') {
       applicationData = {
@@ -221,22 +296,28 @@ export async function applyBid(
         group_representative_id1: formData.groupRepresentativeId1,
         group_representative_id2: formData.groupRepresentativeId2,
         group_member_count: formData.groupMemberCount,
-        group_members: JSON.stringify(formData.groupMembers || []),
         phone_number: formData.phoneNumber,
-        zip_no: formData.zipNo,
-        road_addr: formData.roadAddr,
-        addr_detail: formData.addrDetail,
+        zip_code: formData.zipNo,
+        road_address: formData.roadAddr,
+        address_detail: formData.addrDetail,
       };
     }
 
     // 4. Insert the new application into the database
+    console.log('Attempting to insert application data:', applicationData);
+    
     const { data, error: insertError } = await supabase
       .from('bidding_applications')
       .insert([applicationData])
       .select()
       .single()
 
-    if (insertError) throw insertError
+    if (insertError) {
+      console.error('Database insertion error:', insertError);
+      throw new Error(`Database error: ${insertError.message}`);
+    }
+
+    console.log('Application successfully inserted:', data);
 
     // 5. Return success message
     return {

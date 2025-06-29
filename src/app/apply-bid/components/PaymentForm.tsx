@@ -53,11 +53,11 @@ export default function PaymentForm({
   const [openPaymentModal, setOpenPaymentModal] = useState(false);
 
   const handleMainPayClick = () => {
-    // Here you would typically validate the form (e.g., termsChecked)
-    // if (!formData.termsChecked) {
-    //   alert("약관에 동의해주세요.");
-    //   return;
-    // }
+    // Validate that terms are checked
+    if (!formData.termsChecked) {
+      alert("약관에 동의해주세요.");
+      return;
+    }
     setOpenConfirmModal(true);
   };
 
@@ -68,7 +68,16 @@ export default function PaymentForm({
 
   return (
     <Container maxWidth="sm">
-      <Paper elevation={0} sx={{ p: 3, mt: 4, backgroundColor: "#f7f8fa" }}>
+      <Paper
+        elevation={0}
+        sx={{
+          backgroundColor: "#fff",
+          borderRadius: 2,
+          p: { xs: 2, sm: 3 },
+          border: "1px solid",
+          borderColor: "divider",
+        }}
+      >
         {/* Fee Payment Section */}
         <Typography variant="h5" sx={{ fontWeight: "bold", mb: 2 }}>
           수수료 결제
@@ -155,10 +164,15 @@ export default function PaymentForm({
         <Box display="flex" alignItems="center">
           <Checkbox
             checked={formData.termsChecked}
-            onChange={() => {
-              formData.termsChecked = !formData.termsChecked;
-              handleFormChange;
+            onChange={(event) => {
+              const updatedFormData = { ...formData, termsChecked: event.target.checked };
+              // Simulate the handleFormChange event
+              const syntheticEvent = {
+                target: { name: 'termsChecked', value: event.target.checked }
+              } as React.ChangeEvent<HTMLInputElement>;
+              handleFormChange(syntheticEvent);
             }}
+            name="termsChecked"
           />
           <Typography variant="body2">
             위 약관을 확인하였으며, 회원 본인은 약관 및 결제에 동의합니다.
@@ -280,7 +294,13 @@ export default function PaymentForm({
               fullWidth
               variant="contained"
               onClick={() => {
-                formData.termsChecked === true;
+                const updatedFormData = { ...formData, termsChecked: true };
+                // Simulate the handleFormChange event
+                const syntheticEvent = {
+                  target: { name: 'termsChecked', value: true }
+                } as React.ChangeEvent<HTMLInputElement>;
+                handleFormChange(syntheticEvent);
+                setOpenRefundModal(false);
               }}
             >
               환불 정책에 동의합니다

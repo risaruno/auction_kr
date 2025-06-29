@@ -16,6 +16,7 @@ interface ReviewProps {
 }
 
 export default function Review({ formData }: ReviewProps) {
+  console.log("Review component rendered with formData:", formData);
   // Destructure the formData for easier access in the JSX
   const { caseResult, bidderName, roadAddr, addrDetail, phoneNumber, bidAmt, applicationType } =
     formData;
@@ -140,7 +141,7 @@ export default function Review({ formData }: ReviewProps) {
               <Typography color="text.secondary">입찰가</Typography>
             </Grid>
             <Grid size={{ xs: 6 }}>
-              <Typography>{Number(bidAmt).toLocaleString()}원</Typography>
+              <Typography>{bidAmt}원</Typography>
             </Grid>
           </Grid>
         </div>

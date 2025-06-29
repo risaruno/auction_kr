@@ -80,7 +80,7 @@ export async function updateSession(request: NextRequest) {
 
   // If user is logged in and trying to access auth routes, redirect to user dashboard
   if (isAuthenticated && isAuthRoute) {
-    url.pathname = '/auth/user/history'
+    url.pathname = '/'
     return NextResponse.redirect(url)
   }
 

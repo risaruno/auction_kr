@@ -25,10 +25,16 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       // First check if there's a session
       const { data: { session }, error: sessionError } = await supabase.auth.getSession()
       
+      console.log('Session check:', { 
+        hasSession: !!session, 
+        hasUser: !!session?.user, 
+        userEmail: session?.user?.email,
+        error: sessionError 
+      })
+      
       if (sessionError || !session?.user) {
         console.log('No valid session found')
         setUser(null)
-        setLoading(false)
         return
       }
 
@@ -43,20 +49,39 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
 
       if (profileError) {
         console.error('Error fetching user profile:', profileError)
-        // If profile doesn't exist, create a basic user object
-        setUser({
-          id: authUser.id,
-          email: authUser.email || '',
-          admin_role: 'user',
-          full_name: ''
-        })
+        
+        // If the profiles table doesn't exist or user doesn't have a profile, 
+        // try to create one or use default values
+        if (profileError.code === '42703' || profileError.code === 'PGRST116') {
+          console.log('Profile table issue or user profile missing, using default values')
+          const userWithRole = {
+            id: authUser.id,
+            email: authUser.email || '',
+            admin_role: 'user' as AdminRole,
+            full_name: ''
+          }
+          console.log('Setting user with default role:', userWithRole)
+          setUser(userWithRole)
+        } else {
+          // For other errors, still create a basic user object
+          const userWithRole = {
+            id: authUser.id,
+            email: authUser.email || '',
+            admin_role: 'user' as AdminRole,
+            full_name: ''
+          }
+          console.log('Setting user without profile due to error:', userWithRole)
+          setUser(userWithRole)
+        }
       } else {
-        setUser({
+        const userWithRole = {
           id: authUser.id,
           email: authUser.email || '',
-          admin_role: profile?.admin_role || 'user',
+          admin_role: (profile?.admin_role || 'user') as AdminRole,
           full_name: profile?.full_name || ''
-        })
+        }
+        console.log('Setting user with profile:', userWithRole)
+        setUser(userWithRole)
       }
     } catch (error) {
       console.error('Error fetching user with role:', error)
@@ -107,6 +132,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
 
   useEffect(() => {
     // Initial fetch
+    console.log('AuthContext: Initial setup')
     fetchUserWithRole()
 
     // Listen for auth state changes
@@ -115,11 +141,14 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
         console.log('Auth state changed:', event, session?.user?.email || 'no user')
         
         if (event === 'SIGNED_IN' && session?.user) {
+          console.log('User signed in, fetching user with role...')
           await fetchUserWithRole()
         } else if (event === 'SIGNED_OUT' || !session) {
+          console.log('User signed out, clearing user state')
           setUser(null)
           setLoading(false)
         } else if (event === 'TOKEN_REFRESHED' && session?.user) {
+          console.log('Token refreshed, fetching user with role...')
           await fetchUserWithRole()
         }
       }
