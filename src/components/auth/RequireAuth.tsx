@@ -16,6 +16,11 @@ export function RequireAuth({ children, requiredRole, fallback }: RequireAuthPro
   const isAdmin = useIsAdmin()
   const isSuperAdmin = useIsSuperAdmin()
 
+  // Debug info for development
+  React.useEffect(() => {
+    console.log('RequireAuth state:', { loading, hasUser: !!user, userEmail: user?.email })
+  }, [loading, user])
+
   if (loading) {
     return (
       <Box
@@ -27,16 +32,25 @@ export function RequireAuth({ children, requiredRole, fallback }: RequireAuthPro
         gap={2}
       >
         <CircularProgress />
-        <Typography>Loading...</Typography>
+        <Typography>인증 상태를 확인하는 중...</Typography>
+        <Typography variant="caption" color="text.secondary">
+          로딩이 계속될 경우 페이지를 새로고침 해주세요
+        </Typography>
       </Box>
     )
   }
 
   if (!user) {
+    // Redirect to login page instead of showing error
+    if (typeof window !== 'undefined') {
+      window.location.href = '/sign/in'
+      return null
+    }
+    
     return (
       fallback || (
         <Alert severity="error">
-          You must be logged in to access this page.
+          로그인이 필요합니다. 잠시 후 로그인 페이지로 이동합니다.
         </Alert>
       )
     )

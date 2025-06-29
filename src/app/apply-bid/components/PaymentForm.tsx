@@ -169,7 +169,7 @@ export default function PaymentForm({
               // Simulate the handleFormChange event
               const syntheticEvent = {
                 target: { name: 'termsChecked', value: event.target.checked }
-              } as React.ChangeEvent<HTMLInputElement>;
+              } as unknown as React.ChangeEvent<HTMLInputElement>;
               handleFormChange(syntheticEvent);
             }}
             name="termsChecked"
@@ -294,12 +294,14 @@ export default function PaymentForm({
               fullWidth
               variant="contained"
               onClick={() => {
-                const updatedFormData = { ...formData, termsChecked: true };
-                // Simulate the handleFormChange event
-                const syntheticEvent = {
-                  target: { name: 'termsChecked', value: true }
-                } as React.ChangeEvent<HTMLInputElement>;
-                handleFormChange(syntheticEvent);
+                // Directly call the handler with a real event
+                const event = {
+                  target: {
+                    name: "termsChecked",
+                    value: true,
+                  },
+                } as unknown as React.ChangeEvent<HTMLInputElement>;
+                handleFormChange(event);
                 setOpenRefundModal(false);
               }}
             >

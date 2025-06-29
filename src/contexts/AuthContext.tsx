@@ -20,6 +20,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
 
   const fetchUserWithRole = async () => {
     try {
+      console.log('Fetching user with role...')
       setLoading(true)
       
       // First check if there's a session
@@ -53,12 +54,27 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
         // If the profiles table doesn't exist or user doesn't have a profile, 
         // try to create one or use default values
         if (profileError.code === '42703' || profileError.code === 'PGRST116') {
-          console.log('Profile table issue or user profile missing, using default values')
+          console.log('Profile table issue or user profile missing, creating basic profile...')
+          
+          // Try to create a basic profile
+          const { error: createError } = await supabase
+            .from('profiles')
+            .upsert({
+              id: authUser.id,
+              email: authUser.email,
+              full_name: authUser.user_metadata?.full_name || '',
+              admin_role: 'user'
+            })
+          
+          if (createError) {
+            console.error('Error creating profile:', createError)
+          }
+          
           const userWithRole = {
             id: authUser.id,
             email: authUser.email || '',
             admin_role: 'user' as AdminRole,
-            full_name: ''
+            full_name: authUser.user_metadata?.full_name || ''
           }
           console.log('Setting user with default role:', userWithRole)
           setUser(userWithRole)
@@ -68,7 +84,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
             id: authUser.id,
             email: authUser.email || '',
             admin_role: 'user' as AdminRole,
-            full_name: ''
+            full_name: authUser.user_metadata?.full_name || ''
           }
           console.log('Setting user without profile due to error:', userWithRole)
           setUser(userWithRole)
@@ -78,7 +94,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
           id: authUser.id,
           email: authUser.email || '',
           admin_role: (profile?.admin_role || 'user') as AdminRole,
-          full_name: profile?.full_name || ''
+          full_name: profile?.full_name || authUser.user_metadata?.full_name || ''
         }
         console.log('Setting user with profile:', userWithRole)
         setUser(userWithRole)
@@ -131,13 +147,30 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   }
 
   useEffect(() => {
+    let isMounted = true
+    
+    // Set a maximum loading time of 8 seconds
+    const loadingTimeout = setTimeout(() => {
+      if (isMounted && loading) {
+        console.warn('Auth loading timeout - forcing loading to false')
+        setLoading(false)
+      }
+    }, 8000)
+
     // Initial fetch
     console.log('AuthContext: Initial setup')
-    fetchUserWithRole()
+    const initialFetch = async () => {
+      if (isMounted) {
+        await fetchUserWithRole()
+      }
+    }
+    initialFetch()
 
     // Listen for auth state changes
     const { data: { subscription } } = supabase.auth.onAuthStateChange(
       async (event, session) => {
+        if (!isMounted) return
+        
         console.log('Auth state changed:', event, session?.user?.email || 'no user')
         
         if (event === 'SIGNED_IN' && session?.user) {
@@ -155,6 +188,8 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     )
 
     return () => {
+      isMounted = false
+      clearTimeout(loadingTimeout)
       subscription.unsubscribe()
     }
   }, [])

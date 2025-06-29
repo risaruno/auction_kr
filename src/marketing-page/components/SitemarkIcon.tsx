@@ -12,8 +12,6 @@ export default function SitemarkIcon() {
       >
         <Typography
           variant='h5'
-          component='a'
-          href='/'
           sx={(theme) => ({
             display: 'flex',
             alignItems: 'center',

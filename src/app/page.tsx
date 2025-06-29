@@ -9,14 +9,11 @@ import Highlights from '../marketing-page/components/Highlights';
 import Features from '../marketing-page/components/Features';
 import Testimonials from '../marketing-page/components/Testimonials';
 import Footer from '../marketing-page/components/Footer';
-import Apply from '@/marketing-page/components/Apply';
-import DebugAuth from '@/components/DebugAuth';
 
 export default function Home() {
   return (
     <AppTheme>
       <CssBaseline />
-      <DebugAuth />
       <AppAppBar />
       <Hero />
       {/* <Features />

@@ -1,5 +1,5 @@
 'use client'
-import React, { useState } from 'react'
+import React, { useState, useEffect } from 'react'
 import {
   Container,
   Typography,
@@ -17,6 +17,8 @@ import {
   TableHead,
   TableRow,
   Chip,
+  CircularProgress,
+  Alert,
 } from '@mui/material'
 import { styled } from '@mui/material/styles'
 import HomeOutlinedIcon from '@mui/icons-material/HomeOutlined'
@@ -29,6 +31,8 @@ import StepConnector, {
   stepConnectorClasses,
 } from '@mui/material/StepConnector'
 import { StepIconProps } from '@mui/material/StepIcon'
+import { fetchUserApplications } from '../actions'
+import { useAuth } from '@/contexts/AuthContext'
 
 // --- Styled Components for a Custom Stepper Look ---
 const ColorlibConnector = styled(StepConnector)(({ theme }) => ({
@@ -100,9 +104,35 @@ function ColorlibStepIcon(props: StepIconProps) {
 // --- Main Page Component ---
 const serviceHistory = () => {
   const [currentTab, setCurrentTab] = useState('proxyBidding')
-  // Dummy data - in a real app, this would come from an API
-  const applications: any[] = [] // Empty array to show the "empty state"
-  const activeStep = 1 // Example: The user is on the 2nd step
+  const [applications, setApplications] = useState<any[]>([])
+  const [loading, setLoading] = useState(true)
+  const [error, setError] = useState<string | null>(null)
+  const { user } = useAuth()
+
+  useEffect(() => {
+    const loadApplications = async () => {
+      try {
+        setLoading(true)
+        const result = await fetchUserApplications()
+        
+        if (result.success) {
+          setApplications(result.data)
+          setError(null)
+        } else {
+          setError(result.error || '신청 내역을 불러오는데 실패했습니다.')
+          setApplications([])
+        }
+      } catch (err) {
+        console.error('Error loading applications:', err)
+        setError('신청 내역을 불러오는 중 오류가 발생했습니다.')
+        setApplications([])
+      } finally {
+        setLoading(false)
+      }
+    }
+
+    loadApplications()
+  }, [user])
 
   const handleTabChange = (event: React.SyntheticEvent, newValue: string) => {
     setCurrentTab(newValue)
@@ -116,11 +146,53 @@ const serviceHistory = () => {
     '입찰준비 완료',
   ]
 
+  const getStatusColor = (status: string) => {
+    switch (status?.toLowerCase()) {
+      case 'pending':
+      case '대기':
+        return 'warning'
+      case 'approved':
+      case '승인':
+        return 'success'
+      case 'rejected':
+      case '거절':
+        return 'error'
+      case 'in_progress':
+      case '진행중':
+        return 'info'
+      default:
+        return 'default'
+    }
+  }
+
+  const formatDate = (dateString: string) => {
+    try {
+      return new Date(dateString).toLocaleDateString('ko-KR')
+    } catch {
+      return dateString
+    }
+  }
+
+  const formatCurrency = (amount: number | string) => {
+    try {
+      const num = typeof amount === 'string' ? parseInt(amount) : amount
+      return new Intl.NumberFormat('ko-KR').format(num) + '원'
+    } catch {
+      return amount + '원'
+    }
+  }
+
   return (
     <Container maxWidth='lg' sx={{ my: 5 }}>
       <Typography variant='h4' sx={{ fontWeight: 'bold', mb: 3 }}>
         내 신청 내역
       </Typography>
+
+      {error && (
+        <Alert severity="error" sx={{ mb: 3 }}>
+          {error}
+        </Alert>
+      )}
 
       <Box sx={{ borderBottom: 1, borderColor: 'divider', mb: 4 }}>
         <Tabs
@@ -152,7 +224,7 @@ const serviceHistory = () => {
             </Typography>
             <Stepper
               alternativeLabel
-              activeStep={activeStep}
+              activeStep={1}
               connector={<ColorlibConnector />}
             >
               {steps.map((label) => (
@@ -181,8 +253,16 @@ const serviceHistory = () => {
                 </TableRow>
               </TableHead>
               <TableBody>
-                {/* Conditional Rendering: Show either the empty state or the application rows */}
-                {applications.length === 0 ? (
+                {loading ? (
+                  <TableRow>
+                    <TableCell colSpan={6} sx={{ py: 10, textAlign: 'center' }}>
+                      <CircularProgress />
+                      <Typography variant='body2' sx={{ mt: 2 }}>
+                        신청 내역을 불러오는 중...
+                      </Typography>
+                    </TableCell>
+                  </TableRow>
+                ) : applications.length === 0 ? (
                   <TableRow>
                     <TableCell colSpan={6} sx={{ py: 10, textAlign: 'center' }}>
                       <Box>
@@ -199,15 +279,19 @@ const serviceHistory = () => {
                     </TableCell>
                   </TableRow>
                 ) : (
-                  applications.map((row) => (
-                    <TableRow key={row.caseNumber}>
-                      <TableCell>{row.caseNumber}</TableCell>
-                      <TableCell>{row.bidAmount}</TableCell>
-                      <TableCell>{row.bidDate}</TableCell>
-                      <TableCell>{row.requestDate}</TableCell>
-                      <TableCell>{row.agent}</TableCell>
+                  applications.map((application) => (
+                    <TableRow key={application.id}>
+                      <TableCell>{application.case_number || application.court_case_number || '-'}</TableCell>
+                      <TableCell>{application.bid_amount ? formatCurrency(application.bid_amount) : '-'}</TableCell>
+                      <TableCell>{application.bid_date ? formatDate(application.bid_date) : '-'}</TableCell>
+                      <TableCell>{formatDate(application.created_at)}</TableCell>
+                      <TableCell>{application.experts?.name || '미배정'}</TableCell>
                       <TableCell>
-                        <Chip label={row.status} color='primary' />
+                        <Chip 
+                          label={application.status || '대기중'} 
+                          color={getStatusColor(application.status) as any}
+                          variant="outlined"
+                        />
                       </TableCell>
                     </TableRow>
                   ))

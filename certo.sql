@@ -26,6 +26,8 @@ CREATE TABLE "profiles" (
   "email" text UNIQUE,
   "address" text,
   "addr_detail" text,
+  "bank" text,
+  "account_number" text,
   "admin_role" admin_role DEFAULT 'user'
 );
 
