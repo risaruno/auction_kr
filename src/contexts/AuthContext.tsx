@@ -20,13 +20,21 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
 
   const fetchUserWithRole = async () => {
     try {
-      const { data: { user: authUser }, error: authError } = await supabase.auth.getUser()
+      setLoading(true)
       
-      if (authError || !authUser) {
+      // First check if there's a session
+      const { data: { session }, error: sessionError } = await supabase.auth.getSession()
+      
+      if (sessionError || !session?.user) {
+        console.log('No valid session found')
         setUser(null)
+        setLoading(false)
         return
       }
 
+      const authUser = session.user
+
+      // Fetch user profile with role
       const { data: profile, error: profileError } = await supabase
         .from('profiles')
         .select('admin_role, full_name')
@@ -35,16 +43,21 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
 
       if (profileError) {
         console.error('Error fetching user profile:', profileError)
-        setUser(null)
-        return
+        // If profile doesn't exist, create a basic user object
+        setUser({
+          id: authUser.id,
+          email: authUser.email || '',
+          admin_role: 'user',
+          full_name: ''
+        })
+      } else {
+        setUser({
+          id: authUser.id,
+          email: authUser.email || '',
+          admin_role: profile?.admin_role || 'user',
+          full_name: profile?.full_name || ''
+        })
       }
-
-      setUser({
-        id: authUser.id,
-        email: authUser.email || '',
-        admin_role: profile?.admin_role || 'user',
-        full_name: profile?.full_name || ''
-      })
     } catch (error) {
       console.error('Error fetching user with role:', error)
       setUser(null)
@@ -54,8 +67,37 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   }
 
   const signOut = async () => {
-    await supabase.auth.signOut()
-    setUser(null)
+    try {
+      setLoading(true)
+      console.log('Starting sign out process...')
+      
+      // Sign out from Supabase
+      const { error } = await supabase.auth.signOut()
+      if (error) {
+        console.error('Supabase sign out error:', error)
+      }
+      
+      // Clear local state immediately
+      setUser(null)
+      
+      // Clear any local storage
+      if (typeof window !== 'undefined') {
+        localStorage.clear()
+        sessionStorage.clear()
+        
+        // Redirect to home page
+        window.location.href = '/'
+      }
+    } catch (error) {
+      console.error('Error during sign out:', error)
+      // Even if there's an error, clear the local state
+      setUser(null)
+      if (typeof window !== 'undefined') {
+        window.location.href = '/'
+      }
+    } finally {
+      setLoading(false)
+    }
   }
 
   const refreshUser = async () => {
@@ -64,20 +106,28 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   }
 
   useEffect(() => {
+    // Initial fetch
     fetchUserWithRole()
 
+    // Listen for auth state changes
     const { data: { subscription } } = supabase.auth.onAuthStateChange(
       async (event, session) => {
-        if (event === 'SIGNED_IN' || event === 'TOKEN_REFRESHED') {
+        console.log('Auth state changed:', event, session?.user?.email || 'no user')
+        
+        if (event === 'SIGNED_IN' && session?.user) {
           await fetchUserWithRole()
-        } else if (event === 'SIGNED_OUT') {
+        } else if (event === 'SIGNED_OUT' || !session) {
           setUser(null)
           setLoading(false)
+        } else if (event === 'TOKEN_REFRESHED' && session?.user) {
+          await fetchUserWithRole()
         }
       }
     )
 
-    return () => subscription.unsubscribe()
+    return () => {
+      subscription.unsubscribe()
+    }
   }, [])
 
   return (

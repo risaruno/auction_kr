@@ -1,5 +1,5 @@
 import * as React from 'react'
-import { useState, useEffect } from 'react'
+import { useState } from 'react'
 import { styled, alpha } from '@mui/material/styles'
 import type {} from '@mui/material/themeCssVarsAugmentation'
 import Box from '@mui/material/Box'
@@ -11,14 +11,15 @@ import Container from '@mui/material/Container'
 import Divider from '@mui/material/Divider'
 import MenuItem from '@mui/material/MenuItem'
 import Drawer from '@mui/material/Drawer'
+import Menu from '@mui/material/Menu'
 import MenuIcon from '@mui/icons-material/Menu'
 import CloseRoundedIcon from '@mui/icons-material/CloseRounded'
+import AccountCircleIcon from '@mui/icons-material/AccountCircle'
 import ColorModeIconDropdown from '../../shared-theme/ColorModeIconDropdown'
 import Sitemark from './SitemarkIcon'
 import { Typography } from '@mui/material'
-import { createClient } from '@/utils/supabase/client'
+import { useAuth } from '@/contexts/AuthContext'
 import { useRouter } from 'next/navigation'
-import type { User } from '@supabase/supabase-js'
 
 const StyledToolbar = styled(Toolbar)(({ theme }) => ({
   display: 'flex',
@@ -37,37 +38,32 @@ const StyledToolbar = styled(Toolbar)(({ theme }) => ({
 }))
 
 export default function AppAppBar() {
-  const [user, setUser] = useState<{ email: string } | null>(null);
-
-  useEffect(() => {
-    const supabase = createClient();
-
-    const fetchUser = async () => {
-      const {
-        data: { user },
-      } = await supabase.auth.getUser();
-      setUser(user ? { email: user.email || '' } : null);
-    };
-
-    fetchUser();
-  }, []);
-
-  useEffect(() => {
-    console.log('User state updated:', user);
-  }, [user]);
-
+  const { user, signOut, loading } = useAuth()
   const router = useRouter()
+  const [open, setOpen] = useState(false)
+  const [userMenuAnchor, setUserMenuAnchor] = useState<null | HTMLElement>(null)
 
   const handleLogout = async () => {
-    const supabase = createClient();
-    await supabase.auth.signOut();
-    router.push('/');
-  };
-  const [open, setOpen] = useState(false);
+    try {
+      await signOut()
+      setUserMenuAnchor(null)
+    } catch (error) {
+      console.error('Logout error:', error)
+      setUserMenuAnchor(null)
+    }
+  }
+
+  const handleUserMenuOpen = (event: React.MouseEvent<HTMLElement>) => {
+    setUserMenuAnchor(event.currentTarget)
+  }
+
+  const handleUserMenuClose = () => {
+    setUserMenuAnchor(null)
+  }
 
   const toggleDrawer = (newOpen: boolean) => () => {
-    setOpen(newOpen);
-  };
+    setOpen(newOpen)
+  }
 
   return (
     <AppBar
@@ -122,26 +118,53 @@ export default function AppAppBar() {
               alignItems: 'center',
             }}
           >
-            {/* 3. Conditional Rendering based on auth state */}
+            {/* Conditional Rendering based on auth state */}
             {user ? (
               // If the user is logged in:
               <>
                 <Button
-                  href='/auth/user/history'
+                  onClick={handleUserMenuOpen}
                   color='primary'
                   variant='text'
                   size='small'
+                  startIcon={<AccountCircleIcon />}
                 >
                   마이페이지
                 </Button>
-                <Button
-                  onClick={handleLogout}
-                  color='primary'
-                  variant='outlined'
-                  size='small'
+                <Menu
+                  anchorEl={userMenuAnchor}
+                  open={Boolean(userMenuAnchor)}
+                  onClose={handleUserMenuClose}
+                  anchorOrigin={{
+                    vertical: 'bottom',
+                    horizontal: 'right',
+                  }}
+                  transformOrigin={{
+                    vertical: 'top',
+                    horizontal: 'right',
+                  }}
                 >
-                  로그아웃
-                </Button>
+                  <MenuItem 
+                    onClick={() => {
+                      router.push('/auth/user/history')
+                      handleUserMenuClose()
+                    }}
+                  >
+                    입찰 내역
+                  </MenuItem>
+                  <MenuItem 
+                    onClick={() => {
+                      router.push('/auth/user/profile')
+                      handleUserMenuClose()
+                    }}
+                  >
+                    프로필 관리
+                  </MenuItem>
+                  <Divider />
+                  <MenuItem onClick={handleLogout}>
+                    로그아웃
+                  </MenuItem>
+                </Menu>
                 <Button
                   href='/apply-bid'
                   color='primary'
@@ -216,74 +239,66 @@ export default function AppAppBar() {
                   1:1 문의
                 </MenuItem>
                 <Divider sx={{ my: 3 }} />
-                <Box
-                  sx={{
-                    display: { xs: 'none', md: 'flex' },
-                    gap: 1,
-                    alignItems: 'center',
-                  }}
-                >
-                  {/* 3. Conditional Rendering based on auth state */}
-                  {user ? (
-                    // If the user is logged in:
-                    <>
+                
+                {/* Mobile menu authentication section */}
+                {user ? (
+                  // If the user is logged in:
+                  <Box>
+                    <MenuItem 
+                      onClick={() => {
+                        router.push('/auth/user/history')
+                        setOpen(false)
+                      }}
+                    >
+                      입찰 내역
+                    </MenuItem>
+                    <MenuItem 
+                      onClick={() => {
+                        router.push('/auth/user/profile')
+                        setOpen(false)
+                      }}
+                    >
+                      프로필 관리
+                    </MenuItem>
+                    <MenuItem onClick={handleLogout}>
+                      로그아웃
+                    </MenuItem>
+                    <MenuItem>
                       <Button
-                        href='/my-page'
-                        color='primary'
-                        variant='text'
-                        size='small'
-                      >
-                        마이페이지
-                      </Button>
-                      <Button
-                        onClick={handleLogout}
-                        color='primary'
-                        variant='outlined'
-                        size='small'
-                      >
-                        로그아웃
-                      </Button>
-                      <Button
-                        href='/apply-bid'
                         color='primary'
                         variant='contained'
-                        size='small'
+                        fullWidth
+                        href='/apply-bid'
                       >
                         대리입찰 신청
                       </Button>
-                    </>
-                  ) : (
-                    // If the user is logged out:
-                    <>
+                    </MenuItem>
+                  </Box>
+                ) : (
+                  // If the user is logged out:
+                  <Box>
+                    <MenuItem>
                       <Button
-                        href='/sign/in'
                         color='primary'
                         variant='text'
-                        size='small'
+                        fullWidth
+                        href='/sign/in'
                       >
                         로그인/회원가입
                       </Button>
+                    </MenuItem>
+                    <MenuItem>
                       <Button
-                        href='/apply-bid'
                         color='primary'
                         variant='contained'
-                        size='small'
+                        fullWidth
+                        href='/apply-bid'
                       >
                         대리입찰 신청
                       </Button>
-                    </>
-                  )}
-                </Box>
-                <MenuItem>
-                  <Button
-                    color='primary'
-                    variant='outlined'
-                    fullWidth
-                    href='/apply-bid'
-                  >
-                    대리입찰 신청
-                  </Button>
-                </MenuItem>
+                    </MenuItem>
+                  </Box>
+                )}
               </Box>
             </Drawer>
           </Box>

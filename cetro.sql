@@ -134,11 +134,6 @@ CREATE TABLE "faqs" (
   "is_published" boolean NOT NULL DEFAULT true
 );
 
-CREATE TABLE "user_role" (
-  "user_id" uuid PRIMARY KEY,
-  "role" admin_role NOT NULL
-);
-
 COMMENT ON TABLE "profiles" IS 'Stores public-facing or non-sensitive user data.';
 
 COMMENT ON TABLE "experts" IS 'Stores information about the experts shown on the site.';
@@ -165,8 +160,6 @@ COMMENT ON COLUMN "inquiry_messages"."sender_id" IS 'Can be a user or an admin';
 
 COMMENT ON TABLE "faqs" IS 'Stores the content for the public FAQ page.';
 
-COMMENT ON TABLE "user_role" IS 'Assigns roles to specific users to grant admin privileges.';
-
 COMMENT ON TABLE "auth"."users" IS 'Managed by Supabase Auth. Stores login credentials.';
 
 ALTER TABLE "profiles" ADD FOREIGN KEY ("id") REFERENCES "auth"."users" ("id");
@@ -186,5 +179,3 @@ ALTER TABLE "inquiries" ADD FOREIGN KEY ("user_id") REFERENCES "profiles" ("id")
 ALTER TABLE "inquiry_messages" ADD FOREIGN KEY ("inquiry_id") REFERENCES "inquiries" ("id");
 
 ALTER TABLE "inquiry_messages" ADD FOREIGN KEY ("sender_id") REFERENCES "auth"."users" ("id");
-
-ALTER TABLE "user_role" ADD FOREIGN KEY ("user_id") REFERENCES "auth"."users" ("id");

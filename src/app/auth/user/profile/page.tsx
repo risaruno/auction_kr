@@ -1,12 +1,12 @@
 "use client";
 import * as React from 'react';
 import UserLayout from '../UserLayout';
-import ServiceHistory from './ServiceHistory';
+import UserInfo from '../info/UserInfo';
 
-export default function UserHistoryPage() {
+export default function UserProfilePage() {
   return (
     <UserLayout>
-      <ServiceHistory />
+      <UserInfo />
     </UserLayout>
   );
 }

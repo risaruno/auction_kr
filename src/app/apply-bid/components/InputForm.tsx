@@ -60,6 +60,11 @@ const applicationTypes: { value: ApplicationType; label: string }[] = [
   { value: 'group', label: '공동 입찰' },
 ];
 
+// Utility function to extract numeric value from formatted currency string
+export const getNumericBidAmount = (formattedBidAmt: string): number => {
+  return parseInt(formattedBidAmt.replace(/[^\d]/g, '')) || 0;
+};
+
 export default function InputForm({
   formData,
   handleFormChange,
@@ -72,6 +77,20 @@ export default function InputForm({
   const [isOtpSent, setIsOtpSent] = useState(false);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
+
+  // Utility function to get numeric value from formatted string
+  const getNumericValue = useCallback((formattedValue: string): number => {
+    return parseInt(formattedValue.replace(/[^\d]/g, '')) || 0;
+  }, []);
+
+  // Utility function to format number as currency
+  const formatCurrency = useCallback((value: string | number): string => {
+    if (typeof value === 'string') {
+      const numericValue = value.replace(/[^\d]/g, '');
+      return numericValue ? parseInt(numericValue).toLocaleString() : '';
+    }
+    return value ? value.toLocaleString() : '';
+  }, []);
 
   // Memoized error lookup function for performance
   const getFieldError = useCallback((fieldName: string) => {
@@ -109,6 +128,23 @@ export default function InputForm({
     if (value.length <= 10) {
       handleFormChange({
         target: { name: 'businessNumber', value }
+      });
+    }
+  }, [handleFormChange]);
+
+  const handleBidAmountChange = useCallback((event: React.ChangeEvent<HTMLInputElement>) => {
+    // Remove all non-numeric characters
+    const numericValue = event.target.value.replace(/[^\d]/g, '');
+    
+    // Convert to number and format with commas
+    if (numericValue === '') {
+      handleFormChange({
+        target: { name: 'bidAmt', value: '' }
+      });
+    } else {
+      const formattedValue = parseInt(numericValue).toLocaleString();
+      handleFormChange({
+        target: { name: 'bidAmt', value: formattedValue }
       });
     }
   }, [handleFormChange]);
@@ -308,7 +344,7 @@ export default function InputForm({
               id="bidAmt"
               name="bidAmt"
               value={formData.bidAmt}
-              onChange={handleFormChange}
+              onChange={handleBidAmountChange}
               placeholder="입찰가를 입력해주세요"
               error={!!getFieldError('bidAmt')}
               helperText={getFieldError('bidAmt') || 

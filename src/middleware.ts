@@ -13,7 +13,8 @@ export const config = {
     // Protect user dashboard and profile pages
     '/auth/user/:path*',
     
-    // Protect bid application pages
+    // Protect bid application pages - requires login
+    '/apply-bid',
     '/apply-bid/:path*',
     
     // Protect checkout pages
@@ -21,5 +22,8 @@ export const config = {
     
     // Protect auth confirmation pages
     '/auth/confirm/:path*',
+
+    // Protect sign-in/up pages (redirect if already logged in)
+    '/sign/:path*',
   ],
 }

@@ -1,5 +1,6 @@
 'use client'
 import * as React from 'react'
+import { useState, useEffect } from 'react'
 import Accordion from '@mui/material/Accordion'
 import AccordionDetails from '@mui/material/AccordionDetails'
 import AccordionSummary from '@mui/material/AccordionSummary'
@@ -7,7 +8,12 @@ import Box from '@mui/material/Box'
 import Container from '@mui/material/Container'
 import Typography from '@mui/material/Typography'
 import ExpandMoreIcon from '@mui/icons-material/ExpandMore'
-import { faqsApi } from '@/utils/api-client'
+import { 
+  fetchFaqs,
+  createFaq,
+  updateFaq,
+  deleteFaq 
+} from '@/app/faqs/actions'
 import CircularProgress from '@mui/material/CircularProgress'
 import Alert from '@mui/material/Alert'
 
@@ -21,23 +27,31 @@ interface FAQItem {
 }
 
 export default function FAQ() {
-  const [expanded, setExpanded] = React.useState<string | false>(false)
-  const [faqs, setFaqs] = React.useState<FAQItem[]>([])
-  const [loading, setLoading] = React.useState(true)
-  const [error, setError] = React.useState<string | null>(null)
+  const [expanded, setExpanded] = useState<string | false>(false)
+  const [faqs, setFaqs] = useState<FAQItem[]>([])
+  const [loading, setLoading] = useState(true)
+  const [error, setError] = useState<string | null>(null)
+  
+  const [page, setPage] = useState(0)
+  const [rowsPerPage, setRowsPerPage] = useState(10)
+  const [totalCount, setTotalCount] = useState(0)
+  const [searchQuery, setSearchQuery] = useState('')
+  const [selectedCategory, setSelectedCategory] = useState('')
 
   // 2. Use useEffect to fetch data from your API when the component mounts.
-  React.useEffect(() => {
-    const fetchFaqs = async () => {
+  useEffect(() => {
+    const fetchData = async () => {
       try {
         setLoading(true)
-        const response = await faqsApi.getFaqs({ published: true })
-        
-        if (response.success && response.data) {
-          setFaqs(response.data as any) // Type assertion for compatibility
-        } else {
-          throw new Error(response.error || 'Failed to load FAQs')
-        }
+        const result = await fetchFaqs({
+          page: page + 1,
+          limit: rowsPerPage,
+          search: searchQuery || undefined,
+          category: selectedCategory || undefined,
+          sortBy: 'created_at',
+          sortOrder: 'desc',
+        })
+        setFaqs(result.data)
       } catch (err) {
         setError(
           err instanceof Error ? err.message : 'An unknown error occurred.'
@@ -46,9 +60,8 @@ export default function FAQ() {
         setLoading(false)
       }
     }
-
-    fetchFaqs()
-  }, []) // The empty dependency array ensures this runs only once.
+    fetchData()
+  }, [])
 
   const handleChange =
     (panel: string) => (event: React.SyntheticEvent, isExpanded: boolean) => {

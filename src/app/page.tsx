@@ -10,25 +10,24 @@ import Features from '../marketing-page/components/Features';
 import Testimonials from '../marketing-page/components/Testimonials';
 import Footer from '../marketing-page/components/Footer';
 import Apply from '@/marketing-page/components/Apply';
+import DebugAuth from '@/components/DebugAuth';
 
 export default function Home() {
   return (
     <AppTheme>
       <CssBaseline />
-
+      <DebugAuth />
       <AppAppBar />
       <Hero />
-      <div>
-        <Features />
-        <Divider />
-        <Highlights />
-        <Divider />
-        <Testimonials />
-        <Divider />
-        <Apply />
-        <Divider />
-        <Footer />
-      </div>
+      {/* <Features />
+      <Divider />
+      <Highlights />
+      <Divider />
+      <Testimonials />
+      <Divider />
+      <Apply /> */}
+      <Divider />
+      <Footer />
     </AppTheme>
   );
 }
