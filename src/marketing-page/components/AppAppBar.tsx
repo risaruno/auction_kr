@@ -1,5 +1,5 @@
 import * as React from "react";
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { styled, alpha } from "@mui/material/styles";
 import type {} from "@mui/material/themeCssVarsAugmentation";
 import Box from "@mui/material/Box";
@@ -46,6 +46,11 @@ export default function AppAppBar() {
   const [userMenuAnchor, setUserMenuAnchor] = useState<null | HTMLElement>(
     null
   );
+  const [userIsAdmin, setUserIsAdmin] = useState(false);
+
+  useEffect(() => {
+    setUserIsAdmin(user?.admin_role === "super_admin");
+  }, [user]);
 
   const handleLogout = async () => {
     try {
@@ -153,6 +158,17 @@ export default function AppAppBar() {
                     horizontal: "right",
                   }}
                 >
+                  {userIsAdmin && (
+                    <MenuItem
+                      onClick={() => {
+                        router.push("/auth/manage/dashboard");
+                        handleUserMenuClose();
+                      }}
+                    >
+                      관리자 페이지
+                    </MenuItem>
+                  )}
+                  <Divider />
                   <MenuItem
                     onClick={() => {
                       router.push("/auth/user/history");
@@ -251,6 +267,16 @@ export default function AppAppBar() {
                 {user ? (
                   // If the user is logged in:
                   <Box>
+                    {userIsAdmin && (
+                      <MenuItem
+                        onClick={() => {
+                          router.push("/auth/manage/dashboard");
+                          handleUserMenuClose();
+                        }}
+                      >
+                        관리자 페이지
+                      </MenuItem>
+                    )}
                     <MenuItem
                       onClick={() => {
                         router.push("/auth/user/history");

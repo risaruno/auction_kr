@@ -2,48 +2,44 @@
 import React, { useState, useEffect } from 'react'
 import {
   Box,
-  Drawer,
-  AppBar,
-  Toolbar,
-  Typography,
-  List,
-  ListItem,
-  ListItemButton,
-  ListItemIcon,
-  ListItemText,
   CssBaseline,
+  Toolbar,
   Card,
   CardContent,
+  Typography,
   Button,
-  Chip,
-  Avatar,
-  Paper,
-  IconButton,
-  Tabs,
-  Tab,
-  Divider,
-  Select,
-  MenuItem,
-  FormControl,
-  InputLabel,
-  TextField,
-  Alert,
-  Snackbar,
-  CircularProgress,
-  TablePagination,
   Table,
-  TableBody,
-  TableCell,
   TableContainer,
+  Paper,
   TableHead,
   TableRow,
+  TableCell,
+  TableBody,
+  Chip,
+  IconButton,
+  Modal,
+  Grid,
+  TextField,
+  FormControl,
+  InputLabel,
+  Select,
+  MenuItem,
+  Alert,
+  Snackbar,
+  TablePagination,
+  Drawer,
+  Divider,
+  SelectChangeEvent,
+  Avatar,
 } from '@mui/material'
 import {
-  Close as CloseIcon,
-  Download as DownloadIcon,
-  Upload as UploadIcon,
+  Visibility as VisibilityIcon,
   Edit as EditIcon,
-  Person as PersonIcon,
+  Search as SearchIcon,
+  Close as CloseIcon,
+  CheckCircle as CheckCircleIcon,
+  Cancel as CancelIcon,
+  Assignment as AssignmentIcon,
 } from '@mui/icons-material'
 import AdminLayout from '../AdminLayout'
 import {
@@ -58,92 +54,57 @@ import {
 import { fetchExperts } from '@/app/experts/actions'
 import { BiddingApplication, Expert } from '@/types/api'
 
-// --- Sample Data ---
-const initialBids = {
-  newApplication: [
-    {
-      id: 'bid-001',
-      caseNumber: '2025타경1001',
-      userName: '김민준',
-      bidDate: '2025-07-10',
-      expert: null,
-      paymentStatus: 'Paid',
-      depositStatus: 'Pending',
-    },
-  ],
-  expertAssigned: [
-    {
-      id: 'bid-002',
-      caseNumber: '2025타경1002',
-      userName: '이서연',
-      bidDate: '2025-07-11',
-      expert: '원유호',
-      paymentStatus: 'Paid',
-      depositStatus: 'Confirmed',
-    },
-  ],
-  docsSubmitted: [
-    {
-      id: 'bid-003',
-      caseNumber: '2025타경1003',
-      userName: '박지훈',
-      bidDate: '2025-07-12',
-      expert: '오은석',
-      paymentStatus: 'Paid',
-      depositStatus: 'Confirmed',
-    },
-  ],
-  bidComplete: [
-    {
-      id: 'bid-004',
-      caseNumber: '2024타경9999',
-      userName: '최유나',
-      bidDate: '2025-06-15',
-      expert: '김맹겸',
-      paymentStatus: 'Paid',
-      depositStatus: 'Refunded',
-      result: 'Successful',
-    },
-    {
-      id: 'bid-005',
-      caseNumber: '2024타경8888',
-      userName: '정태현',
-      bidDate: '2025-06-14',
-      expert: '원유호',
-      paymentStatus: 'Paid',
-      depositStatus: 'Refunded',
-      result: 'Failed',
-    },
-  ],
-}
-
-const allExperts = ['원유호', '오은석', '이규호', '김맹겸']
-const bidStatuses = [
-  { value: 'pending', label: 'New Application' },
-  { value: 'expert_assigned', label: 'Expert Assigned' },
-  { value: 'documents_submitted', label: 'Docs Submitted' },
-  { value: 'completed', label: 'Bid Complete' },
+const statusOptions = [
+  { value: 'pending', label: 'Pending', color: 'warning' as const },
+  { value: 'approved', label: 'Approved', color: 'info' as const },
+  { value: 'in_progress', label: 'In Progress', color: 'primary' as const },
+  { value: 'completed', label: 'Completed', color: 'success' as const },
+  { value: 'rejected', label: 'Rejected', color: 'error' as const },
 ]
+
+const paymentStatusOptions = [
+  { value: 'pending', label: 'Pending', color: 'warning' as const },
+  { value: 'paid', label: 'Paid', color: 'success' as const },
+  { value: 'failed', label: 'Failed', color: 'error' as const },
+]
+
+const depositStatusOptions = [
+  { value: 'pending', label: 'Pending', color: 'warning' as const },
+  { value: 'confirmed', label: 'Confirmed', color: 'success' as const },
+  { value: 'refunded', label: 'Refunded', color: 'info' as const },
+]
+
+const modalStyle = {
+  position: 'absolute' as 'absolute',
+  top: '50%',
+  left: '50%',
+  transform: 'translate(-50%, -50%)',
+  width: '90%',
+  maxWidth: 600,
+  bgcolor: 'background.paper',
+  boxShadow: 24,
+  p: 4,
+  borderRadius: 2,
+}
 
 // --- Main Admin Panel Component ---
 const BiddingManagementContent = () => {
-  const [bids, setBids] = useState<{
-    newApplication: BiddingApplication[]
-    expertAssigned: BiddingApplication[]
-    docsSubmitted: BiddingApplication[]
-    bidComplete: BiddingApplication[]
-  }>({
-    newApplication: [],
-    expertAssigned: [],
-    docsSubmitted: [],
-    bidComplete: []
-  })
+  const [applications, setApplications] = useState<BiddingApplication[]>([])
   const [experts, setExperts] = useState<Expert[]>([])
-  const [selectedBid, setSelectedBid] = useState<BiddingApplication | null>(null)
-  const [isDetailsDrawerOpen, setIsDetailsDrawerOpen] = useState(false)
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState<string | null>(null)
   const [successMessage, setSuccessMessage] = useState<string | null>(null)
+  
+  // Pagination and filtering
+  const [page, setPage] = useState(0)
+  const [rowsPerPage, setRowsPerPage] = useState(10)
+  const [totalCount, setTotalCount] = useState(0)
+  const [searchQuery, setSearchQuery] = useState('')
+  const [statusFilter, setStatusFilter] = useState('')
+  
+  // Detail drawer
+  const [selectedApplication, setSelectedApplication] = useState<BiddingApplication | null>(null)
+  const [isDetailsDrawerOpen, setIsDetailsDrawerOpen] = useState(false)
   const [resultNotes, setResultNotes] = useState('')
 
   // Load bidding applications
@@ -152,20 +113,15 @@ const BiddingManagementContent = () => {
     setError(null)
     try {
       const result = await fetchBiddingApplications({
-        limit: 100,
+        page: page + 1, // API expects 1-based pagination
+        limit: rowsPerPage,
+        status: statusFilter || undefined,
         sortBy: 'created_at',
         sortOrder: 'desc'
       })
 
-      // Group by status
-      const grouped = {
-        newApplication: result.data.filter(bid => bid.status === 'pending' || bid.status === 'new'),
-        expertAssigned: result.data.filter(bid => bid.status === 'expert_assigned'),
-        docsSubmitted: result.data.filter(bid => bid.status === 'documents_submitted' || bid.status === 'in_progress'),
-        bidComplete: result.data.filter(bid => bid.status === 'completed' || bid.status === 'cancelled')
-      }
-
-      setBids(grouped)
+      setApplications(result.data)
+      setTotalCount(result.total)
     } catch (error) {
       setError(error instanceof Error ? error.message : 'Failed to fetch bidding applications')
     } finally {
@@ -186,74 +142,107 @@ const BiddingManagementContent = () => {
   useEffect(() => {
     loadBiddingApplications()
     loadExperts()
-  }, [])
+  }, [page, rowsPerPage, statusFilter])
 
-  const handleViewDetails = async (bid: BiddingApplication) => {
+  // Search handlers
+  const handleSearch = () => {
+    setPage(0) // Reset to first page on new search
+    loadBiddingApplications()
+  }
+
+  const handleStatusFilter = (event: SelectChangeEvent<string>) => {
+    setStatusFilter(event.target.value)
+    setPage(0) // Reset to first page on filter change
+  }
+
+  // Pagination handlers
+  const handleChangePage = (event: unknown, newPage: number) => {
+    setPage(newPage)
+  }
+
+  const handleChangeRowsPerPage = (event: React.ChangeEvent<HTMLInputElement>) => {
+    setRowsPerPage(parseInt(event.target.value, 10))
+    setPage(0)
+  }
+
+  const handleViewDetails = async (application: BiddingApplication) => {
     try {
-      const fullBidData = await getBiddingApplicationById(bid.id)
-      setSelectedBid(fullBidData)
-      setResultNotes(fullBidData.result_notes || '')
+      const fullApplicationData = await getBiddingApplicationById(application.id)
+      setSelectedApplication(fullApplicationData)
+      setResultNotes(fullApplicationData.result_notes || '')
       setIsDetailsDrawerOpen(true)
     } catch (error) {
-      setError(error instanceof Error ? error.message : 'Failed to fetch bid details')
+      setError(error instanceof Error ? error.message : 'Failed to fetch application details')
     }
   }
 
   const handleCloseDetailsDrawer = () => {
     setIsDetailsDrawerOpen(false)
-    setSelectedBid(null)
+    setSelectedApplication(null)
     setResultNotes('')
   }
 
   const handleUpdateStatus = async (event: any) => {
-    if (!selectedBid) return
+    if (!selectedApplication) return
     
     const newStatus = event.target.value
     setError(null)
     try {
-      await updateBiddingApplicationStatus(selectedBid.id, newStatus)
+      await updateBiddingApplicationStatus(selectedApplication.id, newStatus)
       setSuccessMessage('Status updated successfully')
       await loadBiddingApplications() // Refresh the data
+      // Update the selected application
+      const updated = await getBiddingApplicationById(selectedApplication.id)
+      setSelectedApplication(updated)
     } catch (error) {
       setError(error instanceof Error ? error.message : 'Failed to update status')
     }
   }
 
   const handleAssignExpert = async (event: any) => {
-    if (!selectedBid) return
+    if (!selectedApplication) return
     
     const expertId = event.target.value
     setError(null)
     try {
-      await assignExpertToBid(selectedBid.id, expertId)
+      await assignExpertToBid(selectedApplication.id, expertId)
       setSuccessMessage('Expert assigned successfully')
       await loadBiddingApplications() // Refresh the data
+      // Update the selected application
+      const updated = await getBiddingApplicationById(selectedApplication.id)
+      setSelectedApplication(updated)
     } catch (error) {
       setError(error instanceof Error ? error.message : 'Failed to assign expert')
     }
   }
 
   const handleConfirmDeposit = async () => {
-    if (!selectedBid) return
+    if (!selectedApplication) return
     
     setError(null)
     try {
-      await updateDepositStatus(selectedBid.id, 'confirmed')
+      await updateDepositStatus(selectedApplication.id, 'confirmed')
       setSuccessMessage('Deposit confirmed successfully')
       await loadBiddingApplications() // Refresh the data
+      // Update the selected application
+      const updated = await getBiddingApplicationById(selectedApplication.id)
+      setSelectedApplication(updated)
     } catch (error) {
       setError(error instanceof Error ? error.message : 'Failed to confirm deposit')
     }
   }
 
   const handleSaveResult = async () => {
-    if (!selectedBid) return
+    if (!selectedApplication) return
     
     setError(null)
     try {
-      await updateBidResult(selectedBid.id, resultNotes, 'completed')
+      await updateBidResult(selectedApplication.id, resultNotes, 'completed')
       setSuccessMessage('Bid result saved successfully')
       await loadBiddingApplications() // Refresh the data
+      // Update the selected application
+      const updated = await getBiddingApplicationById(selectedApplication.id)
+      setSelectedApplication(updated)
     } catch (error) {
       setError(error instanceof Error ? error.message : 'Failed to save result')
     }
@@ -268,95 +257,226 @@ const BiddingManagementContent = () => {
     setSuccessMessage(null)
   }
 
-  const KanbanColumn = ({
-    title,
-    bids,
-    onCardClick,
-  }: {
-    title: string
-    bids: any[]
-    onCardClick: (bid: any) => void
-  }) => (
-    <Paper
-      sx={{
-        width: 300,
-        minWidth: 300,
-        p: 1,
-        backgroundColor: 'grey.100',
-        height: '100%',
-      }}
-    >
-      <Typography variant='h6' sx={{ p: 1, fontWeight: 'bold' }}>
-        {title}
-      </Typography>
-      <Box sx={{ display: 'flex', flexDirection: 'column', gap: 1 }}>
-        {bids.map((bid) => (
-          <Card
-            key={bid.id}
-            onClick={() => onCardClick(bid)}
-            sx={{ cursor: 'pointer' }}
-          >
-            <CardContent>
-              <Typography variant='body1' sx={{ fontWeight: 'bold' }}>
-                {bid.case_number || bid.id}
-              </Typography>
-              <Typography variant='body2' color='text.secondary'>
-                {bid.user?.full_name || 'N/A'}
-              </Typography>
-              <Typography variant='caption'>
-                Date: {new Date(bid.created_at).toLocaleDateString()}
-              </Typography>
-              {bid.expert?.name && (
-                <Typography variant='caption' sx={{ display: 'block' }}>
-                  Expert: {bid.expert.name}
-                </Typography>
-              )}
-            </CardContent>
-          </Card>
-        ))}
-      </Box>
-    </Paper>
-  )
+  const getStatusChip = (status: string) => {
+    const statusOption = statusOptions.find(opt => opt.value === status)
+    return (
+      <Chip 
+        label={statusOption?.label || status} 
+        color={statusOption?.color || 'default'}
+        size="small"
+      />
+    )
+  }
+
+  const getPaymentStatusChip = (status: string) => {
+    const statusOption = paymentStatusOptions.find(opt => opt.value === status)
+    return (
+      <Chip 
+        label={statusOption?.label || status} 
+        color={statusOption?.color || 'default'}
+        size="small"
+        variant="outlined"
+      />
+    )
+  }
+
+  const getDepositStatusChip = (status: string) => {
+    const statusOption = depositStatusOptions.find(opt => opt.value === status)
+    return (
+      <Chip 
+        label={statusOption?.label || status} 
+        color={statusOption?.color || 'default'}
+        size="small"
+        variant="filled"
+      />
+    )
+  }
+
+  const formatCurrency = (amount: number | null) => {
+    if (!amount) return 'N/A'
+    return new Intl.NumberFormat('ko-KR', {
+      style: 'currency',
+      currency: 'KRW'
+    }).format(amount)
+  }
+
+  const formatDate = (dateString: string) => {
+    return new Date(dateString).toLocaleDateString('ko-KR')
+  }
 
   return (
     <Box sx={{ display: 'flex' }}>
       <CssBaseline />
-      <Box
-        component='main'
-        sx={{
-          flexGrow: 1,
-          p: 3,
-          backgroundColor: 'grey.50',
-          height: '100vh',
-          overflowX: 'auto',
-        }}
-      >
+      <Box component='main' sx={{ flexGrow: 1, p: 3 }}>
         <Toolbar />
-        <Typography variant='h4' sx={{ fontWeight: 'bold', mb: 2 }}>
-          Proxy Bidding Management
-        </Typography>
-        <Box sx={{ display: 'flex', gap: 2 }}>
-          <KanbanColumn
-            title='New Application'
-            bids={bids.newApplication}
-            onCardClick={handleViewDetails}
-          />
-          <KanbanColumn
-            title='Expert Assigned'
-            bids={bids.expertAssigned}
-            onCardClick={handleViewDetails}
-          />
-          <KanbanColumn
-            title='Docs & Deposit Verified'
-            bids={bids.docsSubmitted}
-            onCardClick={handleViewDetails}
-          />
-          <KanbanColumn
-            title='Bid Complete'
-            bids={bids.bidComplete}
-            onCardClick={handleViewDetails}
-          />
-        </Box>
+        <Card>
+          <CardContent>
+            <Box
+              sx={{
+                display: 'flex',
+                justifyContent: 'space-between',
+                alignItems: 'center',
+                mb: 2,
+              }}
+            >
+              <Typography variant='h5' component='h2'>
+                Bidding Applications Management
+              </Typography>
+            </Box>
+
+            {/* Search and Filter Controls */}
+            <Box sx={{ mb: 2, display: 'flex', gap: 2, alignItems: 'center' }}>
+              <TextField
+                label="Search applications..."
+                value={searchQuery}
+                onChange={(e) => setSearchQuery(e.target.value)}
+                sx={{ minWidth: 250 }}
+                InputProps={{
+                  endAdornment: (
+                    <IconButton onClick={handleSearch}>
+                      <SearchIcon />
+                    </IconButton>
+                  ),
+                }}
+              />
+              <FormControl sx={{ minWidth: 150 }}>
+                <InputLabel>Status</InputLabel>
+                <Select
+                  value={statusFilter}
+                  label="Status"
+                  onChange={handleStatusFilter}
+                >
+                  <MenuItem value="">All Statuses</MenuItem>
+                  {statusOptions.map((status) => (
+                    <MenuItem key={status.value} value={status.value}>
+                      {status.label}
+                    </MenuItem>
+                  ))}
+                </Select>
+              </FormControl>
+            </Box>
+
+            <TableContainer component={Paper} variant='outlined'>
+              <Table>
+                <TableHead sx={{ backgroundColor: 'grey.100' }}>
+                  <TableRow>
+                    <TableCell>Application</TableCell>
+                    <TableCell>User</TableCell>
+                    <TableCell>Expert</TableCell>
+                    <TableCell>Status</TableCell>
+                    <TableCell>Payment</TableCell>
+                    <TableCell>Deposit</TableCell>
+                    <TableCell>Date</TableCell>
+                    <TableCell align='right'>Actions</TableCell>
+                  </TableRow>
+                </TableHead>
+                <TableBody>
+                  {loading ? (
+                    <TableRow>
+                      <TableCell colSpan={8} align='center'>
+                        Loading...
+                      </TableCell>
+                    </TableRow>
+                  ) : applications.length === 0 ? (
+                    <TableRow>
+                      <TableCell colSpan={8} align='center'>
+                        No bidding applications found
+                      </TableCell>
+                    </TableRow>
+                  ) : (
+                    applications.map((application) => (
+                      <TableRow key={application.id}>
+                        <TableCell>
+                          <Box>
+                            <Typography variant="body2" fontWeight="bold">
+                              {application.case_number || `App #${application.id}`}
+                            </Typography>
+                            <Typography variant="caption" color="text.secondary">
+                              {application.court_name}
+                            </Typography>
+                          </Box>
+                        </TableCell>
+                        <TableCell>
+                          <Box sx={{ display: 'flex', alignItems: 'center' }}>
+                            <Avatar
+                              sx={{
+                                width: 32,
+                                height: 32,
+                                mr: 1,
+                                bgcolor: 'primary.light',
+                                fontSize: '0.8rem'
+                              }}
+                            >
+                              {application.user?.full_name?.charAt(0) || '?'}
+                            </Avatar>
+                            <Box>
+                              <Typography variant="body2">
+                                {application.user?.full_name || 'N/A'}
+                              </Typography>
+                              <Typography variant="caption" color="text.secondary">
+                                {application.user?.email}
+                              </Typography>
+                            </Box>
+                          </Box>
+                        </TableCell>
+                        <TableCell>
+                          {application.expert ? (
+                            <Box>
+                              <Typography variant="body2">
+                                {application.expert.name}
+                              </Typography>
+                              <Typography variant="caption" color="text.secondary">
+                                Expert assigned
+                              </Typography>
+                            </Box>
+                          ) : (
+                            <Typography variant="caption" color="text.secondary">
+                              Not assigned
+                            </Typography>
+                          )}
+                        </TableCell>
+                        <TableCell>
+                          {getStatusChip(application.status)}
+                        </TableCell>
+                        <TableCell>
+                          {getPaymentStatusChip(application.payment_status || 'pending')}
+                        </TableCell>
+                        <TableCell>
+                          {getDepositStatusChip(application.deposit_status || 'pending')}
+                        </TableCell>
+                        <TableCell>
+                          <Typography variant="body2">
+                            {formatDate(application.created_at)}
+                          </Typography>
+                        </TableCell>
+                        <TableCell align='right'>
+                          <IconButton
+                            size='small'
+                            onClick={() => handleViewDetails(application)}
+                            title="View Details"
+                          >
+                            <VisibilityIcon />
+                          </IconButton>
+                        </TableCell>
+                      </TableRow>
+                    ))
+                  )}
+                </TableBody>
+              </Table>
+            </TableContainer>
+
+            {/* Pagination */}
+            <TablePagination
+              component="div"
+              count={totalCount}
+              page={page}
+              onPageChange={handleChangePage}
+              rowsPerPage={rowsPerPage}
+              onRowsPerPageChange={handleChangeRowsPerPage}
+              rowsPerPageOptions={[5, 10, 25, 50]}
+            />
+          </CardContent>
+        </Card>
       </Box>
 
       {/* --- Bid Details Side Drawer --- */}
@@ -374,22 +494,25 @@ const BiddingManagementContent = () => {
               mb: 2,
             }}
           >
-            <Typography variant='h5'>Bid Details</Typography>
+            <Typography variant='h5'>Application Details</Typography>
             <IconButton onClick={handleCloseDetailsDrawer}>
               <CloseIcon />
             </IconButton>
           </Box>
           <Divider sx={{ mb: 2 }} />
-          {selectedBid && (
+          {selectedApplication && (
             <>
               <Typography variant='h6' sx={{ fontWeight: 'bold' }}>
-                {selectedBid.case_number || selectedBid.id}
+                {selectedApplication.case_number || `Application #${selectedApplication.id}`}
               </Typography>
               <Typography variant='body1' color='text.secondary'>
-                User: {selectedBid.user?.full_name || 'N/A'}
+                User: {selectedApplication.user?.full_name || 'N/A'}
               </Typography>
               <Typography variant='body2' color='text.secondary'>
-                Email: {selectedBid.user?.email || 'N/A'}
+                Email: {selectedApplication.user?.email || 'N/A'}
+              </Typography>
+              <Typography variant='body2' color='text.secondary'>
+                Court: {selectedApplication.court_name || 'N/A'}
               </Typography>
               <Divider sx={{ my: 2 }} />
 
@@ -398,11 +521,11 @@ const BiddingManagementContent = () => {
                 <FormControl fullWidth margin='normal'>
                   <InputLabel>Current Status</InputLabel>
                   <Select
-                    value={selectedBid?.status || 'pending'}
+                    value={selectedApplication?.status || 'pending'}
                     label='Current Status'
                     onChange={handleUpdateStatus}
                   >
-                    {bidStatuses.map((status) => (
+                    {statusOptions.map((status) => (
                       <MenuItem key={status.value} value={status.value}>
                         {status.label}
                       </MenuItem>
@@ -412,7 +535,7 @@ const BiddingManagementContent = () => {
                 <FormControl fullWidth margin='normal'>
                   <InputLabel>Assigned Expert</InputLabel>
                   <Select
-                    value={selectedBid?.assigned_expert_id || ''}
+                    value={selectedApplication?.expert_id || ''}
                     label='Assigned Expert'
                     onChange={handleAssignExpert}
                   >
@@ -421,7 +544,7 @@ const BiddingManagementContent = () => {
                     </MenuItem>
                     {experts.map((expert) => (
                       <MenuItem key={expert.id} value={expert.id}>
-                        {expert.name}
+                        {expert.name} ({expert.location})
                       </MenuItem>
                     ))}
                   </Select>
@@ -433,72 +556,37 @@ const BiddingManagementContent = () => {
               {/* --- Payment & Deposit --- */}
               <Box mb={3}>
                 <Typography variant='h6'>Financials</Typography>
-                <Chip
-                  label={`Service Fee: ${selectedBid.payment_status || 'Pending'}`}
-                  color={
-                    selectedBid.payment_status === 'paid' ? 'success' : 'warning'
-                  }
-                  sx={{ mr: 1 }}
-                />
-                <Chip
-                  label={`Deposit: ${selectedBid.deposit_status || 'Pending'}`}
-                  color={
-                    selectedBid.deposit_status === 'confirmed'
-                      ? 'success'
-                      : selectedBid.deposit_status === 'refunded'
-                      ? 'info'
-                      : 'warning'
-                  }
-                />
-                <Button
-                  size='small'
-                  variant='contained'
-                  sx={{ display: 'block', mt: 2 }}
-                  onClick={handleConfirmDeposit}
-                >
-                  Confirm Deposit Received
-                </Button>
+                <Box sx={{ mt: 1, mb: 2 }}>
+                  {getPaymentStatusChip(selectedApplication.payment_status || 'pending')}
+                  <Typography variant="caption" sx={{ ml: 1 }}>
+                    Service Fee
+                  </Typography>
+                </Box>
+                <Box sx={{ mb: 2 }}>
+                  {getDepositStatusChip(selectedApplication.deposit_status || 'pending')}
+                  <Typography variant="caption" sx={{ ml: 1 }}>
+                    Deposit
+                  </Typography>
+                </Box>
+                {selectedApplication.deposit_status !== 'confirmed' && (
+                  <Button
+                    size='small'
+                    variant='contained'
+                    onClick={handleConfirmDeposit}
+                  >
+                    Confirm Deposit Received
+                  </Button>
+                )}
               </Box>
 
               <Divider sx={{ my: 2 }} />
 
               {/* --- Document Management --- */}
               <Box>
-                <Typography variant='h6'>Documents</Typography>
-                <Box
-                  sx={{
-                    display: 'flex',
-                    justifyContent: 'space-between',
-                    alignItems: 'center',
-                    my: 1,
-                  }}
-                >
-                  <Typography>User Signature Certificate</Typography>
-                  <Button size='small' startIcon={<DownloadIcon />}>
-                    Download
-                  </Button>
-                </Box>
-                <Box
-                  sx={{
-                    display: 'flex',
-                    justifyContent: 'space-between',
-                    alignItems: 'center',
-                    my: 1,
-                  }}
-                >
-                  <Typography>Official Bid Result</Typography>
-                  <Button
-                    size='small'
-                    component='label'
-                    startIcon={<UploadIcon />}
-                  >
-                    Upload
-                    <input type='file' hidden />
-                  </Button>
-                </Box>
+                <Typography variant='h6'>Bid Result</Typography>
                 <TextField
                   fullWidth
-                  label='Bid Result Memo (e.g., successful bid amount, notes)'
+                  label='Bid Result Notes (e.g., successful bid amount, outcome)'
                   multiline
                   rows={3}
                   margin='normal'

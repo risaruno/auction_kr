@@ -29,7 +29,7 @@ export async function fetchBiddingApplications(options?: {
       .select(`
         *,
         user:profiles!bidding_applications_user_id_fkey(full_name, email),
-        expert:experts!bidding_applications_assigned_expert_id_fkey(name)
+        expert:experts!bidding_applications_expert_id_fkey(name)
       `, { count: 'exact' })
 
     // Apply status filter
@@ -39,7 +39,7 @@ export async function fetchBiddingApplications(options?: {
 
     // Apply expert filter
     if (expertId) {
-      query = query.eq('assigned_expert_id', expertId)
+      query = query.eq('expert_id', expertId)
     }
 
     // Apply pagination and sorting
@@ -82,7 +82,7 @@ export async function updateBiddingApplicationStatus(
     }
 
     if (expertId) {
-      updateData.assigned_expert_id = expertId
+      updateData.expert_id = expertId
     }
 
     const { data, error } = await supabase
@@ -113,7 +113,7 @@ export async function assignExpertToBid(applicationId: string, expertId: string)
     const { data, error } = await supabase
       .from('bidding_applications')
       .update({
-        assigned_expert_id: expertId,
+        expert_id: expertId,
         status: 'expert_assigned',
         updated_at: new Date().toISOString(),
       })
@@ -234,8 +234,8 @@ export async function getBiddingApplicationById(applicationId: string) {
       .from('bidding_applications')
       .select(`
         *,
-        user:profiles!bidding_applications_user_id_fkey(full_name, email, phone_number),
-        expert:experts!bidding_applications_assigned_expert_id_fkey(name, contact_info)
+        user:profiles!bidding_applications_user_id_fkey(full_name, email, phone),
+        expert:experts!bidding_applications_expert_id_fkey(name, contact_info)
       `)
       .eq('id', applicationId)
       .single()

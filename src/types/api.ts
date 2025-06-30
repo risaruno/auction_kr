@@ -135,7 +135,7 @@ export interface BiddingApplication {
   has_signature: boolean
   bank?: string
   account_number?: string
-  assigned_expert_id?: string
+  expert_id?: string
   payment_status?: 'pending' | 'paid' | 'failed'
   deposit_status?: 'pending' | 'confirmed' | 'refunded'
   result_notes?: string
@@ -147,7 +147,7 @@ export interface BiddingApplication {
   user?: {
     full_name: string
     email: string
-    phone_number?: string
+    phone?: string
   }
   expert?: {
     name: string
