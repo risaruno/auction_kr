@@ -42,6 +42,7 @@ import {
   AddCircle as AddCircleIcon,
   Close as CloseIcon,
   Search as SearchIcon,
+  PhotoCamera as PhotoCameraIcon,
 } from '@mui/icons-material'
 import AdminLayout from '../AdminLayout'
 import { 
@@ -102,6 +103,9 @@ const ExpertsContent = () => {
   const [openDeleteDialog, setOpenDeleteDialog] = useState(false)
   const [selectedExpert, setSelectedExpert] = useState<Partial<Expert> | null>(null)
   const [isEditing, setIsEditing] = useState(false)
+  const [profileImageFile, setProfileImageFile] = useState<File | null>(null)
+  const [profileImagePreview, setProfileImagePreview] = useState<string | null>(null)
+  const [uploadingImage, setUploadingImage] = useState(false)
   
   // Pagination and search states
   const [page, setPage] = useState(0)
@@ -164,16 +168,19 @@ const ExpertsContent = () => {
     setSelectedExpert({ name: '', location: '', description: '', services: [] })
     setOpenFormModal(true)
   }
-
   const handleOpenEditModal = (expert: Expert) => {
     setIsEditing(true)
     setSelectedExpert(expert)
     setOpenFormModal(true)
+    // Show existing photo if available
+    if (expert.photo_url) {
+      setProfileImagePreview(expert.photo_url)
+    }
   }
-
   const handleCloseFormModal = () => {
     setOpenFormModal(false)
     setSelectedExpert(null)
+    clearImagePreview()
   }
 
   const handleFormChange = (event: React.ChangeEvent<HTMLInputElement>) => {
@@ -191,17 +198,68 @@ const ExpertsContent = () => {
     }))
   }
 
+  // --- Profile Image Upload Handlers ---
+  const handleImageUpload = (event: React.ChangeEvent<HTMLInputElement>) => {
+    const file = event.target.files?.[0]
+    if (file) {
+      setProfileImageFile(file)
+      
+      // Create preview URL
+      const reader = new FileReader()
+      reader.onload = (e) => {
+        setProfileImagePreview(e.target?.result as string)
+      }
+      reader.readAsDataURL(file)
+    }
+  }
+
+  const uploadProfileImage = async (expertId: string): Promise<string | null> => {
+    if (!profileImageFile) return null
+
+    try {
+      setUploadingImage(true)
+      
+      // Create FormData for file upload
+      const formData = new FormData()
+      formData.append('file', profileImageFile)
+      formData.append('expertId', expertId)
+      formData.append('imageType', 'profile')
+
+      // TODO: Implement actual image upload to your server/storage
+      // For now, we'll simulate the upload and return a mock URL
+      await new Promise(resolve => setTimeout(resolve, 2000))
+      
+      const mockImageUrl = `/uploads/experts/${expertId}/profile.jpg`
+      return mockImageUrl
+    } catch (error) {
+      console.error('Image upload error:', error)
+      throw new Error('Failed to upload profile image')
+    } finally {
+      setUploadingImage(false)
+    }
+  }
+
+  const clearImagePreview = () => {
+    setProfileImageFile(null)
+    setProfileImagePreview(null)
+  }
+
   // --- CRUD Action Handlers ---
   const handleSaveExpert = async () => {
     if (!selectedExpert) return
 
     setError(null)
-    try {
+    try {      let updatedExpert: any = { ...selectedExpert }      // Upload profile image if exists
+      if (profileImageFile && selectedExpert.id) {
+        const imageUrl = await uploadProfileImage(selectedExpert.id)
+        updatedExpert = { ...updatedExpert, photo_url: imageUrl }
+      }
+
       if (isEditing && selectedExpert.id) {
-        await updateExpert(selectedExpert as ExpertUpdateRequest)
+        await updateExpert(updatedExpert as ExpertUpdateRequest)
         setSuccessMessage('Expert updated successfully')
       } else {
-        await createExpert(selectedExpert as ExpertCreateRequest)
+        await createExpert(updatedExpert as ExpertCreateRequest)
         setSuccessMessage('Expert created successfully')
       }
       
@@ -366,8 +424,7 @@ const ExpertsContent = () => {
                           >
                             <DeleteIcon />
                           </IconButton>
-                        </TableCell>
-                      </TableRow>
+                        </TableCell>                      </TableRow>
                     ))
                   )}
                 </TableBody>
@@ -399,8 +456,7 @@ const ExpertsContent = () => {
           >
             <CloseIcon />
           </IconButton>
-          <Grid container spacing={2}>
-            <Grid size={{ xs: 12 }}>
+          <Grid container spacing={2}>            <Grid size={{ xs: 12 }}>
               <TextField
                 name='name'
                 label='Expert Name'
@@ -409,6 +465,62 @@ const ExpertsContent = () => {
                 fullWidth
               />
             </Grid>
+            
+            {/* Profile Picture Upload Section */}
+            <Grid size={{ xs: 12 }}>
+              <Typography variant='subtitle2' gutterBottom>
+                프로필 사진
+              </Typography>
+              <Box sx={{ display: 'flex', alignItems: 'center', gap: 2 }}>                <Avatar
+                  sx={{
+                    width: 80,
+                    height: 80,
+                    bgcolor: 'primary.light',
+                  }}
+                  src={profileImagePreview || selectedExpert?.photo_url}
+                >
+                  {!profileImagePreview && !selectedExpert?.photo_url && 
+                   (selectedExpert?.name ? selectedExpert.name.charAt(0) : '?')}
+                </Avatar>
+                <Box>
+                  <input
+                    accept="image/*"
+                    style={{ display: 'none' }}
+                    id="profile-image-upload"
+                    type="file"
+                    onChange={handleImageUpload}
+                    disabled={uploadingImage}
+                  />
+                  <label htmlFor="profile-image-upload">
+                    <Button
+                      variant="outlined"
+                      component="span"
+                      startIcon={<PhotoCameraIcon />}
+                      disabled={uploadingImage}
+                      sx={{ mb: 1 }}
+                    >
+                      {uploadingImage ? '업로드 중...' : '사진 선택'}
+                    </Button>
+                  </label>
+                  {(profileImagePreview || selectedExpert?.photo_url) && (
+                    <Box>
+                      <Button
+                        variant="text"
+                        size="small"
+                        onClick={clearImagePreview}
+                        color="error"
+                      >
+                        사진 제거
+                      </Button>
+                    </Box>
+                  )}
+                  <Typography variant='caption' color="text.secondary" display="block">
+                    JPG, PNG 파일만 지원 (최대 5MB)
+                  </Typography>
+                </Box>
+              </Box>
+            </Grid>
+            
             <Grid size={{ xs: 12 }}>
               <FormControl fullWidth>
                 <InputLabel>Location</InputLabel>
@@ -457,8 +569,7 @@ const ExpertsContent = () => {
                     <MenuItem key={service} value={service}>
                       {service}
                     </MenuItem>
-                  ))}
-                </Select>
+                  ))}                </Select>
               </FormControl>
             </Grid>
             <Grid

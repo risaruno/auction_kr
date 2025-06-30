@@ -31,20 +31,18 @@ export async function updateSession(request: NextRequest) {
 
   const url = request.nextUrl.clone()
   const pathname = url.pathname
-
-  // Get the current user and session
+  // Get the current user (more secure than getSession)
   const {
     data: { user },
     error: userError
   } = await supabase.auth.getUser()
 
-  // Also check session to be more reliable
-  const {
-    data: { session },
-    error: sessionError
-  } = await supabase.auth.getSession()
+  if (userError) {
+    console.log('Middleware - Auth error:', userError.message)
+  }
 
   console.log('Middleware check - User:', user?.email || 'no user', 'Path:', pathname)
+  console.log('Middleware check - Authentication status:', !!user)
 
   // Public routes that don't require authentication
   const publicRoutes = [
@@ -62,7 +60,8 @@ export async function updateSession(request: NextRequest) {
   const authRoutes = [
     '/sign/in',
     '/sign/up',
-    '/sign/find-password'
+    '/sign/find-password',
+    '/sign/update-password'
   ]
 
   // Check if current path is public
@@ -74,9 +73,8 @@ export async function updateSession(request: NextRequest) {
   const isAuthRoute = authRoutes.some(route => 
     pathname === route || pathname.startsWith(`${route}/`)
   )
-
-  // Use session for more reliable authentication check
-  const isAuthenticated = !!(session?.user && user)
+  // Use user for authentication check (more secure than session)
+  const isAuthenticated = !!user
 
   // If user is logged in and trying to access auth routes, redirect to user dashboard
   if (isAuthenticated && isAuthRoute) {

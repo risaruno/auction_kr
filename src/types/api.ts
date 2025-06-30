@@ -36,34 +36,30 @@ export interface UserUpdateRequest {
 export interface Expert {
   id: string
   name: string
-  location: string
+  location: string;
   description?: string
+  bio?: string
+  office_address?: string
   services: string[]
   rating?: number
   experience_years?: number
-  profile_image?: string
-  contact_info?: {
-    phone?: string
-    email?: string
-  }
-  availability?: boolean
+  photo_url?: string
+  is_active?: boolean
+  user_id?: string
   created_at: string
-  updated_at: string
+  edited_at: string
 }
 
 export interface ExpertCreateRequest {
   name: string
   location: string
   description?: string
+  bio?: string
+  office_address?: string
   services: string[]
-  rating?: number
-  experience_years?: number
-  profile_image?: string
-  contact_info?: {
-    phone?: string
-    email?: string
-  }
-  availability?: boolean
+  photo_url?: string
+  is_active?: boolean
+  user_id?: string
 }
 
 export interface ExpertUpdateRequest extends Partial<ExpertCreateRequest> {
@@ -79,7 +75,7 @@ export interface FAQ {
   order?: number
   is_published?: boolean
   created_at: string
-  updated_at: string
+  edited_at: string
 }
 
 export interface FAQCreateRequest {
@@ -135,23 +131,23 @@ export interface BiddingApplication {
   has_signature: boolean
   bank?: string
   account_number?: string
-  expert_id?: string
+  expert_id?: string;
   payment_status?: 'pending' | 'paid' | 'failed'
   deposit_status?: 'pending' | 'confirmed' | 'refunded'
   result_notes?: string
-  bid_result?: 'successful' | 'failed'
+  result?: string
   created_at: string
   updated_at: string
-  
-  // Relations (populated by joins)
+    // Relations (populated by joins)
   user?: {
     full_name: string
     email: string
     phone?: string
-  }
+  };
   expert?: {
     name: string
-    contact_info?: any
+    location?: string
+    description?: string
   }
 }
 
@@ -173,7 +169,7 @@ export interface BiddingApplicationUpdateRequest {
   payment_status?: 'pending' | 'paid' | 'failed'
   deposit_status?: 'pending' | 'confirmed' | 'refunded'
   result_notes?: string
-  bid_result?: 'successful' | 'failed'
+  result?: string
   [key: string]: any
 }
 
@@ -186,7 +182,7 @@ export interface Inquiry {
   priority: 'low' | 'medium' | 'high'
   category: string
   created_at: string
-  updated_at: string
+  edited_at: string
 }
 
 export interface InquiryMessage {

@@ -81,7 +81,7 @@ export async function createFaq(faqData: FAQCreateRequest) {
       is_published: faqData.is_published ?? true,
       order: faqData.order ?? 0,
       created_at: new Date().toISOString(),
-      updated_at: new Date().toISOString(),
+      edited_at: new Date().toISOString(),
     }
 
     const { data, error } = await supabase
@@ -111,7 +111,7 @@ export async function updateFaq(faqData: FAQUpdateRequest) {
     const { id, ...updateData } = faqData
     const updatedFaq = {
       ...updateData,
-      updated_at: new Date().toISOString(),
+      edited_at: new Date().toISOString(),
     }
 
     const { data, error } = await supabase

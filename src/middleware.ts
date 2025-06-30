@@ -19,9 +19,6 @@ export const config = {
     
     // Protect checkout pages
     '/checkout/:path*',
-    
-    // Protect auth confirmation pages
-    '/auth/confirm/:path*',
 
     // Protect sign-in/up pages (redirect if already logged in)
     '/sign/:path*',

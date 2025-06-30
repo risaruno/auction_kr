@@ -78,7 +78,7 @@ export async function updateBiddingApplicationStatus(
 
     const updateData: any = {
       status,
-      updated_at: new Date().toISOString(),
+      edited_at: new Date().toISOString(),
     }
 
     if (expertId) {
@@ -115,7 +115,7 @@ export async function assignExpertToBid(applicationId: string, expertId: string)
       .update({
         expert_id: expertId,
         status: 'expert_assigned',
-        updated_at: new Date().toISOString(),
+        edited_at: new Date().toISOString(),
       })
       .eq('id', applicationId)
       .select()
@@ -143,7 +143,7 @@ export async function updatePaymentStatus(applicationId: string, paymentStatus: 
       .from('bidding_applications')
       .update({
         payment_status: paymentStatus,
-        updated_at: new Date().toISOString(),
+        edited_at: new Date().toISOString(),
       })
       .eq('id', applicationId)
       .select()
@@ -171,7 +171,7 @@ export async function updateDepositStatus(applicationId: string, depositStatus: 
       .from('bidding_applications')
       .update({
         deposit_status: depositStatus,
-        updated_at: new Date().toISOString(),
+        edited_at: new Date().toISOString(),
       })
       .eq('id', applicationId)
       .select()
@@ -197,11 +197,11 @@ export async function updateBidResult(applicationId: string, resultNotes: string
 
     const updateData: any = {
       result_notes: resultNotes,
-      updated_at: new Date().toISOString(),
+      edited_at: new Date().toISOString(),
     }
 
     if (bidResult) {
-      updateData.bid_result = bidResult
+      updateData.result = bidResult
       updateData.status = 'completed'
     }
 
@@ -228,14 +228,12 @@ export async function getBiddingApplicationById(applicationId: string) {
   try {
     if (!applicationId) {
       throw new Error('Application ID is required')
-    }
-
-    const { data, error } = await supabase
+    }    const { data, error } = await supabase
       .from('bidding_applications')
       .select(`
         *,
         user:profiles!bidding_applications_user_id_fkey(full_name, email, phone),
-        expert:experts!bidding_applications_expert_id_fkey(name, contact_info)
+        expert:experts!bidding_applications_expert_id_fkey(name, location, description)
       `)
       .eq('id', applicationId)
       .single()

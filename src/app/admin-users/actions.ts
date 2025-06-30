@@ -84,7 +84,7 @@ export async function inviteAdminUser(email: string, name: string, role: string)
         email: email,
         admin_role: role,
         created_at: new Date().toISOString(),
-        updated_at: new Date().toISOString(),
+        edited_at: new Date().toISOString(),
       })
 
     if (profileError) throw profileError
@@ -117,7 +117,7 @@ export async function updateAdminRole(userId: string, role: string) {
       .from('profiles')
       .update({
         admin_role: role,
-        updated_at: new Date().toISOString(),
+        edited_at: new Date().toISOString(),
       })
       .eq('id', userId)
 
@@ -158,7 +158,7 @@ export async function deactivateAdminUser(userId: string) {
       .from('profiles')
       .update({
         status: 'Deactivated',
-        updated_at: new Date().toISOString(),
+        edited_at: new Date().toISOString(),
       })
       .eq('id', userId)
 
@@ -192,7 +192,7 @@ export async function reactivateAdminUser(userId: string) {
       .from('profiles')
       .update({
         status: 'Active',
-        updated_at: new Date().toISOString(),
+        edited_at: new Date().toISOString(),
       })
       .eq('id', userId)
 

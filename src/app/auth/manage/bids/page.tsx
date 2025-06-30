@@ -215,9 +215,12 @@ const BiddingManagementContent = () => {
       setError(error instanceof Error ? error.message : 'Failed to assign expert')
     }
   }
-
   const handleConfirmDeposit = async () => {
     if (!selectedApplication) return
+    
+    // Add confirmation dialog
+    const confirmed = window.confirm('Are you sure you want to confirm the deposit has been received?')
+    if (!confirmed) return
     
     setError(null)
     try {
@@ -229,6 +232,26 @@ const BiddingManagementContent = () => {
       setSelectedApplication(updated)
     } catch (error) {
       setError(error instanceof Error ? error.message : 'Failed to confirm deposit')
+    }
+  }
+
+  const handleConfirmServiceFee = async () => {
+    if (!selectedApplication) return
+    
+    // Add confirmation dialog
+    const confirmed = window.confirm('Are you sure you want to confirm the service fee payment?')
+    if (!confirmed) return
+    
+    setError(null)
+    try {
+      await updatePaymentStatus(selectedApplication.id, 'paid')
+      setSuccessMessage('Service fee payment confirmed successfully')
+      await loadBiddingApplications() // Refresh the data
+      // Update the selected application
+      const updated = await getBiddingApplicationById(selectedApplication.id)
+      setSelectedApplication(updated)
+    } catch (error) {
+      setError(error instanceof Error ? error.message : 'Failed to confirm service fee payment')
     }
   }
 
@@ -551,32 +574,47 @@ const BiddingManagementContent = () => {
                 </FormControl>
               </Box>
 
-              <Divider sx={{ my: 2 }} />
-
-              {/* --- Payment & Deposit --- */}
+              <Divider sx={{ my: 2 }} />              {/* --- Payment & Deposit --- */}
               <Box mb={3}>
                 <Typography variant='h6'>Financials</Typography>
-                <Box sx={{ mt: 1, mb: 2 }}>
-                  {getPaymentStatusChip(selectedApplication.payment_status || 'pending')}
-                  <Typography variant="caption" sx={{ ml: 1 }}>
-                    Service Fee
-                  </Typography>
+                <Box sx={{ mt: 1, mb: 2, display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
+                  <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
+                    {getPaymentStatusChip(selectedApplication.payment_status || 'pending')}
+                    <Typography variant="caption">
+                      Service Fee
+                    </Typography>
+                  </Box>
+                  {selectedApplication.payment_status !== 'paid' && (
+                    <Button
+                      size='small'
+                      variant='outlined'
+                      color='success'
+                      onClick={handleConfirmServiceFee}
+                      startIcon={<CheckCircleIcon />}
+                    >
+                      Confirm Payment
+                    </Button>
+                  )}
                 </Box>
-                <Box sx={{ mb: 2 }}>
-                  {getDepositStatusChip(selectedApplication.deposit_status || 'pending')}
-                  <Typography variant="caption" sx={{ ml: 1 }}>
-                    Deposit
-                  </Typography>
+                <Box sx={{ mb: 2, display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
+                  <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
+                    {getDepositStatusChip(selectedApplication.deposit_status || 'pending')}
+                    <Typography variant="caption">
+                      Deposit
+                    </Typography>
+                  </Box>
+                  {selectedApplication.deposit_status !== 'confirmed' && (
+                    <Button
+                      size='small'
+                      variant='outlined'
+                      color='success'
+                      onClick={handleConfirmDeposit}
+                      startIcon={<CheckCircleIcon />}
+                    >
+                      Confirm Deposit
+                    </Button>
+                  )}
                 </Box>
-                {selectedApplication.deposit_status !== 'confirmed' && (
-                  <Button
-                    size='small'
-                    variant='contained'
-                    onClick={handleConfirmDeposit}
-                  >
-                    Confirm Deposit Received
-                  </Button>
-                )}
               </Box>
 
               <Divider sx={{ my: 2 }} />

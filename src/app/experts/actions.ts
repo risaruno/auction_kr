@@ -76,9 +76,8 @@ export async function createExpert(expertData: ExpertCreateRequest) {
 
     const newExpert = {
       ...expertData,
-      availability: expertData.availability ?? true,
       created_at: new Date().toISOString(),
-      updated_at: new Date().toISOString(),
+      edited_at: new Date().toISOString(),
     }
 
     const { data, error } = await supabase
@@ -113,7 +112,7 @@ export async function updateExpert(expertData: ExpertUpdateRequest) {
     const { id, ...updateData } = expertData
     const updatedExpert = {
       ...updateData,
-      updated_at: new Date().toISOString(),
+      edited_at: new Date().toISOString(),
     }
 
     const { data, error } = await supabase

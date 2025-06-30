@@ -219,7 +219,7 @@ export default function ExpertPage() {
                   <CardContent sx={{ p: 3 }}>
                     <Box sx={{ display: 'flex', alignItems: 'center', mb: 2 }}>
                       <Avatar
-                        src={expert.profile_image}
+                        src={expert.photo_url}
                         sx={{ width: 64, height: 64, mr: 2 }}
                       />
                       <Box>
