@@ -50,8 +50,8 @@ import {
   updateDepositStatus,
   updateBidResult,
   getBiddingApplicationById
-} from '@/app/bidding-applications/actions'
-import { fetchExperts } from '@/app/experts/actions'
+} from '@/app/api/bidding-applications/actions'
+import { fetchExperts } from '@/app/api/expert/actions'
 import { BiddingApplication, Expert } from '@/types/api'
 
 const statusOptions = [

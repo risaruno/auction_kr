@@ -46,7 +46,7 @@ import {
   suspendUser,
   updateUserPoints,
   getUserById 
-} from '@/app/users/actions'
+} from '@/app/api/auth/users/actions'
 import { User } from '@/types/api'
 
 // --- Main Admin Panel Content ---
@@ -144,7 +144,7 @@ const UserManagementContent = () => {
       formData.append('email', selectedUser.email)
       
       // Import and use the findPassword action
-      const { findPassword } = await import('@/app/sign/actions')
+      const { findPassword } = await import('@/app/api/auth/sign/actions')
       const result = await findPassword({ error: null, message: null }, formData)
       
       if (result.error) {

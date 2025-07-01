@@ -50,7 +50,7 @@ import {
   createExpert,
   updateExpert,
   deleteExpert 
-} from '@/app/experts/actions'
+} from '@/app/api/expert/actions'
 import { Expert, ExpertCreateRequest, ExpertUpdateRequest } from '@/types/api'
 
 const allLocations = [

@@ -2,7 +2,7 @@
 
 import React, { createContext, useContext, useEffect, useState } from 'react'
 import { createClient } from '@/utils/supabase/client'
-import { type AdminRole, type UserWithRole } from '@/utils/auth/roles'
+import { type AdminRole, type UserWithRole } from '@/utils/auth/roles-client'
 
 interface AuthContextType {
   user: UserWithRole | null

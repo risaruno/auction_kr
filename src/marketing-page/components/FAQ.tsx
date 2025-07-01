@@ -13,7 +13,7 @@ import {
   createFaq,
   updateFaq,
   deleteFaq 
-} from '@/app/faq/actions'
+} from '@/app/api/faq/actions'
 import CircularProgress from '@mui/material/CircularProgress'
 import Alert from '@mui/material/Alert'
 

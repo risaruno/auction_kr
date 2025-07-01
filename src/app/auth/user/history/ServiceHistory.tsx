@@ -46,7 +46,7 @@ import StepConnector, {
 } from '@mui/material/StepConnector'
 import { StepIconProps } from '@mui/material/StepIcon'
 import { fetchUserApplications } from '../actions'
-import { getBiddingApplicationById } from '@/app/bidding-applications/actions'
+import { getBiddingApplicationById } from '@/app/api/bidding-applications/actions'
 import { useAuth } from '@/contexts/AuthContext'
 import { uploadElectronicIdentityDocument } from '@/utils/supabase/fileUpload'
 

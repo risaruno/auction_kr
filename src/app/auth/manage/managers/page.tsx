@@ -52,7 +52,7 @@ import {
   updateAdminRole,
   deactivateAdminUser,
   AdminUser
-} from '@/app/admin-users/actions'
+} from '@/app/api/admin-users/actions'
 
 // --- Sample Data ---
 const initialAdmins = [
