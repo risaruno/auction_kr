@@ -1,4 +1,4 @@
-import { fetchExperts } from '../../api/expert/actions'
+import { fetchExperts } from '@/app/api/expert/actions'
 
 export default async function getExperts() {
   try {

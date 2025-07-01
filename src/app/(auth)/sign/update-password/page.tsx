@@ -13,10 +13,10 @@ import Typography from "@mui/material/Typography";
 import Stack from "@mui/material/Stack";
 import MuiCard from "@mui/material/Card";
 import { styled } from "@mui/material/styles";
-import AppTheme from "@/shared-theme/AppTheme";
-import AppAppBar from "@/marketing-page/components/AppAppBar";
-import Footer from "@/marketing-page/components/Footer";
-import { SitemarkIcon } from "@/sign-in/components/CustomIcons";
+import AppTheme from "@/components/shared-theme/AppTheme";
+import AppAppBar from "@/components/marketing-page/components/AppAppBar";
+import Footer from "@/components/marketing-page/components/Footer";
+import { SitemarkIcon } from "@/components/sign-in/components/CustomIcons";
 import Alert from "@mui/material/Alert";
 import { updatePassword, FormState } from "@/app/api/auth/sign/actions";
 

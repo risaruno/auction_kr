@@ -17,9 +17,9 @@ import {
   Alert,
 } from '@mui/material';
 import { createClient } from '@/utils/supabase/client';
-import AppTheme from '@/shared-theme/AppTheme';
-import AppAppBar from '@/marketing-page/components/AppAppBar';
-import Footer from '@/marketing-page/components/Footer';
+import AppTheme from '@/components/shared-theme/AppTheme';
+import AppAppBar from '@/components/marketing-page/components/AppAppBar';
+import Footer from '@/components/marketing-page/components/Footer';
 import CaseFind from './components/CaseFind';
 import InputForm from './components/InputForm';
 import ContractSign from './components/ContractSign';

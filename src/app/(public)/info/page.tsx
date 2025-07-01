@@ -2,12 +2,12 @@
 import * as React from 'react';
 import CssBaseline from '@mui/material/CssBaseline';
 import Divider from '@mui/material/Divider';
-import AppTheme from '../../../shared-theme/AppTheme';
-import AppAppBar from '../../../marketing-page/components/AppAppBar';
-import Footer from '@/marketing-page/components/Footer';
-import Headline from '@/marketing-page/components/Headline';
+import AppTheme from '@/components/shared-theme/AppTheme';
+import AppAppBar from '@/components/marketing-page/components/AppAppBar';
+import Footer from '@/components/marketing-page/components/Footer';
+import Headline from '@/components/marketing-page/components/Headline';
 import { Button, Typography } from '@mui/material';
-import Timeline from '@/marketing-page/components/Timeline';
+import Timeline from '@/components/marketing-page/components/Timeline';
 
 export default function InfoPage() {
   return (

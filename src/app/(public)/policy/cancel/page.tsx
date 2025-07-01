@@ -2,10 +2,10 @@
 import * as React from 'react';
 import CssBaseline from '@mui/material/CssBaseline';
 import Divider from '@mui/material/Divider';
-import AppTheme from '@/shared-theme/AppTheme';
-import AppAppBar from '@/marketing-page/components/AppAppBar';
-import CancelPolicy from '@/marketing-page/components/CancelPolicy';
-import Footer from '@/marketing-page/components/Footer';
+import AppTheme from '@/components/shared-theme/AppTheme';
+import AppAppBar from '@/components/marketing-page/components/AppAppBar';
+import CancelPolicy from '@/components/marketing-page/components/CancelPolicy';
+import Footer from '@/components/marketing-page/components/Footer';
 
 export default function CancelPolicyPage() {
   return (

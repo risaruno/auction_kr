@@ -21,20 +21,12 @@ export function isSuperAdmin(role: AdminRole | null | undefined): boolean {
 
 // Check if user can manage content (FAQs, experts, etc.)
 export function canManageContent(role: AdminRole | null | undefined): boolean {
-  const contentRoles: AdminRole[] = ['super_admin', 'content_manager']
-  return role ? contentRoles.includes(role) : false
-}
-
-// Check if user can manage users
-export function canManageUsers(role: AdminRole | null | undefined): boolean {
-  const userManagementRoles: AdminRole[] = ['super_admin']
-  return role ? userManagementRoles.includes(role) : false
+  return role === 'content_manager'
 }
 
 // Check if user can handle customer support
 export function canHandleSupport(role: AdminRole | null | undefined): boolean {
-  const supportRoles: AdminRole[] = ['super_admin', 'content_manager', 'customer_support']
-  return role ? supportRoles.includes(role) : false
+  return role === 'customer_support'
 }
 
 // Role-based redirect helper

@@ -2,13 +2,13 @@
 import * as React from "react";
 import CssBaseline from "@mui/material/CssBaseline";
 import Divider from "@mui/material/Divider";
-import AppTheme from "../shared-theme/AppTheme";
-import AppAppBar from "../marketing-page/components/AppAppBar";
-import Hero from "../marketing-page/components/Hero";
-import Highlights from "../marketing-page/components/Highlights";
-import Features from "../marketing-page/components/Features";
-import Testimonials from "../marketing-page/components/Testimonials";
-import Footer from "../marketing-page/components/Footer";
+import AppTheme from "@/components/shared-theme/AppTheme";
+import AppAppBar from "@/components/marketing-page/components/AppAppBar";
+import Hero from "@/components/marketing-page/components/Hero";
+import Highlights from "@/components/marketing-page/components/Highlights";
+import Features from "@/components/marketing-page/components/Features";
+import Testimonials from "@/components/marketing-page/components/Testimonials";
+import Footer from "@/components/marketing-page/components/Footer";
 import DebugAuth from "@/components/DebugAuth";
 
 export default function Home() {

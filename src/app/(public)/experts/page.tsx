@@ -3,9 +3,9 @@
 import React, { useState, useMemo, useEffect } from 'react'
 import CssBaseline from '@mui/material/CssBaseline'
 import Divider from '@mui/material/Divider'
-import AppTheme from '../../../shared-theme/AppTheme'
-import AppAppBar from '../../../marketing-page/components/AppAppBar'
-import Footer from '@/marketing-page/components/Footer'
+import AppTheme from '@/components/shared-theme/AppTheme'
+import AppAppBar from '@/components/marketing-page/components/AppAppBar'
+import Footer from '@/components/marketing-page/components/Footer'
 import {
   Typography,
   Container,
@@ -20,7 +20,7 @@ import {
   Paper,
   Button,
 } from '@mui/material'
-import { fetchExperts } from '../../api/expert/actions'
+import { fetchExperts } from '@/app/api/expert/actions'
 import { Expert } from '@/types/api'
 
 const regions = [
