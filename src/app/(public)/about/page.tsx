@@ -1,15 +1,12 @@
-"use client";
-import * as React from "react";
-import AppAppBar from "@/components/marketing-page/components/AppAppBar";
-import CancelPolicy from "@/components/marketing-page/components/CancelPolicy";
-import Footer from "@/components/marketing-page/components/Footer";
-import AppTheme from "@/components/shared-theme/AppTheme";
-import { CssBaseline, Divider } from "@mui/material";
+'use client'
+import * as React from 'react'
+import CancelPolicy from '@/components/marketing-page/components/CancelPolicy'
+import { Container } from '@mui/material'
 
 export default function AboutPage() {
   return (
-    <div>
+    <Container maxWidth='lg' sx={{ my: 5 }}>
       <CancelPolicy />
-    </div>
-  );
+    </Container>
+  )
 }

@@ -1,11 +1,7 @@
 'use client'
 
 import React, { useState, useMemo, useEffect } from 'react'
-import CssBaseline from '@mui/material/CssBaseline'
 import Divider from '@mui/material/Divider'
-import AppTheme from '@/components/shared-theme/AppTheme'
-import AppAppBar from '@/components/marketing-page/components/AppAppBar'
-import Footer from '@/components/marketing-page/components/Footer'
 import {
   Typography,
   Container,
@@ -22,6 +18,7 @@ import {
 } from '@mui/material'
 import { fetchExperts } from '@/app/api/expert/actions'
 import { Expert } from '@/types/api'
+import Headline from '@/components/marketing-page/components/Headline'
 
 const regions = [
   '전체',
@@ -153,111 +150,98 @@ export default function ExpertPage() {
   )
 
   return (
-    <AppTheme>
-      <CssBaseline enableColorScheme />
-      <AppAppBar />
-      <Container maxWidth='lg' sx={{ my: 5 }}>
-        <Box
-          sx={{
-            display: 'flex',
-            justifyContent: 'space-between',
-            alignItems: 'center',
-            mb: 4,
-          }}
-        >
-          <Typography variant='h4' component='h1' sx={{ fontWeight: 'bold' }}>
+    <Container maxWidth='lg' sx={{ my: 5 }}>
+      <Headline
+        headline={
+          <Typography
+            variant='h3'
+            sx={{
+              textAlign: 'center',
+              color: 'text.secondary',
+              width: { sm: '100%', md: '80%' },
+            }}
+          >
             전문가 서비스
           </Typography>
-          <Button variant='contained' color='primary' size='large'>
-            대리입찰 신청
-          </Button>
-        </Box>
+        }
+      />
 
-        {/* Filters */}
-        <Paper
-          elevation={0}
-          sx={{
-            p: { xs: 2, md: 3 },
-            mb: 5,
-            backgroundColor: '#f9fafb',
-            borderRadius: 2,
-          }}
-        >
-          <FilterGroup
-            title='지역'
-            options={regions}
-            value={selectedRegion}
-            onChange={handleRegionChange}
-          />
-          <Divider />
-          <FilterGroup
-            title='제공 서비스'
-            options={services}
-            value={selectedService}
-            onChange={handleServiceChange}
-          />
-        </Paper>
+      {/* Filters */}
+      <Paper
+        elevation={0}
+        sx={{
+          p: { xs: 2, md: 3 },
+          mb: 5,
+          backgroundColor: '#f9fafb',
+          borderRadius: 2,
+        }}
+      >
+        <FilterGroup
+          title='지역'
+          options={regions}
+          value={selectedRegion}
+          onChange={handleRegionChange}
+        />
+        <Divider />
+        <FilterGroup
+          title='제공 서비스'
+          options={services}
+          value={selectedService}
+          onChange={handleServiceChange}
+        />
+      </Paper>
 
-        {/* Experts Grid */}
-        <Grid container spacing={4}>
-          {loading ? (
-            <div
-              style={{ width: '100%', textAlign: 'center', padding: '20px' }}
-            >
-              Loading...
-            </div>
-          ) : (
-            filteredExperts.map((expert, index) => (
-              <Grid container size={{ xs: 12, sm: 6 }} key={index}>
-                <Card
-                  sx={{
-                    width: '100%',
-                    borderRadius: 4,
-                    boxShadow: '0 4px 12px rgba(0,0,0,0.08)',
-                  }}
-                >
-                  <CardContent sx={{ p: 3 }}>
-                    <Box sx={{ display: 'flex', alignItems: 'center', mb: 2 }}>
-                      <Avatar
-                        src={expert.photo_url}
-                        sx={{ width: 64, height: 64, mr: 2 }}
-                      />
-                      <Box>
-                        <Typography variant='body2' color='primary'>
-                          {expert.location}
-                        </Typography>
-                        <Typography variant='h6' sx={{ fontWeight: 'bold' }}>
-                          {expert.name}
-                        </Typography>
-                      </Box>
+      {/* Experts Grid */}
+      <Grid container spacing={4}>
+        {loading ? (
+          <div style={{ width: '100%', textAlign: 'center', padding: '20px' }}>
+            Loading...
+          </div>
+        ) : (
+          filteredExperts.map((expert, index) => (
+            <Grid container size={{ xs: 12, sm: 6 }} key={index}>
+              <Card
+                sx={{
+                  width: '100%',
+                  borderRadius: 4,
+                  boxShadow: '0 4px 12px rgba(0,0,0,0.08)',
+                }}
+              >
+                <CardContent sx={{ p: 3 }}>
+                  <Box sx={{ display: 'flex', alignItems: 'center', mb: 2 }}>
+                    <Avatar
+                      src={expert.photo_url}
+                      sx={{ width: 64, height: 64, mr: 2 }}
+                    />
+                    <Box>
+                      <Typography variant='body2' color='primary'>
+                        {expert.location}
+                      </Typography>
+                      <Typography variant='h6' sx={{ fontWeight: 'bold' }}>
+                        {expert.name}
+                      </Typography>
                     </Box>
-                    <Typography
-                      variant='body2'
-                      color='text.secondary'
-                      sx={{ minHeight: 60 }}
-                    >
-                      {expert.description}
-                    </Typography>
-                    <Box
-                      sx={{ mt: 2, display: 'flex', flexWrap: 'wrap', gap: 1 }}
-                    >
-                      {expert.services.map((service) => (
-                        <Chip
-                          key={service}
-                          label={service}
-                          variant='outlined'
-                        />
-                      ))}
-                    </Box>
-                  </CardContent>
-                </Card>
-              </Grid>
-            ))
-          )}
-        </Grid>
-      </Container>
-      <Divider />
-      <Footer />
-    </AppTheme>
+                  </Box>
+                  <Typography
+                    variant='body2'
+                    color='text.secondary'
+                    sx={{ minHeight: 60 }}
+                  >
+                    {expert.description}
+                  </Typography>
+                  <Box
+                    sx={{ mt: 2, display: 'flex', flexWrap: 'wrap', gap: 1 }}
+                  >
+                    {expert.services.map((service) => (
+                      <Chip key={service} label={service} variant='outlined' />
+                    ))}
+                  </Box>
+                </CardContent>
+              </Card>
+            </Grid>
+          ))
+        )}
+      </Grid>
+    </Container>
   )
 }
