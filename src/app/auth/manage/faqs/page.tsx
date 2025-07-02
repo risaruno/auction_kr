@@ -36,7 +36,6 @@ import {
   ExpandMore as ExpandMoreIcon,
   Search as SearchIcon,
 } from '@mui/icons-material'
-import AdminLayout from '../AdminLayout'
 import { 
   fetchFaqs,
   createFaq,
@@ -192,7 +191,6 @@ const FAQManagementContent = () => {
     <Box sx={{ display: 'flex' }}>
       <CssBaseline />
       <Box component='main' sx={{ flexGrow: 1, p: 3 }}>
-        <Toolbar />
         <Card>
           <CardContent>
             <Box
@@ -357,8 +355,8 @@ const FAQManagementContent = () => {
 // Wrapper component to include the main layout
 export default function FAQManagementPanel() {
   return (
-    <AdminLayout>
+    <>
       <FAQManagementContent />
-    </AdminLayout>
+    </>
   )
 }

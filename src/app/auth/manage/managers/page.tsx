@@ -45,7 +45,6 @@ import {
   AddModerator as AddModeratorIcon,
   Close as CloseIcon,
 } from '@mui/icons-material'
-import AdminLayout from '../AdminLayout'
 import {
   fetchAdminUsers,
   inviteAdminUser,
@@ -241,8 +240,6 @@ const AdminManagementContent = () => {
     <Box sx={{ display: 'flex' }}>
       <CssBaseline />
       <Box component='main' sx={{ flexGrow: 1, p: 3 }}>
-        <Toolbar />
-        {/* --- Main Content --- */}
         <Card>
           <CardContent>
             <Box
@@ -442,8 +439,8 @@ const AdminManagementContent = () => {
 
 export default function AdminManagementPanel() {
   return (
-    <AdminLayout>
+    <>
       <AdminManagementContent />
-    </AdminLayout>
+    </>
   )
 }

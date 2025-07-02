@@ -15,7 +15,7 @@ export const metadata: Metadata = {
     '부동산 경매 전문가들이 고객님의 성공적인 투자를 위해 맞춤형 입찰 전략을 제공해 드립니다.',
 }
 
-export default function RootLayout(props: { children: React.ReactNode }) {
+export default async function RootLayout({ children }: Readonly<{ children: React.ReactNode }>) {
   return (
     <html lang='en' suppressHydrationWarning>
       <body>
@@ -26,7 +26,7 @@ export default function RootLayout(props: { children: React.ReactNode }) {
               {/* CssBaseline kickstart an elegant, consistent, and simple baseline to build upon. */}
               <CssBaseline />
               <ModeSwitch />
-              {props.children}
+              {children}
             </AuthProvider>
           </ThemeProvider>
         </AppRouterCacheProvider>

@@ -44,7 +44,6 @@ import {
   Search as SearchIcon,
   PhotoCamera as PhotoCameraIcon,
 } from '@mui/icons-material'
-import AdminLayout from '../AdminLayout'
 import { 
   fetchExperts,
   createExpert,
@@ -307,7 +306,6 @@ const ExpertsContent = () => {
     <Box sx={{ display: 'flex' }}>
       <CssBaseline />
       <Box component='main' sx={{ flexGrow: 1, p: 3 }}>
-        <Toolbar />
         <Card>
           <CardContent>
             <Box
@@ -636,8 +634,8 @@ const ExpertsContent = () => {
 
 export default function ExpertsAdminPanel() {
   return (
-    <AdminLayout>
+    <>
       <ExpertsContent />
-    </AdminLayout>
+    </>
   )
 }

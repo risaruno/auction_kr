@@ -1,51 +1,61 @@
-"use client";
-import * as React from "react";
-import { NextAppProvider } from "@toolpad/core/nextjs";
-import PersonIcon from "@mui/icons-material/Person";
-import DashboardIcon from "@mui/icons-material/Dashboard";
-import ShoppingCartIcon from "@mui/icons-material/ShoppingCart";
-import GavelIcon from "@mui/icons-material/Gavel";
-import ExpertIcon from "@mui/icons-material/Psychology";
-import QuestionAnswerIcon from "@mui/icons-material/QuestionAnswer";
-import HistoryIcon from "@mui/icons-material/History";
-import InfoIcon from "@mui/icons-material/Info";
-import AccountCircleIcon from "@mui/icons-material/AccountCircle";
-import SupervisorAccountIcon from "@mui/icons-material/SupervisorAccount";
-import { AppRouterCacheProvider } from "@mui/material-nextjs/v15-appRouter";
-import type { Navigation } from "@toolpad/core/AppProvider";
-import theme from "@/theme";
-import Stack from "@mui/material/Stack";
-import { DashboardLayout, ThemeSwitcher } from "@toolpad/core/DashboardLayout";
-import Copyright from "../components/Copyright";
-import Sitemark from "@/components/marketing-page/components/SitemarkIcon";
+'use client'
+import * as React from 'react'
+import { NextAppProvider } from '@toolpad/core/nextjs'
+import { AppRouterCacheProvider } from '@mui/material-nextjs/v15-appRouter'
+import {
+  Dashboard as DashboardIcon,
+  AssignmentInd as ExpertIcon,
+  Person as PersonIcon,
+  Gavel as GavelIcon,
+  History as HistoryIcon,
+  AccountCircle as AccountCircleIcon,
+  SupervisorAccount as SupervisorAccountIcon,
+  QuestionAnswer as QuestionAnswerIcon,
+  Quiz as QuizIcon,
+  } from '@mui/icons-material'
+import type { Navigation } from '@toolpad/core/AppProvider'
+import theme from '@/theme'
+import Stack from '@mui/material/Stack'
+import { DashboardLayout, ThemeSwitcher } from '@toolpad/core/DashboardLayout'
+import Copyright from '@/components/dashboard/Copyright'
+import Sitemark from '@/components/marketing-page/components/SitemarkIcon'
 import SidebarFooterAccount, {
   ToolbarAccountOverride,
-} from "./SidebarFooterAccount";
-import { useAuth } from "@/contexts/AuthContext";
+} from './SidebarFooterAccount'
+import { useAuth } from '@/contexts/AuthContext'
 import {
   isAdmin,
   isSuperAdmin,
   canManageContent,
   canHandleSupport,
-} from "@/utils/auth/roles-client";
-import { ArrowBack, Home, Redo, Undo } from "@mui/icons-material";
+  isUser,
+} from '@/utils/auth/roles-client'
+import { ArrowBack, Home, Redo, Undo } from '@mui/icons-material'
 
 function CustomActions() {
-  return <Stack direction="row" alignItems="center"></Stack>;
+  return (
+    <Stack direction='row' alignItems='center'>
+      <ThemeSwitcher />
+      <ToolbarAccountOverride />
+    </Stack>
+  )
 }
 
 function useNavigation(): Navigation {
-  const { user } = useAuth();
-  const userRole = user?.admin_role;
+  const { user } = useAuth()
+  const userRole = user?.admin_role
 
   // Base navigation for all authenticated users
   const baseNavigation: Navigation = [
     {
-      segment: "/",
-      title: "홈으로",
+      segment: '/',
+      title: '홈으로',
       icon: <ArrowBack />,
     },
-  ];
+    {
+      kind: 'divider',
+    },
+  ]
 
   // Admin/Management navigation
   if (isAdmin(userRole)) {
@@ -53,103 +63,158 @@ function useNavigation(): Navigation {
     if (isSuperAdmin(userRole)) {
       baseNavigation.push(
         {
-          kind: "header",
-          title: "Admin Management",
+          kind: 'header',
+          title: '콘텐츠 관리',
         },
         {
-          segment: "manage/dashboard",
-          title: "Admin Dashboard",
+          segment: 'auth/manage',
+          title: '대시보드',
           icon: <DashboardIcon />,
         },
         {
-          segment: "manage/bids",
-          title: "Bid Management",
+          segment: 'auth/manage/bids',
+          title: '입찰 신청 관리',
           icon: <GavelIcon />,
         },
         {
-          segment: "manage/users",
-          title: "User Management",
+          segment: 'auth/manage/experts',
+          title: '전문가 관리',
+          icon: <ExpertIcon />,
+        },
+        {
+          segment: 'auth/manage/faqs',
+          title: '자주하는 질문 관리',
+          icon: <QuizIcon />,
+        },
+        {
+          kind: 'divider',
+        },
+        {
+          kind: 'header',
+          title: '고객 지원',
+        },
+        {
+          segment: 'auth/manage/inquiries',
+          title: '문의 관리',
+          icon: <QuestionAnswerIcon />,
+        },
+        {
+          kind: 'divider',
+        },
+        {
+          kind: 'header',
+          title: '관리자 메뉴',
+        },
+        {
+          segment: 'auth/manage/users',
+          title: '사용자 관리',
           icon: <PersonIcon />,
         },
         {
-          segment: "manage/managers",
-          title: "Manager Management",
+          segment: 'auth/manage/managers',
+          title: '관리자 관리',
           icon: <SupervisorAccountIcon />,
+        },
+        {
+          kind: 'divider',
         }
-      );
+      )
     }
 
     // Content management (for super admin and content managers)
     if (canManageContent(userRole)) {
       baseNavigation.push(
         {
-          kind: "header",
-          title: "Content Management",
+          kind: 'header',
+          title: '콘텐츠 관리',
         },
         {
-          segment: "manage/experts",
-          title: "Expert Management",
+          segment: 'auth/manage/dashboard',
+          title: '대시보드',
+          icon: <DashboardIcon />,
+        },
+        {
+          segment: 'auth/manage/experts',
+          title: '전문가 관리',
           icon: <ExpertIcon />,
         },
         {
-          segment: "manage/faqs",
-          title: "FAQ Management",
+          segment: 'auth/manage/faqs',
+          title: '자주하는 질문 관리',
+          icon: <QuizIcon />,
+        },
+        {
+          kind: 'divider',
+        },
+        {
+          kind: 'header',
+          title: '고객 지원',
+        },
+        {
+          segment: 'auth/manage/inquiries',
+          title: '문의 관리',
           icon: <QuestionAnswerIcon />,
+        },
+        {
+          kind: 'divider',
         }
-      );
+      )
     }
 
     // Content management (for super admin and content managers)
     if (canHandleSupport(userRole)) {
       baseNavigation.push(
         {
-          kind: "header",
-          title: "Customer Support",
+          kind: 'header',
+          title: '고객 지원',
         },
         {
-          segment: "manage/inquiries",
-          title: "FAQ Management",
+          segment: 'auth/manage/inquiries',
+          title: '문의 관리',
           icon: <QuestionAnswerIcon />,
+        },
+        {
+          kind: 'divider',
         }
-      );
+      )
     }
-  } else {
+  }
+
+  if (isUser(userRole)) {
     baseNavigation.push(
       {
-        kind: "header",
-        title: "My Page",
+        kind: 'header',
+        title: 'My Page',
       },
       {
-        segment: "auth/user/profile",
-        title: "Profile",
+        segment: 'auth/user/profile',
+        title: '내 정보',
         icon: <AccountCircleIcon />,
       },
       {
-        segment: "auth/user/info",
-        title: "My Information",
-        icon: <InfoIcon />,
+        segment: 'auth/user/history',
+        title: '서비스 내역',
+        icon: <HistoryIcon />,
       },
       {
-        segment: "auth/user/history",
-        title: "Service History",
-        icon: <HistoryIcon />,
+        kind: 'divider',
       }
-    );
+    )
   }
 
-  return baseNavigation;
+  return baseNavigation
 }
 
 export default function Layout(props: { children: React.ReactNode }) {
-  const navigation = useNavigation();
+  const navigation = useNavigation()
 
   return (
     <NextAppProvider theme={theme} navigation={navigation}>
       <DashboardLayout
         branding={{
           logo: <Sitemark />,
-          title: "Dashboard",
-          homeUrl: "/",
+          title: '',
+          homeUrl: '/auth',
         }}
         slots={{
           toolbarActions: CustomActions,
@@ -160,5 +225,5 @@ export default function Layout(props: { children: React.ReactNode }) {
         <Copyright sx={{ my: 4 }} />
       </DashboardLayout>
     </NextAppProvider>
-  );
+  )
 }

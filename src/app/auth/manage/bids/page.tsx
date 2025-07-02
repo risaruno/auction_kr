@@ -41,7 +41,6 @@ import {
   Cancel as CancelIcon,
   Assignment as AssignmentIcon,
 } from '@mui/icons-material'
-import AdminLayout from '../AdminLayout'
 import {
   fetchBiddingApplications,
   updateBiddingApplicationStatus,
@@ -329,9 +328,7 @@ const BiddingManagementContent = () => {
 
   return (
     <Box sx={{ display: 'flex' }}>
-      <CssBaseline />
       <Box component='main' sx={{ flexGrow: 1, p: 3 }}>
-        <Toolbar />
         <Card>
           <CardContent>
             <Box
@@ -680,8 +677,8 @@ const BiddingManagementContent = () => {
 
 export default function BiddingManagementPanel() {
   return (
-    <AdminLayout>
+    <>
       <BiddingManagementContent />
-    </AdminLayout>
+    </>
   )
 }

@@ -29,6 +29,14 @@ export function canHandleSupport(role: AdminRole | null | undefined): boolean {
   return role === 'customer_support'
 }
 
+export function isExpert(role: AdminRole | null | undefined): boolean {
+  return role === 'expert'
+}
+
+export function isUser(role: AdminRole | null | undefined): boolean {
+  return role === 'user'
+}
+
 // Role-based redirect helper
 export function getRedirectPath(role: AdminRole | null | undefined): string {
   if (isAdmin(role)) {

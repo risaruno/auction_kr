@@ -10,7 +10,7 @@ import Box from '@mui/material/Box';
 import Stack from '@mui/material/Stack';
 import LinearProgress, { linearProgressClasses } from '@mui/material/LinearProgress';
 
-import { UsaFlag, BrazilFlag, GlobeFlag } from '../mocks/CustomIcons';
+import { UsaFlag, BrazilFlag, GlobeFlag } from '@/app/mocks/CustomIcons';
 
 const data = [
   { label: 'USA', value: 35000 },

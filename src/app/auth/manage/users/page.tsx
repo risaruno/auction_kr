@@ -40,7 +40,6 @@ import {
   LockReset as LockResetIcon,
   Close as CloseIcon,
 } from '@mui/icons-material'
-import AdminLayout from '../AdminLayout'
 import { 
   fetchUsers,
   suspendUser,
@@ -183,7 +182,6 @@ const UserManagementContent = () => {
     <Box sx={{ display: 'flex' }}>
       <CssBaseline />
       <Box component='main' sx={{ flexGrow: 1, p: 3 }}>
-        <Toolbar />
         <Card>
           <CardContent>
             <Box
@@ -420,8 +418,8 @@ const UserManagementContent = () => {
 // Wrapper component to include the main layout
 export default function UserManagementPanel() {
   return (
-    <AdminLayout>
+    <>
       <UserManagementContent />
-    </AdminLayout>
+    </>
   )
 }
