@@ -3,6 +3,7 @@
 import React, { createContext, useContext, useEffect, useState } from 'react'
 import { createClient } from '@/utils/supabase/client'
 import { type AdminRole, type UserWithRole } from '@/utils/auth/roles-client'
+import { Session } from "@supabase/supabase-js";
 
 interface AuthContextType {
   user: UserWithRole | null
@@ -10,6 +11,7 @@ interface AuthContextType {
   isInitialized: boolean
   signOut: () => Promise<void>
   refreshUser: () => Promise<void>
+  session: Session | null
 }
 
 const AuthContext = createContext<AuthContextType | undefined>(undefined)
@@ -17,6 +19,7 @@ const AuthContext = createContext<AuthContextType | undefined>(undefined)
 export function AuthProvider({ children }: { children: React.ReactNode }) {
   const [user, setUser] = useState<UserWithRole | null>(null)
   const [loading, setLoading] = useState(true)
+  const [session, setSession] = useState<Session | null>(null)
   const [isInitialized, setIsInitialized] = useState(false)
   const supabase = createClient()
 
@@ -42,6 +45,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       if (sessionError || !session?.user) {
         console.log('No valid session found')
         setUser(null)
+        setSession(null)
         return
       }
 
@@ -84,6 +88,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
           }
           console.log('Setting user with default role:', userWithRole)
           setUser(userWithRole)
+          setSession(session)
         } else {
           // For other errors, still create a basic user object
           const userWithRole = {
@@ -94,6 +99,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
           }
           console.log('Setting user without profile due to error:', userWithRole)
           setUser(userWithRole)
+          setSession(session)
         }
       } else {
         const userWithRole = {
@@ -104,10 +110,12 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
         }
         console.log('Setting user with profile:', userWithRole)
         setUser(userWithRole)
+        setSession(session)
       }
     } catch (error) {
       console.error('Error fetching user with role:', error)
       setUser(null)
+      setSession(null)
     } finally {
       setLoading(false)
       if (!isInitialized) {
@@ -129,6 +137,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       
       // Clear local state immediately
       setUser(null)
+      setSession(null)
       
       // Clear any local storage
       if (typeof window !== 'undefined') {
@@ -142,6 +151,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       console.error('Error during sign out:', error)
       // Even if there's an error, clear the local state
       setUser(null)
+      setSession(null)
       if (typeof window !== 'undefined') {
         window.location.href = '/'
       }
@@ -198,6 +208,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
           } else if (event === 'SIGNED_OUT' || !session) {
             console.log('User signed out, clearing user state')
             setUser(null)
+            setSession(null)
             setLoading(false)
             setIsInitialized(true)
           } else if (event === 'TOKEN_REFRESHED' && session?.user) {
@@ -218,6 +229,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
                   full_name: profile?.full_name || session.user.user_metadata?.full_name || ''
                 }
                 setUser(userWithRole)
+                setSession(session)
               }
             } else {
               await fetchUserWithRole(true)
@@ -238,6 +250,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
             // User was signed out while away
             console.log('User session expired while away')
             setUser(null)
+            setSession(null)
           }
         })
       }
@@ -261,7 +274,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   }, []) // Only run once on mount
 
   return (
-    <AuthContext.Provider value={{ user, loading, isInitialized, signOut, refreshUser }}>
+    <AuthContext.Provider value={{ user, loading, isInitialized, signOut, refreshUser, session }}>
       {children}
     </AuthContext.Provider>
   )

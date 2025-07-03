@@ -21,12 +21,14 @@ export function isSuperAdmin(role: AdminRole | null | undefined): boolean {
 
 // Check if user can manage content (FAQs, experts, etc.)
 export function canManageContent(role: AdminRole | null | undefined): boolean {
-  return role === 'content_manager'
+  const contentRoles: AdminRole[] = ['content_manager']
+  return role ? contentRoles.includes(role) : false
 }
 
 // Check if user can handle customer support
 export function canHandleSupport(role: AdminRole | null | undefined): boolean {
-  return role === 'customer_support'
+  const supportRoles: AdminRole[] = ['customer_support']
+  return role ? supportRoles.includes(role) : false
 }
 
 export function isExpert(role: AdminRole | null | undefined): boolean {

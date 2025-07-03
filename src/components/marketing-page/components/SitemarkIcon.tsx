@@ -7,7 +7,6 @@ export default function SitemarkIcon() {
     <>
       <Link
         href='/'
-        passHref
         style={{ textDecoration: 'none', color: 'inherit' }}
       >
         <Typography

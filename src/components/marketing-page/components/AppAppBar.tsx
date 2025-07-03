@@ -161,7 +161,7 @@ export default function AppAppBar() {
                   {userIsAdmin && (
                     <MenuItem
                       onClick={() => {
-                        router.push("/auth/manage/dashboard");
+                        router.push("/auth/manage");
                         handleUserMenuClose();
                       }}
                     >
@@ -270,7 +270,7 @@ export default function AppAppBar() {
                     {userIsAdmin && (
                       <MenuItem
                         onClick={() => {
-                          router.push("/auth/manage/dashboard");
+                          router.push("/auth/manage");
                           handleUserMenuClose();
                         }}
                       >

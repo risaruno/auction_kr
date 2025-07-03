@@ -12,10 +12,13 @@ import {
   SupervisorAccount as SupervisorAccountIcon,
   QuestionAnswer as QuestionAnswerIcon,
   Quiz as QuizIcon,
-  } from '@mui/icons-material'
+} from '@mui/icons-material'
 import type { Navigation } from '@toolpad/core/AppProvider'
 import theme from '@/theme'
 import Stack from '@mui/material/Stack'
+import CircularProgress from '@mui/material/CircularProgress'
+import Box from '@mui/material/Box'
+import Typography from '@mui/material/Typography'
 import { DashboardLayout, ThemeSwitcher } from '@toolpad/core/DashboardLayout'
 import Copyright from '@/components/dashboard/Copyright'
 import Sitemark from '@/components/marketing-page/components/SitemarkIcon'
@@ -206,24 +209,79 @@ function useNavigation(): Navigation {
 }
 
 export default function Layout(props: { children: React.ReactNode }) {
+  const { user, session, signOut, loading, isInitialized } = useAuth()
   const navigation = useNavigation()
 
+  // Redirect to sign-in if not authenticated and not loading
+  React.useEffect(() => {
+    if (isInitialized && !loading && !session && !user) {
+      window.location.href = '/sign'
+    }
+  }, [isInitialized, loading, session, user])
+
+  const authentication = React.useMemo(() => {
+    return {
+      signIn: async () => {
+        // Redirect to sign-in page since we can't handle sign-in directly in the layout
+        window.location.href = '/sign'
+      },
+      signOut: async () => {
+        await signOut()
+      },
+    }
+  }, [signOut])
+
+  // Create session object that Toolpad expects
+  const toolpadSession = React.useMemo(() => {
+    if (!session || !user) return null
+    
+    return {
+      user: {
+        id: user.id,
+        name: user.full_name,
+        email: user.email,
+        image: session.user.user_metadata?.avatar_url || null,
+      },
+    }
+  }, [session, user])
+
   return (
-    <NextAppProvider theme={theme} navigation={navigation}>
-      <DashboardLayout
-        branding={{
-          logo: <Sitemark />,
-          title: '',
-          homeUrl: '/auth',
-        }}
-        slots={{
-          toolbarActions: CustomActions,
-          sidebarFooter: SidebarFooterAccount,
-        }}
-      >
-        {props.children}
-        <Copyright sx={{ my: 4 }} />
-      </DashboardLayout>
+    <NextAppProvider
+      theme={theme}
+      navigation={navigation}
+      authentication={authentication}
+      session={toolpadSession}
+    >
+      {loading ? (
+        <Box
+          display="flex"
+          flexDirection="column"
+          justifyContent="center"
+          alignItems="center"
+          height="100vh"
+          gap={2}
+        >
+          <CircularProgress size={40} />
+          <Typography variant="body1" color="text.secondary">
+            인증 정보를 확인하는 중...
+          </Typography>
+        </Box>
+      ) : (
+        <DashboardLayout
+          branding={{
+            logo: <Sitemark />,
+            title: '',
+            homeUrl: '/auth',
+          }}
+          slots={{
+            toolbarActions: CustomActions,
+            sidebarFooter: SidebarFooterAccount,
+          }}
+        >
+          {props.children}
+          <Copyright sx={{ my: 4 }} />
+        </DashboardLayout>
+      )}
     </NextAppProvider>
   )
 }

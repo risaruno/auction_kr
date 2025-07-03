@@ -24,6 +24,9 @@ function AccountSidebarPreview(props: AccountPreviewProps & { mini: boolean }) {
         slotProps={{ avatarIconButton: { sx: mini ? { border: '0' } : {} } }}
         handleClick={handleClick}
         open={open}
+        slots={{
+          moreIconButton: <SignOutButton />,
+        }}
       />
     </Stack>
   );
@@ -33,19 +36,6 @@ function SidebarFooterAccountPopover({ mini }: { mini: boolean }) {
   return (
     <Stack direction="column">
       {mini ? <AccountPreview variant="expanded" /> : null}
-      <MenuList>
-        <Button
-          variant="text"
-          sx={{ textTransform: 'capitalize', display: 'flex', mx: 'auto' }}
-          size="small"
-          fullWidth
-          startIcon={<AddIcon />}
-          disableElevation
-        >
-          Add account
-        </Button>
-      </MenuList>
-      <Divider />
       <AccountPopoverFooter>
         <SignOutButton />
       </AccountPopoverFooter>
@@ -74,9 +64,9 @@ export default function SidebarFooterAccount({ mini }: SidebarFooterProps) {
     <Account
       slots={{
         preview: PreviewComponent,
-        popoverContent: PopoverComponent,
       }}
       slotProps={{
+
         popover: {
           transformOrigin: { horizontal: 'left', vertical: 'top' },
           anchorOrigin: { horizontal: 'right', vertical: 'bottom' },

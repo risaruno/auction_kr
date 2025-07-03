@@ -3,7 +3,7 @@
 import React from 'react'
 import { useAuth, useIsAdmin, useIsSuperAdmin } from '@/contexts/AuthContext'
 import { Box, CircularProgress, Typography, Alert } from '@mui/material'
-import { type AdminRole } from '@/utils/auth/roles'
+import { type AdminRole } from '@/utils/auth/roles-client'
 
 interface RequireAuthProps {
   children: React.ReactNode
