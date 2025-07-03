@@ -1,7 +1,7 @@
-'use client'
-import * as React from 'react'
-import { NextAppProvider } from '@toolpad/core/nextjs'
-import { AppRouterCacheProvider } from '@mui/material-nextjs/v15-appRouter'
+"use client";
+import * as React from "react";
+import { NextAppProvider } from "@toolpad/core/nextjs";
+import { AppRouterCacheProvider } from "@mui/material-nextjs/v15-appRouter";
 import {
   Dashboard as DashboardIcon,
   AssignmentInd as ExpertIcon,
@@ -12,53 +12,53 @@ import {
   SupervisorAccount as SupervisorAccountIcon,
   QuestionAnswer as QuestionAnswerIcon,
   Quiz as QuizIcon,
-} from '@mui/icons-material'
-import type { Navigation } from '@toolpad/core/AppProvider'
-import theme from '@/theme'
-import Stack from '@mui/material/Stack'
-import CircularProgress from '@mui/material/CircularProgress'
-import Box from '@mui/material/Box'
-import Typography from '@mui/material/Typography'
-import { DashboardLayout, ThemeSwitcher } from '@toolpad/core/DashboardLayout'
-import Copyright from '@/components/dashboard/Copyright'
-import Sitemark from '@/components/marketing-page/components/SitemarkIcon'
+} from "@mui/icons-material";
+import type { Navigation } from "@toolpad/core/AppProvider";
+import theme from "@/theme";
+import Stack from "@mui/material/Stack";
+import CircularProgress from "@mui/material/CircularProgress";
+import Box from "@mui/material/Box";
+import Typography from "@mui/material/Typography";
+import { DashboardLayout, ThemeSwitcher } from "@toolpad/core/DashboardLayout";
+import Copyright from "@/components/dashboard/Copyright";
+import Sitemark from "@/components/marketing-page/components/SitemarkIcon";
 import SidebarFooterAccount, {
   ToolbarAccountOverride,
-} from './SidebarFooterAccount'
-import { useAuth } from '@/contexts/AuthContext'
+} from "./SidebarFooterAccount";
+import { useAuth } from "@/contexts/AuthContext";
 import {
   isAdmin,
   isSuperAdmin,
   canManageContent,
   canHandleSupport,
   isUser,
-} from '@/utils/auth/roles-client'
-import { ArrowBack, Home, Redo, Undo } from '@mui/icons-material'
+} from "@/utils/auth/roles-client";
+import { ArrowBack, Home, Redo, Undo } from "@mui/icons-material";
 
 function CustomActions() {
   return (
-    <Stack direction='row' alignItems='center'>
+    <Stack direction="row" alignItems="center">
       <ThemeSwitcher />
       <ToolbarAccountOverride />
     </Stack>
-  )
+  );
 }
 
 function useNavigation(): Navigation {
-  const { user } = useAuth()
-  const userRole = user?.admin_role
+  const { user } = useAuth();
+  const userRole = user?.admin_role;
 
   // Base navigation for all authenticated users
   const baseNavigation: Navigation = [
     {
-      segment: '/',
-      title: '홈으로',
+      segment: "/",
+      title: "홈으로",
       icon: <ArrowBack />,
     },
     {
-      kind: 'divider',
+      kind: "divider",
     },
-  ]
+  ];
 
   // Admin/Management navigation
   if (isAdmin(userRole)) {
@@ -66,175 +66,175 @@ function useNavigation(): Navigation {
     if (isSuperAdmin(userRole)) {
       baseNavigation.push(
         {
-          kind: 'header',
-          title: '콘텐츠 관리',
+          kind: "header",
+          title: "콘텐츠 관리",
         },
         {
-          segment: 'auth/manage',
-          title: '대시보드',
+          segment: "auth/manage",
+          title: "대시보드",
           icon: <DashboardIcon />,
         },
         {
-          segment: 'auth/manage/bids',
-          title: '입찰 신청 관리',
+          segment: "auth/manage/bids",
+          title: "입찰 신청 관리",
           icon: <GavelIcon />,
         },
         {
-          segment: 'auth/manage/experts',
-          title: '전문가 관리',
+          segment: "auth/manage/experts",
+          title: "전문가 관리",
           icon: <ExpertIcon />,
         },
         {
-          segment: 'auth/manage/faqs',
-          title: '자주하는 질문 관리',
+          segment: "auth/manage/faqs",
+          title: "자주하는 질문 관리",
           icon: <QuizIcon />,
         },
         {
-          kind: 'divider',
+          kind: "divider",
         },
         {
-          kind: 'header',
-          title: '고객 지원',
+          kind: "header",
+          title: "고객 지원",
         },
         {
-          segment: 'auth/manage/inquiries',
-          title: '문의 관리',
+          segment: "auth/manage/inquiries",
+          title: "문의 관리",
           icon: <QuestionAnswerIcon />,
         },
         {
-          kind: 'divider',
+          kind: "divider",
         },
         {
-          kind: 'header',
-          title: '관리자 메뉴',
+          kind: "header",
+          title: "관리자 메뉴",
         },
         {
-          segment: 'auth/manage/users',
-          title: '사용자 관리',
+          segment: "auth/manage/users",
+          title: "사용자 관리",
           icon: <PersonIcon />,
         },
         {
-          segment: 'auth/manage/managers',
-          title: '관리자 관리',
+          segment: "auth/manage/managers",
+          title: "관리자 관리",
           icon: <SupervisorAccountIcon />,
         },
         {
-          kind: 'divider',
+          kind: "divider",
         }
-      )
+      );
     }
 
     // Content management (for super admin and content managers)
     if (canManageContent(userRole)) {
       baseNavigation.push(
         {
-          kind: 'header',
-          title: '콘텐츠 관리',
+          kind: "header",
+          title: "콘텐츠 관리",
         },
         {
-          segment: 'auth/manage/dashboard',
-          title: '대시보드',
+          segment: "auth/manage/dashboard",
+          title: "대시보드",
           icon: <DashboardIcon />,
         },
         {
-          segment: 'auth/manage/experts',
-          title: '전문가 관리',
+          segment: "auth/manage/experts",
+          title: "전문가 관리",
           icon: <ExpertIcon />,
         },
         {
-          segment: 'auth/manage/faqs',
-          title: '자주하는 질문 관리',
+          segment: "auth/manage/faqs",
+          title: "자주하는 질문 관리",
           icon: <QuizIcon />,
         },
         {
-          kind: 'divider',
+          kind: "divider",
         },
         {
-          kind: 'header',
-          title: '고객 지원',
+          kind: "header",
+          title: "고객 지원",
         },
         {
-          segment: 'auth/manage/inquiries',
-          title: '문의 관리',
+          segment: "auth/manage/inquiries",
+          title: "문의 관리",
           icon: <QuestionAnswerIcon />,
         },
         {
-          kind: 'divider',
+          kind: "divider",
         }
-      )
+      );
     }
 
     // Content management (for super admin and content managers)
     if (canHandleSupport(userRole)) {
       baseNavigation.push(
         {
-          kind: 'header',
-          title: '고객 지원',
+          kind: "header",
+          title: "고객 지원",
         },
         {
-          segment: 'auth/manage/inquiries',
-          title: '문의 관리',
+          segment: "auth/manage/inquiries",
+          title: "문의 관리",
           icon: <QuestionAnswerIcon />,
         },
         {
-          kind: 'divider',
+          kind: "divider",
         }
-      )
+      );
     }
   }
 
   if (isUser(userRole)) {
     baseNavigation.push(
       {
-        kind: 'header',
-        title: 'My Page',
+        kind: "header",
+        title: "마이페이지",
       },
       {
-        segment: 'auth/user/profile',
-        title: '내 정보',
-        icon: <AccountCircleIcon />,
-      },
-      {
-        segment: 'auth/user/history',
-        title: '서비스 내역',
+        segment: "auth/user/history",
+        title: "서비스 내역",
         icon: <HistoryIcon />,
       },
       {
-        kind: 'divider',
+        segment: "auth/user/info",
+        title: "입찰 정보",
+        icon: <AccountCircleIcon />,
+      },
+      {
+        kind: "divider",
       }
-    )
+    );
   }
 
-  return baseNavigation
+  return baseNavigation;
 }
 
 export default function Layout(props: { children: React.ReactNode }) {
-  const { user, session, signOut, loading, isInitialized } = useAuth()
-  const navigation = useNavigation()
+  const { user, session, signOut, loading, isInitialized } = useAuth();
+  const navigation = useNavigation();
 
   // Redirect to sign-in if not authenticated and not loading
   React.useEffect(() => {
     if (isInitialized && !loading && !session && !user) {
-      window.location.href = '/sign'
+      window.location.href = "/sign";
     }
-  }, [isInitialized, loading, session, user])
+  }, [isInitialized, loading, session, user]);
 
   const authentication = React.useMemo(() => {
     return {
       signIn: async () => {
         // Redirect to sign-in page since we can't handle sign-in directly in the layout
-        window.location.href = '/sign'
+        window.location.href = "/sign";
       },
       signOut: async () => {
-        await signOut()
+        await signOut();
       },
-    }
-  }, [signOut])
+    };
+  }, [signOut]);
 
   // Create session object that Toolpad expects
   const toolpadSession = React.useMemo(() => {
-    if (!session || !user) return null
-    
+    if (!session || !user) return null;
+
     return {
       user: {
         id: user.id,
@@ -242,8 +242,8 @@ export default function Layout(props: { children: React.ReactNode }) {
         email: user.email,
         image: session.user.user_metadata?.avatar_url || null,
       },
-    }
-  }, [session, user])
+    };
+  }, [session, user]);
 
   return (
     <NextAppProvider
@@ -270,8 +270,8 @@ export default function Layout(props: { children: React.ReactNode }) {
         <DashboardLayout
           branding={{
             logo: <Sitemark />,
-            title: '',
-            homeUrl: '/auth',
+            title: "",
+            homeUrl: "/auth",
           }}
           slots={{
             toolbarActions: CustomActions,
@@ -283,5 +283,5 @@ export default function Layout(props: { children: React.ReactNode }) {
         </DashboardLayout>
       )}
     </NextAppProvider>
-  )
+  );
 }

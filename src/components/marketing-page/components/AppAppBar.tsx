@@ -22,6 +22,7 @@ import { Typography } from "@mui/material";
 import { useAuth } from "@/contexts/AuthContext";
 import { useRouter } from "next/navigation";
 import DebugAuth from "@/components/DebugAuth";
+import { green } from "@mui/material/colors";
 
 const StyledToolbar = styled(Toolbar)(({ theme }) => ({
   display: "flex",
@@ -118,6 +119,14 @@ export default function AppAppBar() {
               >
                 1:1 문의
               </Button>
+              <Button
+                href="/apply-bid"
+                variant="outlined"
+                size="small"
+                sx={{ color: "primary.main", borderColor: "primary.main" }}
+              >
+                대리입찰 신청
+              </Button>
             </Box>
           </Box>
 
@@ -139,7 +148,7 @@ export default function AppAppBar() {
                 <Button
                   onClick={handleUserMenuOpen}
                   color="primary"
-                  variant="text"
+                  variant="outlined"
                   size="small"
                   startIcon={<AccountCircleIcon />}
                 >
@@ -159,16 +168,18 @@ export default function AppAppBar() {
                   }}
                 >
                   {userIsAdmin && (
-                    <MenuItem
-                      onClick={() => {
-                        router.push("/auth/manage");
-                        handleUserMenuClose();
-                      }}
-                    >
-                      관리자 페이지
-                    </MenuItem>
+                    <>
+                      <MenuItem
+                        onClick={() => {
+                          router.push("/auth/manage");
+                          handleUserMenuClose();
+                        }}
+                      >
+                        관리자 페이지
+                      </MenuItem>
+                      <Divider />
+                    </>
                   )}
-                  <Divider />
                   <MenuItem
                     onClick={() => {
                       router.push("/auth/user/history");
@@ -188,14 +199,6 @@ export default function AppAppBar() {
                   <Divider />
                   <MenuItem onClick={handleLogout}>로그아웃</MenuItem>
                 </Menu>
-                <Button
-                  href="/apply-bid"
-                  color="primary"
-                  variant="contained"
-                  size="small"
-                >
-                  대리입찰 신청
-                </Button>
               </>
             ) : (
               // If the user is logged out:
@@ -203,18 +206,10 @@ export default function AppAppBar() {
                 <Button
                   href="/sign/in"
                   color="primary"
-                  variant="text"
+                  variant="outlined"
                   size="small"
                 >
                   로그인/회원가입
-                </Button>
-                <Button
-                  href="/apply-bid"
-                  color="primary"
-                  variant="contained"
-                  size="small"
-                >
-                  대리입찰 신청
                 </Button>
               </>
             )}
@@ -261,6 +256,17 @@ export default function AppAppBar() {
                 <MenuItem component="a" href="/contact">
                   1:1 문의
                 </MenuItem>
+                <MenuItem>
+                  <Button
+                    color="primary"
+                    variant="outlined"
+                    fullWidth
+                    href="/apply-bid"
+                    sx={{ color: "primary.main", borderColor: "primary.main" }}
+                  >
+                    대리입찰 신청
+                  </Button>
+                </MenuItem>
                 <Divider sx={{ my: 3 }} />
 
                 {/* Mobile menu authentication section */}
@@ -294,16 +300,6 @@ export default function AppAppBar() {
                       프로필 관리
                     </MenuItem>
                     <MenuItem onClick={handleLogout}>로그아웃</MenuItem>
-                    <MenuItem>
-                      <Button
-                        color="primary"
-                        variant="contained"
-                        fullWidth
-                        href="/apply-bid"
-                      >
-                        대리입찰 신청
-                      </Button>
-                    </MenuItem>
                   </Box>
                 ) : (
                   // If the user is logged out:
@@ -311,21 +307,11 @@ export default function AppAppBar() {
                     <MenuItem>
                       <Button
                         color="primary"
-                        variant="text"
+                        variant="outlined"
                         fullWidth
                         href="/sign/in"
                       >
                         로그인/회원가입
-                      </Button>
-                    </MenuItem>
-                    <MenuItem>
-                      <Button
-                        color="primary"
-                        variant="contained"
-                        fullWidth
-                        href="/apply-bid"
-                      >
-                        대리입찰 신청
                       </Button>
                     </MenuItem>
                   </Box>
