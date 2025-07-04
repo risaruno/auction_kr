@@ -29,9 +29,9 @@ interface CaseFindProps {
 
 // 2. The component now accepts props.
 export default function CaseFind({ caseResult, setCaseResult }: CaseFindProps) {
-  const [areaCd, setAreaCd] = useState('ulsan')
-  const [cortOfcCd, setCortOfcCd] = useState('B000411')
-  const [csNo, setCsNo] = useState('2024타경110861')
+  const [areaCd, setAreaCd] = useState('seoul')
+  const [cortOfcCd, setCortOfcCd] = useState('B000210')
+  const [csNo, setCsNo] = useState('2022타경108801')
   const [loading, setLoading] = useState(false)
 
   const handleSubmit = async () => {

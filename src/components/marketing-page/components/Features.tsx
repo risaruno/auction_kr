@@ -24,7 +24,7 @@ const items = [
     icon: <EdgesensorHighRoundedIcon />,
     title: '실수없이 안전한 서류작성',
     description:
-      '체르토는 입찰 서류 작성 대행 서비스를 제공하여 문서의 정확성을 보장합니다. 체로토를 통해 서류작성 과정에서 발생할 수 있는 오류의 잠재적 위험을 제거합니다. 만약의 실수까지 방어하세요.',
+      '체르또는 입찰 서류 작성 대행 서비스를 제공하여 문서의 정확성을 보장합니다. 체로토를 통해 서류작성 과정에서 발생할 수 있는 오류의 잠재적 위험을 제거합니다. 만약의 실수까지 방어하세요.',
     imageLight: `url("${process.env.TEMPLATE_IMAGE_URL || 'https://mui.com'}/static/images/templates/templates-images/mobile-light.png")`,
     imageDark: `url("${process.env.TEMPLATE_IMAGE_URL || 'https://mui.com'}/static/images/templates/templates-images/mobile-dark.png")`,
   },
@@ -157,7 +157,7 @@ export default function Features() {
           variant="body1"
           sx={{ color: 'text.secondary', mb: { xs: 2, sm: 4 } }}
         >
-          체르토는 20년 이상의 부동산 경매 노하우를 바탕으로 물건 분석부터 낙찰까지 전 과정을 책임지는 
+          체르또는 20년 이상의 부동산 경매 노하우를 바탕으로 물건 분석부터 낙찰까지 전 과정을 책임지는 
           토탈 솔루션을 제공합니다. 투명한 정보 제공, 전문적인 분석, 그리고 안전한 입찰 대행으로 
           고객님의 성공적인 부동산 투자를 지원합니다.
         </Typography>

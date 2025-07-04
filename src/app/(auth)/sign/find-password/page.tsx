@@ -63,9 +63,7 @@ export default function FindPassword() {
   const [state, formAction] = useFormState(findPassword, initialState)
 
   return (
-    <AppTheme>
-      <CssBaseline enableColorScheme />
-      <AppAppBar />
+    <>
       <SignContainer direction="column" justifyContent="space-between">
         <Card variant="outlined">
           <SitemarkIcon />
@@ -109,8 +107,6 @@ export default function FindPassword() {
           </Box>
         </Card>
       </SignContainer>
-      <Divider />
-      <Footer />
-    </AppTheme>
+    </>
   );
 }

@@ -1,11 +1,11 @@
 "use client";
 import * as React from 'react';
-import UserInfo from '@/app/auth/user/profile/UserInfo';
+import UserProfile from '@/app/auth/user/profile/UserProfile';
 
 export default function UserProfilePage() {
   return (
     <>
-      <UserInfo />
+      <UserProfile />
     </>
   );
 }

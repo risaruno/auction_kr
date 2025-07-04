@@ -52,7 +52,7 @@ const timelineSteps = [
     icon: <AssignmentIndIcon />,
   },
   {
-    actor: '체르토',
+    actor: '체르또',
     title: '2. 전자계약서 발행',
     description: '보안과 안전한 입찰을 위한 전자계약서 제공',
     icon: <Description />,
@@ -64,8 +64,8 @@ const timelineSteps = [
     icon: <RequestQuoteIcon />,
   },
   {
-    actor: '체르토',
-    title: '4. 서류 작성 / 전담 체르토 제공',
+    actor: '체르또',
+    title: '4. 서류 작성 / 전담 체르또 제공',
     description: '배정된 입찰 전문가가 입찰관련 서류 작성',
     icon: <PeopleIcon />,
   },
@@ -154,7 +154,7 @@ export default function Features() {
         }}
       >
         <Typography variant='h5' component='p' sx={{ fontWeight: 'bold' }}>
-          복잡하고 번거로운 작업은 체르토에게 맡기세요.
+          복잡하고 번거로운 작업은 체르또에게 맡기세요.
         </Typography>
         <Typography sx={{ mt: 1 }}>
           딱 5분, 입찰자님은 꼭 필요한 일만 하세요.
@@ -197,7 +197,7 @@ export default function Features() {
               <TimelineConnector />
             </TimelineSeparator>
             <TimelineContent sx={{ m: 'auto 0' }}>
-              {step.actor === '체르토' && (
+              {step.actor === '체르또' && (
                 <Paper
                   elevation={3}
                   sx={{

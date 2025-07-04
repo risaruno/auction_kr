@@ -1,3 +1,4 @@
+'use client'
 import * as React from 'react'
 import { ThemeProvider, createTheme } from '@mui/material/styles'
 import type { ThemeOptions } from '@mui/material/styles'
@@ -41,9 +42,9 @@ export default function AppTheme(props: AppThemeProps) {
   }, [disableCustomTheme, themeComponents])
 
   // This correctly ensures only light mode is ever used.
-  React.useEffect(() => {
-    document.documentElement.setAttribute('data-mui-color-scheme', 'light')
-  }, [])
+  // React.useEffect(() => {
+  //   document.documentElement.setAttribute('data-mui-color-scheme', 'light')
+  // }, [])
 
   if (disableCustomTheme) {
     return <React.Fragment>{children}</React.Fragment>

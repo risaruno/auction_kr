@@ -271,7 +271,7 @@ const serviceHistory = () => {
   return (
     <Container maxWidth="lg" sx={{ my: 5 }}>
       <Typography variant="h4" sx={{ fontWeight: "bold", mb: 3 }}>
-        내 신청 내역
+        입찰 신청 내역
       </Typography>
 
       {error && (

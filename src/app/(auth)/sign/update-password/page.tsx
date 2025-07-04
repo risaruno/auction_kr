@@ -60,9 +60,7 @@ export default function UpdatePasswordPage() {
   const [state, formAction] = useFormState(updatePassword, initialState)
 
   return (
-    <AppTheme>
-      <CssBaseline enableColorScheme />
-      <AppAppBar />
+    <>
       <SignContainer direction="column" justifyContent="space-between">
         <Card variant="outlined">
           <SitemarkIcon />
@@ -125,8 +123,6 @@ export default function UpdatePasswordPage() {
           </Box>
         </Card>
       </SignContainer>
-      <Divider />
-      <Footer />
-    </AppTheme>
+    </>
   );
 }

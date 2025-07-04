@@ -66,7 +66,7 @@ export default function Hero() {
                 }),
               })}
             >
-              체르토
+              체르또
             </Typography>
           </Typography>
           <Typography

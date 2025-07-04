@@ -33,7 +33,7 @@ export default function InfoPage() {
                 }),
               })}
             >
-              체르토
+              체르또
             </Typography>
             &nbsp;대리입찰&nbsp;이용안내
           </Typography>

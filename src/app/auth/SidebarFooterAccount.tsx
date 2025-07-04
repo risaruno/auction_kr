@@ -45,7 +45,7 @@ const SidebarFooterAccountPopover = ({ mini }: { mini: boolean }) => {
           startIcon={<SettingsIcon />}
           href="/auth/user/profile"
         >
-          프로필 설정
+          비밀번호 변경
         </Button>
       </MenuList>
       <MenuList>

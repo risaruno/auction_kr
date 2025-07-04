@@ -255,7 +255,7 @@ export default function PaymentForm({
             환불 정책 안내
           </Typography>
           <Typography variant="body1" sx={{ mt: 2, textAlign: "center" }}>
-            체르토는 입찰에 어려움이 있으신 분들을
+            체르또는 입찰에 어려움이 있으신 분들을
             <br />
             전문가가 도와드리는 서비스입니다.
           </Typography>

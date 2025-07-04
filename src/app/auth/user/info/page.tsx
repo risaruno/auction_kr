@@ -1,6 +1,6 @@
 "use client";
 import * as React from 'react';
-import UserInfo from '@/app/auth/user/profile/UserInfo';
+import UserInfo from '@/app/auth/user/info/UserInfo';
 
 export default function UserProfilePage() {
   return (

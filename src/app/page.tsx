@@ -13,7 +13,7 @@ import DebugAuth from "@/components/DebugAuth";
 
 export default function Home() {
   return (
-    <AppTheme>
+    <>
       <CssBaseline />
       <AppAppBar />
       <Hero />
@@ -26,6 +26,6 @@ export default function Home() {
       <Apply /> */}
       <Divider />
       <Footer />
-    </AppTheme>
+    </>
   );
 }

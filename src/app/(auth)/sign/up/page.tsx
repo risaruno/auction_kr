@@ -66,9 +66,7 @@ export default function SignUp() {
   const [state, formAction] = useFormState(signup, initialState)
 
   return (
-    <AppTheme>
-      <CssBaseline enableColorScheme />
-      <AppAppBar />
+    <>
       <SignContainer direction="column" justifyContent="space-between">
         <Card variant="outlined">
           <SitemarkIcon />
@@ -147,8 +145,6 @@ export default function SignUp() {
           </Box>
         </Card>
       </SignContainer>
-      <Divider />
-      <Footer />
-    </AppTheme>
+    </>
   );
 }
