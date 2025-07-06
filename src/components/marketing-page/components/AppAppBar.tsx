@@ -111,7 +111,7 @@ export default function AppAppBar() {
                 자주하는 질문
               </Button>
               <Button
-                href="/contact"
+                href="/inquiries"
                 variant="text"
                 color="info"
                 size="small"
@@ -253,7 +253,7 @@ export default function AppAppBar() {
                 <MenuItem component="a" href="/faq">
                   자주하는 질문
                 </MenuItem>
-                <MenuItem component="a" href="/contact">
+                <MenuItem component="a" href="/inquiries">
                   1:1 문의
                 </MenuItem>
                 <MenuItem>
