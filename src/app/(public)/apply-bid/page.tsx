@@ -254,6 +254,7 @@ export default function ApplyBid() {
             width: '100%',
             maxWidth: { sm: '100%', md: 800 },
             gap: { xs: 5, md: 'none' },
+            py: { xs: 2, sm: 4 },
           }}
         >
           {activeStep === steps.length ? (
@@ -266,7 +267,7 @@ export default function ApplyBid() {
               <Button
                 variant="contained"
                 onClick={() => router.push('/auth/user/history')}
-                sx={{ mt: 3, alignSelf: 'center' }}
+                sx={{ m: 3, alignSelf: 'center' }}
               >
                 마이페이지로 이동
               </Button>

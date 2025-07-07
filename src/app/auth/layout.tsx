@@ -16,6 +16,7 @@ import {
 } from "@mui/icons-material";
 import type { Navigation } from "@toolpad/core/AppProvider";
 import theme from "@/theme";
+
 import Stack from "@mui/material/Stack";
 import CircularProgress from "@mui/material/CircularProgress";
 import Box from "@mui/material/Box";
@@ -116,7 +117,7 @@ function useNavigation(): Navigation {
 export default function Layout({ children }: { children: React.ReactNode }) {
   const { user, session, loading, signOut } = useAuth();
   const router = useRouter();
-  const pathname = usePathname();
+  const pathname = usePathname() || "/";
 
   if (loading) {
     return (

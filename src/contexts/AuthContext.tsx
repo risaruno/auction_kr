@@ -169,6 +169,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     const { data: { subscription } } = supabase.auth.onAuthStateChange(
       async (event, session) => {
         if (!isMounted) return
+        if (!isInitialized) return
         
         // PERUBAHAN 2: setTimeout (debounce) 500ms DIHAPUS. 
         // Logika di dalamnya sekarang berjalan instan untuk mencegah delay.

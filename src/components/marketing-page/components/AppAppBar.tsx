@@ -189,7 +189,7 @@ export default function AppAppBar() {
                     horizontal: "right",
                   }}
                 >
-                  {userIsAdmin && (
+                  {userIsAdmin ? (
                     <>
                       <MenuItem
                         onClick={() => {
@@ -201,24 +201,27 @@ export default function AppAppBar() {
                       </MenuItem>
                       <Divider />
                     </>
+                  ) : (
+                    <>
+                      <MenuItem
+                        onClick={() => {
+                          router.push("/auth/user/history");
+                          handleUserMenuClose();
+                        }}
+                      >
+                        입찰 내역
+                      </MenuItem>
+                      <MenuItem
+                        onClick={() => {
+                          router.push("/auth/user/profile");
+                          handleUserMenuClose();
+                        }}
+                      >
+                        프로필 관리
+                      </MenuItem>
+                      <Divider />
+                    </>
                   )}
-                  <MenuItem
-                    onClick={() => {
-                      router.push("/auth/user/history");
-                      handleUserMenuClose();
-                    }}
-                  >
-                    입찰 내역
-                  </MenuItem>
-                  <MenuItem
-                    onClick={() => {
-                      router.push("/auth/user/profile");
-                      handleUserMenuClose();
-                    }}
-                  >
-                    프로필 관리
-                  </MenuItem>
-                  <Divider />
                   <MenuItem onClick={handleLogout}>로그아웃</MenuItem>
                 </Menu>
               </>

@@ -90,21 +90,13 @@ export default function Hero() {
             }}
           >
             <Button
-              variant='outlined'
+              variant='contained'
               color='primary'
               size='large'
               sx={{ minWidth: 'fit-content' }}
               href='/apply-bid'
             >
               대리입찰 신청
-            </Button>
-            <Button
-              variant='contained'
-              color='primary'
-              size='large'
-              sx={{ minWidth: 'fit-content' }}
-            >
-              전문가 서비스 신청
             </Button>
           </Stack>
         </Stack>
