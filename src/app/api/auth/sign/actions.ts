@@ -16,9 +16,10 @@ export async function login(
 ): Promise<FormState> {
   const supabase = await createClient()
 
-  // 1. Get email and password from the form data
+  // 1. Get email, password, and our new redirectTo from the form data
   const email = formData.get('email') as string
   const password = formData.get('password') as string
+  const redirectTo = formData.get('redirectTo') as string | null // MODIFIKASI: Ambil redirectTo dari form
 
   if (!email || !password) {
     return { error: 'Email and password are required.', message: null }
@@ -32,7 +33,10 @@ export async function login(
 
   // Password validation: 8-16 characters
   if (password.length < 8 || password.length > 16) {
-    return { error: 'Password must be between 8 and 16 characters long.', message: null }
+    return {
+      error: 'Password must be between 8 and 16 characters long.',
+      message: null,
+    }
   }
 
   // 2. Call Supabase sign-in
@@ -44,13 +48,20 @@ export async function login(
   // 3. Instead of redirecting on error, return the error message.
   if (error) {
     console.error('Login Error:', error.message)
-    return { error: 'Invalid credentials. Please try again.', message: null }
+    // Berikan pesan error yang lebih relevan
+    return { error: '이메일 또는 비밀번호가 일치하지 않습니다.', message: null }
   }
 
-  // 4. On success, revalidate and redirect as before.
+  // 4. On success, revalidate and redirect.
   revalidatePath('/', 'layout')
-  redirect('/auth/user/history') // Redirect to a protected page on success
+
+  // MODIFIKASI: Gunakan redirectTo jika ada, jika tidak, gunakan default path
+  redirect(redirectTo || '/auth/user/history')
 }
+
+// ==================================================================
+// Fungsi-fungsi di bawah ini tidak perlu diubah untuk alur login
+// ==================================================================
 
 export async function signup(
   prevState: FormState,
@@ -67,16 +78,19 @@ export async function signup(
     if (!name || !email || !password) {
       return { error: 'Name, email, and password are required.', message: null }
     }
-    
+
     // Email validation
     const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/
     if (!emailRegex.test(email)) {
       return { error: 'Please enter a valid email address.', message: null }
     }
-    
+
     // Password validation: 8-16 characters
     if (password.length < 8 || password.length > 16) {
-      return { error: 'Password must be between 8 and 16 characters long.', message: null }
+      return {
+        error: 'Password must be between 8 and 16 characters long.',
+        message: null,
+      }
     }
 
     // 2. Use Supabase's signUp method
@@ -89,7 +103,9 @@ export async function signup(
           full_name: name,
         },
         // Set the redirect URL for email confirmation
-        emailRedirectTo: `${process.env.NEXT_PUBLIC_SITE_URL || 'http://localhost:3000'}/auth/confirm`,
+        emailRedirectTo: `${
+          process.env.NEXT_PUBLIC_SITE_URL || 'http://localhost:3000'
+        }/auth/confirm`,
       },
     })
 
@@ -104,12 +120,15 @@ export async function signup(
       // The user object is returned, but the session is null until confirmed.
       return {
         error: null,
-        message: 'Sign-up successful! Please check your email to verify your account.',
+        message:
+          'Sign-up successful! Please check your email to verify your account.',
       }
     }
 
-    return { error: 'An unexpected error occurred during sign-up.', message: null }
-
+    return {
+      error: 'An unexpected error occurred during sign-up.',
+      message: null,
+    }
   } catch (err: any) {
     console.error('Sign-up error:', err)
     return { error: 'Internal Server Error', message: null }
@@ -137,7 +156,9 @@ export async function findPassword(
     }
 
     // This is the page where the user will be redirected to set their new password.
-    const redirectTo = `${process.env.NEXT_PUBLIC_SITE_URL || 'http://localhost:3000'}/sign/update-password`
+    const redirectTo = `${
+      process.env.NEXT_PUBLIC_SITE_URL || 'http://localhost:3000'
+    }/sign/update-password`
 
     // Call Supabase's built-in function to send the password reset email
     const { error } = await supabase.auth.resetPasswordForEmail(email, {
@@ -153,9 +174,9 @@ export async function findPassword(
     // Always return a success message to prevent user enumeration attacks.
     return {
       error: null,
-      message: 'If an account with this email exists, a password reset link has been sent.',
+      message:
+        'If an account with this email exists, a password reset link has been sent.',
     }
-
   } catch (err: any) {
     console.error('Find password error:', err)
     return { error: 'Internal Server Error', message: null }
@@ -174,7 +195,10 @@ export async function updatePassword(
 
     // Validate input
     if (!newPassword || !confirmPassword) {
-      return { error: 'New password and confirmation are required.', message: null }
+      return {
+        error: 'New password and confirmation are required.',
+        message: null,
+      }
     }
 
     if (newPassword !== confirmPassword) {
@@ -183,16 +207,23 @@ export async function updatePassword(
 
     // Password validation: 8-16 characters
     if (newPassword.length < 8 || newPassword.length > 16) {
-      return { error: 'Password must be between 8 and 16 characters long.', message: null }
+      return {
+        error: 'Password must be between 8 and 16 characters long.',
+        message: null,
+      }
     }
 
     // Check if user is authenticated (should be via password reset link)
-    const { data: { user }, error: userError } = await supabase.auth.getUser()
-    
+    const {
+      data: { user },
+      error: userError,
+    } = await supabase.auth.getUser()
+
     if (userError || !user) {
-      return { 
-        error: 'Authentication required. Please use the password reset link from your email.', 
-        message: null 
+      return {
+        error:
+          'Authentication required. Please use the password reset link from your email.',
+        message: null,
       }
     }
 
@@ -203,15 +234,18 @@ export async function updatePassword(
 
     if (updateError) {
       console.error('Error updating password:', updateError.message)
-      return { error: 'Failed to update password. Please try the reset link again.', message: null }
+      return {
+        error: 'Failed to update password. Please try the reset link again.',
+        message: null,
+      }
     }
 
     // Return success message instead of redirecting immediately
     return {
       error: null,
-      message: 'Password updated successfully! You can now sign in with your new password.',
+      message:
+        'Password updated successfully! You can now sign in with your new password.',
     }
-
   } catch (err: any) {
     console.error('Update password error:', err)
     return { error: 'Internal Server Error', message: null }
@@ -220,9 +254,9 @@ export async function updatePassword(
 
 export async function logout(): Promise<void> {
   const supabase = await createClient()
-  
+
   const { error } = await supabase.auth.signOut()
-  
+
   if (error) {
     console.error('Logout error:', error.message)
     throw new Error('Failed to logout')

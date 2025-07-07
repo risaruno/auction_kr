@@ -49,6 +49,28 @@ export default function AppAppBar() {
   );
   const [userIsAdmin, setUserIsAdmin] = useState(false);
 
+  const handleInquiryClick = () => {
+    // Jika masih dalam proses loading auth, jangan lakukan apa-apa
+    if (loading) {
+      return;
+    }
+
+    // Jika pengguna sudah login
+    if (user) {
+      // Cek apakah pengguna adalah admin
+      if (userIsAdmin) {
+        router.push('/auth/manage/inquiries');
+      } else {
+        router.push('/auth/user/inquiry');
+      }
+    } else {
+      // Jika pengguna belum login, arahkan ke halaman sign-in
+      // dengan parameter redirectTo ke halaman inquiry untuk user biasa.
+      const destination = '/auth/user/inquiry';
+      router.push(`/sign/in?redirectTo=${encodeURIComponent(destination)}`);
+    }
+  };
+
   useEffect(() => {
     setUserIsAdmin(user?.admin_role === "super_admin");
   }, [user]);
@@ -111,7 +133,7 @@ export default function AppAppBar() {
                 자주하는 질문
               </Button>
               <Button
-                href="/inquiries"
+                onClick={handleInquiryClick}
                 variant="text"
                 color="info"
                 size="small"
@@ -253,7 +275,10 @@ export default function AppAppBar() {
                 <MenuItem component="a" href="/faq">
                   자주하는 질문
                 </MenuItem>
-                <MenuItem component="a" href="/inquiries">
+                <MenuItem onClick={() => {
+                    handleInquiryClick(); // Panggil handler
+                    setOpen(false);       // Tutup drawer setelah diklik
+                }}>
                   1:1 문의
                 </MenuItem>
                 <MenuItem>
