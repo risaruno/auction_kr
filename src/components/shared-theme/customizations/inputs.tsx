@@ -51,42 +51,42 @@ export const inputsCustomizations: Components<Theme> = {
               height: '2.5rem', // 40px
             },
           },
-          {
-            props: {
-              color: 'primary',
-              variant: 'contained',
-            },
-            style: {
-              color: 'white',
-              backgroundColor: gray[900],
-              backgroundImage: `linear-gradient(to bottom, ${gray[700]}, ${gray[800]})`,
-              boxShadow: `inset 0 1px 0 ${gray[600]}, inset 0 -1px 0 1px hsl(220, 0%, 0%)`,
-              border: `1px solid ${gray[700]}`,
-              '&:hover': {
-                backgroundImage: 'none',
-                backgroundColor: gray[700],
-                boxShadow: 'none',
-              },
-              '&:active': {
-                backgroundColor: gray[800],
-              },
-              ...theme.applyStyles('dark', {
-                color: 'black',
-                backgroundColor: gray[50],
-                backgroundImage: `linear-gradient(to bottom, ${gray[100]}, ${gray[50]})`,
-                boxShadow: 'inset 0 -1px 0  hsl(220, 30%, 80%)',
-                border: `1px solid ${gray[50]}`,
-                '&:hover': {
-                  backgroundImage: 'none',
-                  backgroundColor: gray[300],
-                  boxShadow: 'none',
-                },
-                '&:active': {
-                  backgroundColor: gray[400],
-                },
-              }),
-            },
-          },
+          // {
+          //   props: {
+          //     color: 'primary',
+          //     variant: 'contained',
+          //   },
+          //   style: {
+          //     color: 'white',
+          //     backgroundColor: gray[900],
+          //     backgroundImage: `linear-gradient(to bottom, ${gray[700]}, ${gray[800]})`,
+          //     boxShadow: `inset 0 1px 0 ${gray[600]}, inset 0 -1px 0 1px hsl(220, 0%, 0%)`,
+          //     border: `1px solid ${gray[700]}`,
+          //     '&:hover': {
+          //       backgroundImage: 'none',
+          //       backgroundColor: gray[700],
+          //       boxShadow: 'none',
+          //     },
+          //     '&:active': {
+          //       backgroundColor: gray[800],
+          //     },
+          //     ...theme.applyStyles('dark', {
+          //       color: 'black',
+          //       backgroundColor: gray[50],
+          //       backgroundImage: `linear-gradient(to bottom, ${gray[100]}, ${gray[50]})`,
+          //       boxShadow: 'inset 0 -1px 0  hsl(220, 30%, 80%)',
+          //       border: `1px solid ${gray[50]}`,
+          //       '&:hover': {
+          //         backgroundImage: 'none',
+          //         backgroundColor: gray[300],
+          //         boxShadow: 'none',
+          //       },
+          //       '&:active': {
+          //         backgroundColor: gray[400],
+          //       },
+          //     }),
+          //   },
+          // },
           {
             props: {
               color: 'secondary',
@@ -376,54 +376,48 @@ export const inputsCustomizations: Components<Theme> = {
       },
     },
   },
-  MuiOutlinedInput: {
-    styleOverrides: {
-      input: {
-        padding: 0,
-      },
-      root: ({ theme }) => ({
-        padding: '8px 12px',
-        color: (theme.vars || theme).palette.text.primary,
-        borderRadius: (theme.vars || theme).shape.borderRadius,
-        border: `1px solid ${(theme.vars || theme).palette.divider}`,
-        backgroundColor: (theme.vars || theme).palette.background.default,
-        transition: 'border 120ms ease-in',
-        '&:hover': {
-          borderColor: gray[400],
-        },
-        [`&.${outlinedInputClasses.focused}`]: {
-          outline: `3px solid ${alpha(brand[500], 0.5)}`,
-          borderColor: brand[400],
-        },
-        ...theme.applyStyles('dark', {
-          '&:hover': {
-            borderColor: gray[500],
-          },
-        }),
-        variants: [
-          {
-            props: {
-              size: 'small',
-            },
-            style: {
-              height: '2.25rem',
-            },
-          },
-          {
-            props: {
-              size: 'medium',
-            },
-            style: {
-              height: '2.5rem',
-            },
-          },
-        ],
-      }),
-      notchedOutline: {
-        border: 'none',
-      },
-    },
-  },
+  // MuiOutlinedInput: {
+  //   styleOverrides: {
+  //     input: {
+  //       padding: 0,
+  //     },
+  //     root: ({ theme }) => ({
+  //       padding: '8px 12px',
+  //       color: (theme.vars || theme).palette.text.primary,
+  //       borderRadius: (theme.vars || theme).shape.borderRadius,
+  //       border: `1px solid ${(theme.vars || theme).palette.divider}`,
+  //       backgroundColor: (theme.vars || theme).palette.background.default,
+  //       transition: 'border 120ms ease-in',
+  //       '&:hover': {
+  //         borderColor: gray[400],
+  //       },
+  //       [`&.${outlinedInputClasses.focused}`]: {
+  //         outline: `3px solid ${alpha(brand[500], 0.5)}`,
+  //         borderColor: brand[400],
+  //       },
+  //       ...theme.applyStyles('dark', {
+  //         '&:hover': {
+  //           borderColor: gray[500],
+  //         },
+  //       }),
+  //       variants: [
+  //         {
+  //           props: {
+  //             size: 'small',
+  //           },
+  //         },
+  //         {
+  //           props: {
+  //             size: 'medium',
+  //           },
+  //         },
+  //       ],
+  //     }),
+  //     notchedOutline: {
+  //       border: 'none',
+  //     },
+  //   },
+  // },
   MuiInputAdornment: {
     styleOverrides: {
       root: ({ theme }) => ({

@@ -5,18 +5,19 @@ import {
   Box,
   Typography,
   Button,
-  Table,
-  TableHead,
-  TableBody,
-  TableRow,
-  TableCell,
   IconButton,
   Paper,
   Dialog,
   DialogTitle,
   DialogContent,
   DialogActions,
+  Chip,
 } from '@mui/material'
+import {
+  DataGrid,
+  GridColDef,
+  GridRenderCellParams,
+} from '@mui/x-data-grid'
 import AddIcon from '@mui/icons-material/Add'
 import VisibilityIcon from '@mui/icons-material/Visibility'
 import InboxOutlinedIcon from '@mui/icons-material/InboxOutlined'
@@ -29,22 +30,98 @@ export default function InquiriesList() {
   const [inquiries, setInquiries] = useState<any[]>([])
   const [userId, setUserId] = useState<string | null>(null)
   const [open, setOpen] = useState(false)
+  const [loading, setLoading] = useState(true)
 
   const [selectedInquiry, setSelectedInquiry] = useState<any | null>(null)
   const [viewDialogOpen, setViewDialogOpen] = useState(false)
 
+  const getStatusChip = (status: string) => {
+    const statusConfig = {
+      'Unanswered': { color: 'warning' as const, label: '대기중' },
+      'Answered': { color: 'success' as const, label: '답변완료' },
+    }
+    
+    const config = statusConfig[status as keyof typeof statusConfig] || { color: 'default' as const, label: status }
+    
+    return (
+      <Chip
+        label={config.label}
+        color={config.color}
+        size="small"
+      />
+    )
+  }
+
+  // Define DataGrid columns
+  const columns: GridColDef[] = [
+    {
+      field: 'title',
+      headerName: '문의 내용',
+      width: 400,
+      renderCell: (params: GridRenderCellParams) => (
+        <Box
+          sx={{
+            display: 'flex',
+            alignItems: 'center',
+            height: '100%',
+          }}
+        >
+          <Typography variant="body2" sx={{ fontWeight: 'medium' }}>
+            {params.row.title}
+          </Typography>
+        </Box>
+      ),
+    },
+    {
+      field: 'status',
+      headerName: '답변 상태',
+      width: 150,
+      renderCell: (params: GridRenderCellParams) => getStatusChip(params.row.status),
+    },
+    {
+      field: 'created_at',
+      headerName: '작성일',
+      width: 180,
+      renderCell: (params: GridRenderCellParams) => (
+        <Box sx={{ display: 'flex', alignItems: 'center', height: '100%' }}>
+          <Typography variant="body2" color="text.secondary">
+            {params.row.created_at ? new Date(params.row.created_at).toLocaleDateString('ko-KR') : '-'}
+          </Typography>
+        </Box>
+      ),
+    },
+    {
+      field: 'actions',
+      headerName: '보기',
+      width: 100,
+      sortable: false,
+      renderCell: (params: GridRenderCellParams) => (
+        <IconButton 
+          color="primary" 
+          onClick={() => handleView(params.row.id)}
+          title="문의 보기"
+        >
+          <VisibilityIcon />
+        </IconButton>
+      ),
+    },
+  ]
+
   const fetchInquiries = async () => {
+    setLoading(true)
     const { data, error } = await supabase
       .from('inquiries')
-      .select('id, title, status')
+      .select('id, title, status, created_at')
       .order('created_at', { ascending: false })
 
     if (error) {
       console.error('Failed to fetch inquiries:', error.message)
+      setLoading(false)
       return
     }
 
     setInquiries(data)
+    setLoading(false)
   }
 
   useEffect(() => {
@@ -117,32 +194,26 @@ export default function InquiriesList() {
           </Typography>
         </Box>
       ) : (
-        <Paper elevation={0} variant="outlined">
-          <Table>
-            <TableHead sx={{ backgroundColor: '#f9fafb' }}>
-              <TableRow>
-                <TableCell>No</TableCell>
-                <TableCell>문의 내용</TableCell>
-                <TableCell>답변 상태</TableCell>
-                <TableCell align="center">보기</TableCell>
-              </TableRow>
-            </TableHead>
-            <TableBody>
-              {inquiries.map((inq, idx) => (
-                <TableRow key={inq.id}>
-                  <TableCell>{idx + 1}</TableCell>
-                  <TableCell>{inq.title}</TableCell>
-                  <TableCell>{inq.status}</TableCell>
-                  <TableCell align="center">
-                    <IconButton color="primary" onClick={() => handleView(inq.id)}>
-                      <VisibilityIcon />
-                    </IconButton>
-                  </TableCell>
-                </TableRow>
-              ))}
-            </TableBody>
-          </Table>
-        </Paper>
+        <Box sx={{ height: 400, width: '100%' }}>
+          <DataGrid
+            rows={inquiries}
+            columns={columns}
+            loading={loading}
+            pageSizeOptions={[5, 10, 25]}
+            initialState={{
+              pagination: {
+                paginationModel: { page: 0, pageSize: 10 },
+              },
+            }}
+            disableRowSelectionOnClick
+            sx={{
+              '& .MuiDataGrid-columnHeaders': {
+                backgroundColor: '#f9fafb',
+                fontWeight: 'bold',
+              },
+            }}
+          />
+        </Box>
       )}
 
       {/* New Inquiry Dialog */}
@@ -204,7 +275,7 @@ export default function InquiriesList() {
         </DialogContent>
         <DialogActions>
           <Button onClick={handleCloseView} color="inherit">
-            Close
+            닫기
           </Button>
         </DialogActions>
       </Dialog>

@@ -62,7 +62,7 @@ export default function AdminReplyForm({ inquiryId, adminId, onSuccess }: AdminR
   }
 
   return (
-    <Box component="form" onSubmit={handleSubmit} mt={2}>
+    <Box component="form" onSubmit={handleSubmit}>
       {error && (
         <Alert severity="error" sx={{ mb: 2 }}>
           {error}
@@ -70,7 +70,7 @@ export default function AdminReplyForm({ inquiryId, adminId, onSuccess }: AdminR
       )}
 
       <TextField
-        label="Your Reply"
+        label="답변 내용"
         value={content}
         onChange={(e) => setContent(e.target.value)}
         fullWidth
@@ -78,13 +78,13 @@ export default function AdminReplyForm({ inquiryId, adminId, onSuccess }: AdminR
         multiline
         rows={4}
         margin="normal"
-        placeholder="Write your reply to the user..."
+        placeholder="답변 내용을 입력하세요..."
         autoFocus // Otomatis fokus ke textfield saat muncul
       />
 
       <Box mt={2} display="flex" justifyContent="flex-end">
         <Button type="submit" variant="contained" disabled={loading || !content.trim()}>
-          {loading ? <CircularProgress size={24} color="inherit" /> : 'Submit Reply'}
+          {loading ? <CircularProgress /> : '답변 제출'}
         </Button>
       </Box>
     </Box>

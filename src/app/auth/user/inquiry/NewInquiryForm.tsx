@@ -72,7 +72,7 @@ export default function NewInquiryForm({ userId, onSuccess }: NewInquiryFormProp
       )}
 
       <TextField
-        label="Title"
+        label="문의 제목"
         value={title}
         onChange={(e) => setTitle(e.target.value)}
         fullWidth
@@ -81,7 +81,7 @@ export default function NewInquiryForm({ userId, onSuccess }: NewInquiryFormProp
       />
 
       <TextField
-        label="Message"
+        label="문의 내용"
         value={message}
         onChange={(e) => setMessage(e.target.value)}
         fullWidth
@@ -93,7 +93,7 @@ export default function NewInquiryForm({ userId, onSuccess }: NewInquiryFormProp
 
       <Box mt={2}>
         <Button type="submit" variant="contained" disabled={loading}>
-          {loading ? 'Submitting...' : 'Submit'}
+          {loading ? '제출 중...' : '문의 제출'}
         </Button>
       </Box>
     </Box>

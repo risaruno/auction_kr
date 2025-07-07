@@ -35,6 +35,7 @@ export async function updateProfile(
     const fullName = formData.get('fullName') as string
     const phone = formData.get('phone') as string
     const address = formData.get('address') as string
+    const zip_no = formData.get('zipNo') as string
     const addrDetail = formData.get('addrDetail') as string
     const bank = formData.get('bank') as string
     const accountNumber = formData.get('accountNumber') as string
@@ -54,6 +55,7 @@ export async function updateProfile(
         full_name: fullName,
         phone: phone,
         address: address,
+        zip_no: zip_no,
         addr_detail: addrDetail,
         bank: bank,
         account_number: accountNumber,

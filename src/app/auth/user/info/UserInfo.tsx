@@ -1,6 +1,6 @@
 'use client'
 import * as React from 'react'
-import { useState, useEffect, useActionState } from 'react'
+import { useState, useEffect, useActionState, useCallback } from 'react'
 
 // Material-UI 컴포넌트 import
 import {
@@ -17,18 +17,17 @@ import {
   Paper,
   CircularProgress,
   Snackbar,
+  Modal,
 } from '@mui/material'
 
-import {
-  updateProfile,
-  fetchUserProfile,
-  UpdateProfileState,
-} from '../actions'
+import { updateProfile, fetchUserProfile, UpdateProfileState } from '../actions'
 import { useAuth } from '@/contexts/AuthContext'
-
+import { getBankOptions, Bank } from '@/types/bank'
+import DaumPostcodeEmbed from 'react-daum-postcode'
 
 const BiddingInfoForm = () => {
   const { user } = useAuth()
+  const [isModalOpen, setIsModalOpen] = useState(false)
   const [profile, setProfile] = useState<any>(null)
   const [loading, setLoading] = useState(true)
   const [showSnackbar, setShowSnackbar] = useState(false)
@@ -37,7 +36,17 @@ const BiddingInfoForm = () => {
     'success'
   )
 
-  const [formData, setFormData] = useState({
+  const [formData, setFormData] = useState<{
+    fullName: string
+    phone: string
+    zipNo?: string
+    address: string
+    addrDetail: string
+    bank: string // Bank enum value
+    accountNumber: string
+    socialSecurityFirst: string
+    socialSecuritySecond: string
+  }>({
     fullName: '',
     phone: '',
     address: '',
@@ -47,6 +56,18 @@ const BiddingInfoForm = () => {
     socialSecurityFirst: '',
     socialSecuritySecond: '',
   })
+
+  const handleDaumComplete = useCallback(
+    (data: any) => {
+      setFormData((prev) => ({
+        ...prev,
+        zipNo: data.zonecode,
+        address: data.address,
+      }))
+      setIsModalOpen(false)
+    },
+    [setFormData]
+  )
 
   const [updateState, updateFormAction, updatePending] = useActionState<
     UpdateProfileState,
@@ -66,6 +87,7 @@ const BiddingInfoForm = () => {
             fullName: profileData.full_name || '',
             phone: profileData.phone || '',
             address: profileData.address || '',
+            zipNo: profileData.zip_no || '',
             addrDetail: profileData.addr_detail || '',
             bank: profileData.bank || '',
             accountNumber: profileData.account_number || '',
@@ -152,6 +174,9 @@ const BiddingInfoForm = () => {
               onChange={(e) =>
                 handleInputChange('socialSecurityFirst', e.target.value)
               }
+              inputProps={{
+                maxLength: 6,
+              }}
               placeholder='앞 6자리'
             />
             <Typography component='span'>-</Typography>
@@ -162,6 +187,9 @@ const BiddingInfoForm = () => {
               onChange={(e) =>
                 handleInputChange('socialSecuritySecond', e.target.value)
               }
+              inputProps={{
+                maxLength: 7,
+              }}
               placeholder='뒤 7자리'
             />
           </Box>
@@ -186,12 +214,11 @@ const BiddingInfoForm = () => {
                 label='은행'
                 onChange={(e) => handleInputChange('bank', e.target.value)}
               >
-                <MenuItem value={'kb'}>국민은행</MenuItem>
-                <MenuItem value={'shinhan'}>신한은행</MenuItem>
-                <MenuItem value={'woori'}>우리은행</MenuItem>
-                <MenuItem value={'hana'}>하나은행</MenuItem>
-                <MenuItem value={'nh'}>농협은행</MenuItem>
-                <MenuItem value={'ibk'}>기업은행</MenuItem>
+                {getBankOptions().map((bank) => (
+                  <MenuItem key={bank.value} value={bank.value}>
+                    {bank.labelKo}
+                  </MenuItem>
+                ))}
               </Select>
             </FormControl>
             <TextField
@@ -241,18 +268,42 @@ const BiddingInfoForm = () => {
           <Typography variant='subtitle1' sx={{ fontWeight: 'bold', mb: 1 }}>
             주소
           </Typography>
-          <TextField
-            fullWidth
-            placeholder='주소검색'
-            sx={{ mb: 1 }}
-            value={formData.address}
-            onChange={(e) => handleInputChange('address', e.target.value)}
-          />
+          <Box
+            sx={{
+              display: 'flex',
+              flexDirection: { xs: 'column', sm: 'row' },
+              gap: 2,
+            }}
+          >
+            <Box sx={{ flex: 3 }}>
+              <TextField
+                fullWidth
+                placeholder='주소검색'
+                sx={{ mb: 1 }}
+                value={formData.address}
+                InputProps={{ readOnly: true }}
+                onClick={() => setIsModalOpen(true)}
+                required
+              />
+            </Box>
+            <Box sx={{ flex: 1 }}>
+              <TextField
+                id='zipNo'
+                name='zipNo'
+                value={formData.zipNo}
+                placeholder='우편번호'
+                InputProps={{ readOnly: true }}
+                fullWidth
+                required
+              />
+            </Box>
+          </Box>
           <TextField
             fullWidth
             placeholder='상세주소 입력'
             value={formData.addrDetail}
             onChange={(e) => handleInputChange('addrDetail', e.target.value)}
+            required
           />
         </Box>
 
@@ -288,6 +339,31 @@ const BiddingInfoForm = () => {
           {snackbarMessage}
         </Alert>
       </Snackbar>
+
+      <Modal
+        open={isModalOpen}
+        onClose={() => setIsModalOpen(false)}
+        aria-labelledby='modal-address-search'
+      >
+        <Box
+          sx={{
+            position: 'absolute',
+            top: '50%',
+            left: '50%',
+            transform: 'translate(-50%, -50%)',
+            width: { xs: '90%', sm: 500 },
+            bgcolor: 'background.paper',
+            boxShadow: 24,
+            p: 0,
+            borderRadius: 1,
+          }}
+        >
+          <DaumPostcodeEmbed
+            onComplete={handleDaumComplete}
+            style={{ height: '400px' }}
+          />
+        </Box>
+      </Modal>
     </Paper>
   )
 }

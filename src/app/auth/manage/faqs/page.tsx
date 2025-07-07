@@ -271,7 +271,7 @@ const FAQManagementContent = () => {
       <Modal open={openFormModal} onClose={handleCloseFormModal}>
         <Box sx={modalStyle}>
           <Typography variant="h6" sx={{ mb: 2 }}>
-            {isEditing ? "Edit FAQ" : "Add New FAQ"}
+            {isEditing ? "항목 수정" : "새 항목 추가"}
           </Typography>
           <IconButton
             onClick={handleCloseFormModal}
@@ -282,7 +282,7 @@ const FAQManagementContent = () => {
 
           <TextField
             name="question"
-            label="Question (Title)"
+            label="질문 (제목)"
             value={selectedFaq?.question || ""}
             onChange={handleFormChange}
             fullWidth
@@ -290,11 +290,11 @@ const FAQManagementContent = () => {
           />
 
           <FormControl fullWidth sx={{ mb: 2 }}>
-            <InputLabel>Category</InputLabel>
+            <InputLabel>카테고리</InputLabel>
             <Select
               name="category"
               value={selectedFaq?.category || "기타"}
-              label="Category"
+              label="카테고리"
               onChange={handleFormChange as any}
             >
               {faqTypes.map((type) => (
@@ -307,7 +307,7 @@ const FAQManagementContent = () => {
 
           <TextField
             name="answer"
-            label="Answer (Content)"
+            label="답변 (내용)"
             value={selectedFaq?.answer || ""}
             onChange={handleFormChange}
             multiline
@@ -319,10 +319,10 @@ const FAQManagementContent = () => {
             sx={{ display: "flex", justifyContent: "flex-end", gap: 1, mt: 3 }}
           >
             <Button variant="outlined" onClick={handleCloseFormModal}>
-              Cancel
+              취소
             </Button>
             <Button variant="contained" onClick={handleSaveFaq}>
-              Save FAQ
+              저장
             </Button>
           </Box>
         </Box>
@@ -330,16 +330,16 @@ const FAQManagementContent = () => {
 
       {/* --- Delete Confirmation Dialog --- */}
       <Dialog open={openDeleteDialog} onClose={handleCloseDeleteDialog}>
-        <DialogTitle>Confirm Deletion</DialogTitle>
+        <DialogTitle>삭제 확인</DialogTitle>
         <DialogContent>
           <DialogContentText>
-            Are you sure you want to delete the FAQ: "{selectedFaq?.question}"?
+            "{selectedFaq?.question}" 항목을 삭제하시겠습니까?
           </DialogContentText>
         </DialogContent>
         <DialogActions>
-          <Button onClick={handleCloseDeleteDialog}>Cancel</Button>
+          <Button onClick={handleCloseDeleteDialog}>취소</Button>
           <Button onClick={handleDeleteFaq} color="error">
-            Delete
+            삭제
           </Button>
         </DialogActions>
       </Dialog>
