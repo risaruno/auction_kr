@@ -15,6 +15,7 @@ import {
 } from "@mui/icons-material";
 import type { Navigation } from "@toolpad/core/AppProvider";
 import theme from "@/theme";
+
 import Stack from "@mui/material/Stack";
 import CircularProgress from "@mui/material/CircularProgress";
 import Box from "@mui/material/Box";
@@ -213,17 +214,17 @@ export default function Layout(props: { children: React.ReactNode }) {
   const navigation = useNavigation();
 
   // Redirect to sign-in if not authenticated and not loading
-  React.useEffect(() => {
-    if (isInitialized && !loading && !session && !user) {
-      window.location.href = "/sign";
-    }
-  }, [isInitialized, loading, session, user]);
+  // React.useEffect(() => {
+  //   if (isInitialized && !loading && !session && !user) {
+  //     window.location.href = "/sign/in";
+  //   }
+  // }, [isInitialized, loading, session, user]);
 
   const authentication = React.useMemo(() => {
     return {
       signIn: async () => {
         // Redirect to sign-in page since we can't handle sign-in directly in the layout
-        window.location.href = "/sign";
+        window.location.href = "/sign/in";
       },
       signOut: async () => {
         await signOut();

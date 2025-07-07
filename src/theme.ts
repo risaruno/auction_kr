@@ -1,36 +1,30 @@
-'use client';
-import { createTheme } from '@mui/material/styles';
-import { Roboto } from 'next/font/google';
-
-const roboto = Roboto({
-  weight: ['300', '400', '500', '700'],
-  subsets: ['latin'],
-  display: 'swap',
-});
+"use client";
+import { ThemeProvider, createTheme } from '@mui/material/styles'
+import type { ThemeOptions } from '@mui/material/styles'
+import { inputsCustomizations } from '@/components/shared-theme/customizations/inputs'
+import { dataDisplayCustomizations } from '@/components/shared-theme/customizations/dataDisplay'
+import { feedbackCustomizations } from '@/components/shared-theme/customizations/feedback'
+import { navigationCustomizations } from '@/components/shared-theme/customizations/navigation'
+import { surfacesCustomizations } from '@/components/shared-theme/customizations/surfaces'
+import { colorSchemes, typography, shadows, shape } from '@/components/shared-theme/themePrimitives'
 
 const theme = createTheme({
-  colorSchemes: { light: true },
+  // The palette object is no longer needed here because
+  // `colorSchemes` is handling it.
   cssVariables: {
-    colorSchemeSelector: 'class',
+    colorSchemeSelector: "data-mui-color-scheme",
+    cssVarPrefix: "template",
   },
-  typography: {
-    fontFamily: roboto.style.fontFamily,
-  },
+  colorSchemes, // Your new green theme is passed in here
+  typography,
+  shadows,
+  shape,
   components: {
-    MuiAlert: {
-      styleOverrides: {
-        root: {
-          variants: [
-            {
-              props: { severity: 'info' },
-              style: {
-                backgroundColor: '#60a5fa',
-              },
-            },
-          ],
-        },
-      },
-    },
+    ...inputsCustomizations,
+    ...dataDisplayCustomizations,
+    ...feedbackCustomizations,
+    ...navigationCustomizations,
+    ...surfacesCustomizations,
   },
 });
 

@@ -10,12 +10,6 @@ import {
   Stepper,
   Step,
   StepLabel,
-  Table,
-  TableBody,
-  TableCell,
-  TableContainer,
-  TableHead,
-  TableRow,
   Chip,
   CircularProgress,
   Alert,
@@ -30,6 +24,7 @@ import {
   CardContent,
   CardActions,
 } from "@mui/material";
+import { DataGrid, GridColDef, GridActionsCellItem, GridRenderCellParams } from "@mui/x-data-grid";
 import { styled } from "@mui/material/styles";
 import HomeOutlinedIcon from "@mui/icons-material/HomeOutlined";
 import ScreenSearchDesktopOutlinedIcon from "@mui/icons-material/ScreenSearchDesktopOutlined";
@@ -268,8 +263,85 @@ const serviceHistory = () => {
     }
   };
 
+  // DataGrid columns definition
+  const columns: GridColDef[] = [
+    {
+      field: "case_number",
+      headerName: "사건번호",
+      width: 180,
+      valueGetter: (params: any) => {
+        return (
+          params.row.case_number ||
+          params.row.court_case_number ||
+          "-"
+        );
+      },
+    },
+    {
+      field: "bid_amount",
+      headerName: "입찰금액",
+      width: 150,
+      valueGetter: (params: any) => {
+        return params.row.bid_amount ? formatCurrency(params.row.bid_amount) : "-";
+      },
+    },
+    {
+      field: "bid_date",
+      headerName: "입찰기일",
+      width: 120,
+      valueGetter: (params: any) => {
+        return params.row.bid_date ? formatDate(params.row.bid_date) : "-";
+      },
+    },
+    {
+      field: "created_at",
+      headerName: "요청일자",
+      width: 120,
+      valueGetter: (params: any) => {
+        return formatDate(params.row.created_at);
+      },
+    },
+    {
+      field: "expert_name",
+      headerName: "대리인",
+      width: 120,
+      valueGetter: (params: any) => {
+        return params.row.experts?.name || "미배정";
+      },
+    },
+    {
+      field: "status",
+      headerName: "처리상태",
+      width: 120,
+      renderCell: (params: GridRenderCellParams) => {
+        return (
+          <Chip
+            label={params.row.status || "대기중"}
+            color={getStatusColor(params.row.status) as any}
+            variant="outlined"
+            size="small"
+          />
+        );
+      },
+    },
+    {
+      field: "actions",
+      type: "actions",
+      headerName: "상세보기",
+      width: 100,
+      getActions: (params: any) => [
+        <GridActionsCellItem
+          icon={<VisibilityIcon />}
+          label="상세보기"
+          onClick={() => handleViewDetails(params.row.id)}
+          title="상세보기"
+        />,
+      ],
+    },
+  ];
+
   return (
-    <Container maxWidth="lg" sx={{ my: 5 }}>
+    <Box maxWidth="lg" sx={{ my: 5 }}>
       <Typography variant="h4" sx={{ fontWeight: "bold", mb: 3 }}>
         입찰 신청 내역
       </Typography>
@@ -323,96 +395,62 @@ const serviceHistory = () => {
             </Stepper>
           </Paper>
 
-          <TableContainer component={Paper} elevation={0} variant="outlined">
-            <Table
-              sx={{ minWidth: 650 }}
-              aria-label="application history table"
-            >
-              {" "}
-              <TableHead sx={{ backgroundColor: "#f9fafb" }}>
-                <TableRow>
-                  <TableCell>사건번호</TableCell>
-                  <TableCell>입찰금액</TableCell>
-                  <TableCell>입찰기일</TableCell>
-                  <TableCell>요청일자</TableCell>
-                  <TableCell>대리인</TableCell>
-                  <TableCell>처리상태</TableCell>
-                  <TableCell align="center">상세보기</TableCell>
-                </TableRow>
-              </TableHead>
-              <TableBody>
-                {loading ? (
-                  <TableRow>
-                    <TableCell colSpan={7} sx={{ py: 10, textAlign: "center" }}>
-                      <CircularProgress />
-                      <Typography variant="body2" sx={{ mt: 2 }}>
-                        신청 내역을 불러오는 중...
-                      </Typography>
-                    </TableCell>
-                  </TableRow>
-                ) : applications.length === 0 ? (
-                  <TableRow>
-                    <TableCell colSpan={7} sx={{ py: 10, textAlign: "center" }}>
-                      <Box>
-                        <InboxOutlinedIcon
-                          sx={{ fontSize: 60, color: "grey.400" }}
-                        />
-                        <Typography variant="h6" sx={{ mt: 2 }}>
-                          입찰신청 내역이 없습니다.
-                        </Typography>
-                        <Typography variant="body2" color="text.secondary">
-                          서비스를 신청하고 진행상황을 확인해보세요.
-                        </Typography>
-                      </Box>
-                    </TableCell>
-                  </TableRow>
-                ) : (
-                  applications.map((application) => (
-                    <TableRow key={application.id}>
-                      <TableCell>
-                        {application.case_number ||
-                          application.court_case_number ||
-                          "-"}
-                      </TableCell>
-                      <TableCell>
-                        {application.bid_amount
-                          ? formatCurrency(application.bid_amount)
-                          : "-"}
-                      </TableCell>
-                      <TableCell>
-                        {application.bid_date
-                          ? formatDate(application.bid_date)
-                          : "-"}
-                      </TableCell>
-                      <TableCell>
-                        {formatDate(application.created_at)}
-                      </TableCell>
-                      <TableCell>
-                        {application.experts?.name || "미배정"}
-                      </TableCell>
-                      <TableCell>
-                        <Chip
-                          label={application.status || "대기중"}
-                          color={getStatusColor(application.status) as any}
-                          variant="outlined"
-                        />
-                      </TableCell>
-                      <TableCell align="center">
-                        <IconButton
-                          onClick={() => handleViewDetails(application.id)}
-                          color="primary"
-                          size="small"
-                          title="상세보기"
-                        >
-                          <VisibilityIcon />
-                        </IconButton>
-                      </TableCell>
-                    </TableRow>
-                  ))
-                )}
-              </TableBody>
-            </Table>
-          </TableContainer>
+          <Paper elevation={0} variant="outlined" sx={{ height: 400, width: '100%' }}>
+            <DataGrid
+              rows={applications}
+              columns={columns}
+              loading={loading}
+              disableRowSelectionOnClick
+              disableColumnFilter
+              disableColumnSelector
+              disableDensitySelector
+              initialState={{
+                pagination: {
+                  paginationModel: { page: 0, pageSize: 10 },
+                },
+              }}
+              pageSizeOptions={[5, 10, 25]}
+              localeText={{
+                noRowsLabel: "입찰신청 내역이 없습니다.",
+                footerRowSelected: () => "",
+                footerTotalRows: "총 행 수:",
+                paginationRowsPerPage: "페이지당 행 수:",
+              }}
+              sx={{
+                border: 0,
+                '& .MuiDataGrid-columnHeaders': {
+                  backgroundColor: '#f9fafb',
+                  borderBottom: '1px solid #e0e0e0',
+                },
+                '& .MuiDataGrid-cell': {
+                  borderBottom: '1px solid #f0f0f0',
+                },
+                '& .MuiDataGrid-row:hover': {
+                  backgroundColor: '#f5f5f5',
+                },
+              }}
+              slots={{
+                noRowsOverlay: () => (
+                  <Box sx={{ 
+                    display: 'flex', 
+                    flexDirection: 'column', 
+                    alignItems: 'center', 
+                    justifyContent: 'center',
+                    height: '100%',
+                    py: 4
+                  }}>
+                    <InboxOutlinedIcon sx={{ fontSize: 60, color: "grey.400", mb: 2 }} />
+                    <Typography variant="h6" sx={{ mb: 1 }}>
+                      입찰신청 내역이 없습니다.
+                    </Typography>
+                    <Typography variant="body2" color="text.secondary">
+                      서비스를 신청하고 진행상황을 확인해보세요.
+                    </Typography>
+                  </Box>
+                ),
+              }}
+            />
+          </Paper>
         </Box>
       )}
 
@@ -702,7 +740,7 @@ const serviceHistory = () => {
           </Button>
         </DialogActions>
       </Dialog>
-    </Container>
+    </Box>
   );
 };
 

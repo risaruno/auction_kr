@@ -37,7 +37,7 @@ function AccountSidebarPreview(props: AccountPreviewProps & { mini: boolean }) {
 const SidebarFooterAccountPopover = ({ mini }: { mini: boolean }) => {
   const { signOut } = useAuth();
   return (
-    <Stack direction="column" sx={{ width: 130 }}>
+    <Stack direction="column" sx={{ width: 150, gap: 0 }}>
       <MenuList>
         <Button
           variant="text"

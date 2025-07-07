@@ -190,6 +190,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     const { data: { subscription } } = supabase.auth.onAuthStateChange(
       async (event, session) => {
         if (!isMounted) return
+        if (!isInitialized) return
         
         // Clear any pending auth change timeout
         if (authChangeTimeout) {

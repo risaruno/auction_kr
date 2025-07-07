@@ -165,10 +165,13 @@ export default function PaymentForm({
           <Checkbox
             checked={formData.termsChecked}
             onChange={(event) => {
-              const updatedFormData = { ...formData, termsChecked: event.target.checked };
+              const updatedFormData = {
+                ...formData,
+                termsChecked: event.target.checked,
+              };
               // Simulate the handleFormChange event
               const syntheticEvent = {
-                target: { name: 'termsChecked', value: event.target.checked }
+                target: { name: "termsChecked", value: event.target.checked },
               } as unknown as React.ChangeEvent<HTMLInputElement>;
               handleFormChange(syntheticEvent);
             }}
@@ -317,55 +320,155 @@ export default function PaymentForm({
           <Typography variant="h5" sx={{ fontWeight: "bold", mb: 3 }}>
             결제하기
           </Typography>
-          <Button fullWidth variant="outlined" size="large" sx={{ mb: 1 }}>
-            신용·체크카드
-          </Button>
-          <Grid container spacing={1}>
-            <Grid size={6}>
-              <Button fullWidth variant="outlined" size="large">
-                toss pay
-              </Button>
-            </Grid>
-            <Grid size={6}>
-              <Button fullWidth variant="outlined" size="large">
-                계좌이체
-              </Button>
-            </Grid>
-          </Grid>
-          <Box
+          <Paper
+            elevation={6}
             sx={{
               my: 2,
-              p: 1.5,
-              backgroundColor: "#f0f5ff",
-              borderRadius: 1,
+              p: 3,
+              background: "linear-gradient(30deg, #18614d, #85ef7c)",
+              borderRadius: 2,
               textAlign: "center",
+              color: "#fff",
+              boxShadow: "0 6px 24px rgba(56, 142, 60, 0.18)",
+              border: "1px solid #2e7d32",
+              position: "relative",
+              display: "flex",
+              flexDirection: "column",
+              gap: 1,
+              alignItems: "center",
+              justifyContent: "center",
             }}
           >
-            <Typography variant="body2" color="primary">
-              S 신한카드 최대 5개월 무이자 할부
+            <Typography
+              variant="subtitle2"
+              sx={{
+                letterSpacing: 2,
+                mb: 1,
+                color: "rgba(255,255,255,0.85)",
+                fontWeight: 500,
+                textTransform: "uppercase",
+              }}
+            >
+              입금 계좌 안내
+            </Typography>
+            <Box
+              sx={{
+                display: "flex",
+                alignItems: "center",
+                justifyContent: "center",
+                gap: 1,
+              }}
+            >
+              <Typography
+                variant="h4"
+                sx={{
+                  fontWeight: "bold",
+                  letterSpacing: 2,
+                  background: "rgba(255,255,255,0.12)",
+                  px: 2,
+                  py: 0.5,
+                  borderRadius: 2,
+                  userSelect: "all",
+                  fontFamily: "monospace",
+                }}
+              >
+                123-456-7890
+              </Typography>
+              <Button
+                size="small"
+                variant="contained"
+                sx={{
+                  minWidth: 0,
+                  px: 1.5,
+                  py: 0.5,
+                  ml: 1,
+                  background: "rgba(255,255,255,0.18)",
+                  color: "#fff",
+                  fontWeight: 600,
+                  fontSize: "0.9rem",
+                  boxShadow: "none",
+                  border: "1px solid rgba(255,255,255,0.3)",
+                  "&:hover": {
+                    background: "rgba(255,255,255,0.28)",
+                  },
+                }}
+                onClick={() => {
+                  navigator.clipboard.writeText("123-456-7890");
+                }}
+              >
+                복사
+              </Button>
+            </Box>
+            <Typography
+              variant="subtitle1"
+              sx={{
+                fontWeight: 600,
+                letterSpacing: 1,
+                color: "rgba(255,255,255,0.95)",
+              }}
+            >
+              예금주: (주)솔하우징
+            </Typography>
+            <Typography variant="h5">
+              결제 금액: <strong>100,000원</strong>
+            </Typography>
+            <Typography
+              variant="caption"
+              sx={{
+                color: "rgba(255,255,255,0.8)",
+                display: "block",
+              }}
+            >
+              * 입금 시 신청자명과 동일하게 송금해주세요.
+            </Typography>
+          </Paper>
+
+          <Box
+            sx={{
+              textAlign: "center",
+              backgroundColor: "#f5f5f5",
+              p: 2,
+              borderRadius: 1,
+            }}
+          >
+            <Typography variant="body2">
+              수수류 결재는 24시간 이내에 완료해주세요.
+              <br />
+              결재 완료하지 않을 경우, 신청이<strong> 자동 취소</strong>됩니다.
             </Typography>
           </Box>
-          <TextField
-            select
-            fullWidth
-            label="카드사 선택"
-            SelectProps={{ native: true }}
-            sx={{ mb: 1 }}
-          >
-            <option>카드를 선택하세요</option>
-            <option>신한카드</option>
-            <option>국민카드</option>
-            <option>우리카드</option>
-          </TextField>
           <Box display="flex" alignItems="center" my={2}>
             <Checkbox defaultChecked />
             <Typography variant="body2">
               [필수] 결제 서비스 이용 약관, 개인정보 처리 동의
             </Typography>
           </Box>
-          <Button fullWidth variant="contained" size="large">
-            결제하기
-          </Button>
+          <Grid container spacing={1}>
+            <Grid size={6} sx={{ mb: 1 }}>
+              <Button
+                fullWidth
+                variant="contained"
+                size="large"
+                color="primary"
+                onClick={() => {
+                  setOpenPaymentModal(false);
+                }}
+              >
+                이체 완료
+              </Button>
+            </Grid>
+            <Grid size={6} sx={{ mb: 1 }}>
+              <Button
+                fullWidth
+                variant="contained"
+                size="large"
+                color="secondary"
+                onClick={() => setOpenPaymentModal(false)}
+              >
+                나중에 확인
+              </Button>
+            </Grid>
+          </Grid>
         </Box>
       </Modal>
     </Container>
