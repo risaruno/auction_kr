@@ -3,7 +3,7 @@
 import React, { createContext, useContext, useEffect, useState } from 'react'
 import { createClient } from '@/utils/supabase/client'
 import { type AdminRole, type UserWithRole } from '@/utils/auth/roles-client'
-import { Session } from "@supabase/supabase-js";
+import { Session, User } from "@supabase/supabase-js";
 
 interface AuthContextType {
   user: UserWithRole | null
@@ -27,12 +27,10 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     try {
       console.log('Fetching user with role...', { forceRefresh })
       
-      // Don't set loading to true if we're already initialized and this is not a forced refresh
       if (!isInitialized || forceRefresh) {
         setLoading(true)
       }
       
-      // First check if there's a session
       const { data: { session }, error: sessionError } = await supabase.auth.getSession()
       
       console.log('Session check:', { 
@@ -51,7 +49,6 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
 
       const authUser = session.user
 
-      // Fetch user profile with role
       const { data: profile, error: profileError } = await supabase
         .from('profiles')
         .select('admin_role, full_name')
@@ -61,12 +58,9 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       if (profileError) {
         console.error('Error fetching user profile:', profileError)
         
-        // If the profiles table doesn't exist or user doesn't have a profile, 
-        // try to create one or use default values
         if (profileError.code === '42703' || profileError.code === 'PGRST116') {
           console.log('Profile table issue or user profile missing, creating basic profile...')
           
-          // Try to create a basic profile
           const { error: createError } = await supabase
             .from('profiles')
             .upsert({
@@ -90,7 +84,6 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
           setUser(userWithRole)
           setSession(session)
         } else {
-          // For other errors, still create a basic user object
           const userWithRole = {
             id: authUser.id,
             email: authUser.email || '',
@@ -129,27 +122,22 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       setLoading(true)
       console.log('Starting sign out process...')
       
-      // Sign out from Supabase
       const { error } = await supabase.auth.signOut()
       if (error) {
         console.error('Supabase sign out error:', error)
       }
       
-      // Clear local state immediately
       setUser(null)
       setSession(null)
       
-      // Clear any local storage
       if (typeof window !== 'undefined') {
         localStorage.clear()
         sessionStorage.clear()
         
-        // Redirect to home page
         window.location.href = '/'
       }
     } catch (error) {
       console.error('Error during sign out:', error)
-      // Even if there's an error, clear the local state
       setUser(null)
       setSession(null)
       if (typeof window !== 'undefined') {
@@ -166,18 +154,10 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
 
   useEffect(() => {
     let isMounted = true
-    let authChangeTimeout: NodeJS.Timeout | null = null
     
-    // Set a maximum loading time of 8 seconds
-    const loadingTimeout = setTimeout(() => {
-      if (isMounted && loading && !isInitialized) {
-        console.warn('Auth loading timeout - forcing loading to false')
-        setLoading(false)
-        setIsInitialized(true)
-      }
-    }, 8000)
+    // PERUBAHAN 1: Blok setTimeout 8 detik DIHAPUS dari sini.
+    // Ini mencegah 'loading' menjadi false secara prematur.
 
-    // Initial fetch
     console.log('AuthContext: Initial setup')
     const initialFetch = async () => {
       if (isMounted) {
@@ -186,68 +166,54 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     }
     initialFetch()
 
-    // Listen for auth state changes with debouncing
     const { data: { subscription } } = supabase.auth.onAuthStateChange(
       async (event, session) => {
         if (!isMounted) return
         
-        // Clear any pending auth change timeout
-        if (authChangeTimeout) {
-          clearTimeout(authChangeTimeout)
-        }
+        // PERUBAHAN 2: setTimeout (debounce) 500ms DIHAPUS. 
+        // Logika di dalamnya sekarang berjalan instan untuk mencegah delay.
+        console.log('Auth state changed:', event, session?.user?.email || 'no user')
         
-        // Debounce auth state changes to prevent rapid re-authentication
-        authChangeTimeout = setTimeout(async () => {
-          if (!isMounted) return
-          
-          console.log('Auth state changed:', event, session?.user?.email || 'no user')
-          
-          if (event === 'SIGNED_IN' && session?.user) {
-            console.log('User signed in, fetching user with role...')
-            await fetchUserWithRole(true)
-          } else if (event === 'SIGNED_OUT' || !session) {
-            console.log('User signed out, clearing user state')
-            setUser(null)
-            setSession(null)
-            setLoading(false)
-            setIsInitialized(true)
-          } else if (event === 'TOKEN_REFRESHED' && session?.user) {
-            console.log('Token refreshed, updating user...')
-            // Don't show loading for token refresh if we already have a user
-            if (user) {
-              const { data: profile } = await supabase
-                .from('profiles')
-                .select('admin_role, full_name')
-                .eq('id', session.user.id)
-                .single()
-              
-              if (profile) {
-                const userWithRole = {
-                  id: session.user.id,
-                  email: session.user.email || '',
-                  admin_role: (profile?.admin_role || 'user') as AdminRole,
-                  full_name: profile?.full_name || session.user.user_metadata?.full_name || ''
-                }
-                setUser(userWithRole)
-                setSession(session)
+        if (event === 'SIGNED_IN' && session?.user) {
+          console.log('User signed in, fetching user with role...')
+          await fetchUserWithRole(true)
+        } else if (event === 'SIGNED_OUT' || !session) {
+          console.log('User signed out, clearing user state')
+          setUser(null)
+          setSession(null)
+          setLoading(false)
+          setIsInitialized(true)
+        } else if (event === 'TOKEN_REFRESHED' && session?.user) {
+          console.log('Token refreshed, updating user...')
+          if (user) {
+            const { data: profile } = await supabase
+              .from('profiles')
+              .select('admin_role, full_name')
+              .eq('id', session.user.id)
+              .single()
+            
+            if (profile) {
+              const userWithRole = {
+                id: session.user.id,
+                email: session.user.email || '',
+                admin_role: (profile?.admin_role || 'user') as AdminRole,
+                full_name: profile?.full_name || session.user.user_metadata?.full_name || ''
               }
-            } else {
-              await fetchUserWithRole(true)
+              setUser(userWithRole)
+              setSession(session)
             }
+          } else {
+            await fetchUserWithRole(true)
           }
-        }, 500) // 500ms debounce
+        }
       }
     )
 
-    // Handle window visibility change to prevent unnecessary auth checks
     const handleVisibilityChange = () => {
       if (document.visibilityState === 'visible' && isInitialized) {
-        // Only check auth if the user was previously signed in and the page has been hidden for a while
         console.log('Window became visible, checking auth state silently...')
-        // Don't show loading state for visibility changes
         supabase.auth.getSession().then(({ data: { session } }) => {
           if (!session && user) {
-            // User was signed out while away
             console.log('User session expired while away')
             setUser(null)
             setSession(null)
@@ -262,10 +228,6 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
 
     return () => {
       isMounted = false
-      clearTimeout(loadingTimeout)
-      if (authChangeTimeout) {
-        clearTimeout(authChangeTimeout)
-      }
       subscription.unsubscribe()
       if (typeof window !== 'undefined') {
         document.removeEventListener('visibilitychange', handleVisibilityChange)
@@ -288,7 +250,6 @@ export function useAuth() {
   return context
 }
 
-// Specific role hooks for convenience
 export function useIsAdmin() {
   const { user } = useAuth()
   const adminRoles: AdminRole[] = ['super_admin', 'content_manager', 'customer_support']

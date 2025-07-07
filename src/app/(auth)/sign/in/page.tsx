@@ -1,6 +1,8 @@
 'use client'
 import * as React from 'react'
-import { useFormState, useFormStatus } from 'react-dom'
+import { useSearchParams } from 'next/navigation'
+import { useActionState } from 'react'
+import { useFormStatus } from 'react-dom'
 import Box from '@mui/material/Box'
 import Button from '@mui/material/Button'
 import Checkbox from '@mui/material/Checkbox'
@@ -42,7 +44,6 @@ const SignContainer = styled(Stack)(({ theme }) => ({
   [theme.breakpoints.up('sm')]: { padding: theme.spacing(4) },
 }))
 
-// A new component to get the form's pending status
 function LoginButton() {
   const { pending } = useFormStatus()
   return (
@@ -53,9 +54,10 @@ function LoginButton() {
 }
 
 export default function SignIn() {
-  // 2. Initialize useFormState to manage the response from the server action
   const initialState: FormState = { error: null, message: null }
-  const [state, formAction] = useFormState(login, initialState)
+  const [state, formAction] = useActionState(login, initialState)
+  const searchParams = useSearchParams()
+  const redirectTo = searchParams?.get('redirectTo')
 
   return (
     <>
@@ -69,7 +71,6 @@ export default function SignIn() {
           >
             로그인
           </Typography>
-          {/* 3. The form's action now points to our server action */}
           <Box
             component='form'
             action={formAction}
@@ -81,7 +82,9 @@ export default function SignIn() {
               gap: 2,
             }}
           >
-            {/* Display error messages from the server action state */}
+            {redirectTo && (
+              <input type='hidden' name='redirectTo' value={redirectTo} />
+            )}
             {state.error && <Alert severity='error'>{state.error}</Alert>}
 
             <FormControl>
@@ -131,7 +134,6 @@ export default function SignIn() {
               </Link>
             </Box>
 
-            {/* 4. The button is now its own component to get the pending state */}
             <LoginButton />
 
             <Divider>or</Divider>
