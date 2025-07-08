@@ -17,13 +17,13 @@ export default function Home() {
       <CssBaseline />
       <AppAppBar />
       <Hero />
-      {/* <Features />
+      <Features />
       <Divider />
       <Highlights />
-      <Divider />
-      <Testimonials />
-      <Divider />
-      <Apply /> */}
+      {/* <Divider />
+      // <Testimonials />
+      // <Divider />
+      // <Apply /> */}
       <Divider />
       <Footer />
     </>

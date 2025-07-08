@@ -224,7 +224,7 @@ export default function CaseFind({ caseResult, setCaseResult }: CaseFindProps) {
         <Grid container spacing={3} size={{ xs: 12 }}>
           <Grid container spacing={0} size={{ xs: 12 }}>
             <Typography variant='h3' fontWeight={'bold'} gutterBottom>
-              의뢰하시는 경매 사건은 무엇인가요?
+              진행 의뢰 경매 사건 정보를 알려주시면 됩니다
             </Typography>
             <Grid
               container
@@ -239,8 +239,7 @@ export default function CaseFind({ caseResult, setCaseResult }: CaseFindProps) {
               }}
             >
               <Typography variant='body1'>
-                경매 사건을 신청하시는 분들을 위해 경매 사건 조회 서비스를
-                제공합니다.
+                경매 사건 신청전, 사건 조회 지원합니다.
               </Typography>
               <Typography variant='body2' color='text.secondary'>
                 (단, 자동차 경매는 조회 및 신청이 불가능합니다.)

@@ -1,45 +1,45 @@
-import * as React from 'react';
-import Box from '@mui/material/Box';
-import Button from '@mui/material/Button';
-import Card from '@mui/material/Card';
-import MuiChip from '@mui/material/Chip';
-import Container from '@mui/material/Container';
-import Typography from '@mui/material/Typography';
-import { styled } from '@mui/material/styles';
+import * as React from 'react'
+import Box from '@mui/material/Box'
+import Button from '@mui/material/Button'
+import Card from '@mui/material/Card'
+import MuiChip from '@mui/material/Chip'
+import Container from '@mui/material/Container'
+import Typography from '@mui/material/Typography'
+import { styled } from '@mui/material/styles'
 
-import DevicesRoundedIcon from '@mui/icons-material/DevicesRounded';
-import EdgesensorHighRoundedIcon from '@mui/icons-material/EdgesensorHighRounded';
-import ViewQuiltRoundedIcon from '@mui/icons-material/ViewQuiltRounded';
+import DevicesRoundedIcon from '@mui/icons-material/DevicesRounded'
+import EdgesensorHighRoundedIcon from '@mui/icons-material/EdgesensorHighRounded'
+import ViewQuiltRoundedIcon from '@mui/icons-material/ViewQuiltRounded'
 
 const items = [
   {
     icon: <ViewQuiltRoundedIcon />,
-    title: '원스톱 대리입찰 간편하게',
+    title: '대리입찰 신청, 쉽고 간단하게',
     description:
-      '복잡한 입찰 절차는 이제 그만. 체로토는 대리 입찰에 필요한 원스톱 솔루션을 제공합니다. 단 몇 번의 클릭만으로 입찰 대행 신청을하고, 진행 상황을 추적할 수 있습니다. 이 모든 것이 하나의 편리한 위치에서 이루어집니다.',
+      '복잡한 입찰 과정, 더 이상 혼자 고민하지 마세요. 똑똑하고 쉬운 입찰 절차 진행을 편리하게 도와드립니다. 몇 번의 간단한 신청으로 입찰 절차 지원을 요청하고, 모든 과정은 한 곳에서, 간편하고 안전하게 진행됩니다.',
     imageLight: `url("${process.env.TEMPLATE_IMAGE_URL || 'https://mui.com'}/static/images/templates/templates-images/dash-light.png")`,
     imageDark: `url("${process.env.TEMPLATE_IMAGE_URL || 'https://mui.com'}/static/images/templates/templates-images/dash-dark.png")`,
   },
   {
     icon: <EdgesensorHighRoundedIcon />,
-    title: '실수없이 안전한 서류작성',
+    title: '안전하게 진행되는 서류 작성',
     description:
-      '체르또는 입찰 서류 작성 대행 서비스를 제공하여 문서의 정확성을 보장합니다. 체로토를 통해 서류작성 과정에서 발생할 수 있는 오류의 잠재적 위험을 제거합니다. 만약의 실수까지 방어하세요.',
+      '체르토는 입찰 서류 작성 지원 서비스를 통해 문서의 정확성을 높입니다. 체르토를 통해 서류 작성 과정에서 발생할 수 있는 오류를 예방하고, 안심하고 입찰을 준비하세요.',
     imageLight: `url("${process.env.TEMPLATE_IMAGE_URL || 'https://mui.com'}/static/images/templates/templates-images/mobile-light.png")`,
     imageDark: `url("${process.env.TEMPLATE_IMAGE_URL || 'https://mui.com'}/static/images/templates/templates-images/mobile-dark.png")`,
   },
   {
     icon: <DevicesRoundedIcon />,
-    title: '전자계약을 통해확실하게 보장',
+    title: '전자계약으로 안심 거래',
     description:
-      '서비스 계약은 전자계약으로 진행합니다. 입찰 대리인과 입찰자간의 계약을 전자 서명할 수 있도록 하여 원활하고 법적 구속력이 있는 프로세스를 보장합니다. 안전하고 직관적인 방법으로 계약사항을 쉽게 검토 및 확정할 수 있습니다.',
+      '서비스 계약은 전자계약을 통해 진행됩니다. 입찰자와 입찰 진행 지원자 간 계약을 전자 서명을 통해 간편하게 체결할 수 있어, 원활한 진행과 안전하고 직관적인 방식으로 계약 내용을 쉽게 검토하고 진행하실 수 있습니다.',
     imageLight: `url("${process.env.TEMPLATE_IMAGE_URL || 'https://mui.com'}/static/images/templates/templates-images/devices-light.png")`,
     imageDark: `url("${process.env.TEMPLATE_IMAGE_URL || 'https://mui.com'}/static/images/templates/templates-images/devices-dark.png")`,
   },
-];
+]
 
 interface ChipProps {
-  selected?: boolean;
+  selected?: boolean
 }
 
 const Chip = styled(MuiChip)<ChipProps>(({ theme }) => ({
@@ -60,12 +60,12 @@ const Chip = styled(MuiChip)<ChipProps>(({ theme }) => ({
       },
     },
   ],
-}));
+}))
 
 interface MobileLayoutProps {
-  selectedItemIndex: number;
-  handleItemClick: (index: number) => void;
-  selectedFeature: (typeof items)[0];
+  selectedItemIndex: number
+  handleItemClick: (index: number) => void
+  selectedFeature: (typeof items)[0]
 }
 
 export function MobileLayout({
@@ -74,7 +74,7 @@ export function MobileLayout({
   selectedFeature,
 }: MobileLayoutProps) {
   if (!items[selectedItemIndex]) {
-    return null;
+    return null
   }
 
   return (
@@ -88,7 +88,7 @@ export function MobileLayout({
       <Box sx={{ display: 'flex', gap: 2, overflow: 'auto' }}>
         {items.map(({ title }, index) => (
           <Chip
-            size="medium"
+            size='medium'
             key={index}
             label={title}
             onClick={() => handleItemClick(index)}
@@ -96,7 +96,7 @@ export function MobileLayout({
           />
         ))}
       </Box>
-      <Card variant="outlined">
+      <Card variant='outlined'>
         <Box
           sx={(theme) => ({
             mb: 2,
@@ -124,42 +124,46 @@ export function MobileLayout({
           >
             {selectedFeature.title}
           </Typography>
-          <Typography variant="body2" sx={{ color: 'text.secondary', mb: 1.5 }}>
+          <Typography variant='body2' sx={{ color: 'text.secondary', mb: 1.5 }}>
             {selectedFeature.description}
           </Typography>
         </Box>
       </Card>
     </Box>
-  );
+  )
 }
 
 export default function Features() {
-  const [selectedItemIndex, setSelectedItemIndex] = React.useState(0);
+  const [selectedItemIndex, setSelectedItemIndex] = React.useState(0)
 
   const handleItemClick = (index: number) => {
-    setSelectedItemIndex(index);
-  };
+    setSelectedItemIndex(index)
+  }
 
-  const selectedFeature = items[selectedItemIndex];
+  const selectedFeature = items[selectedItemIndex]
 
   return (
-    <Container id="features" sx={{ py: { xs: 8, sm: 16 } }}>
-      <Box sx={{ width: { sm: '100%', md: '60%' } }}>
+    <Container id='features' sx={{ py: { xs: 8, sm: 16 } }}>
+      <Box sx={{ width: { sm: '100%', md: '60%' }, px: { xs: 2, sm: 3 } }}>
         <Typography
-          component="h2"
-          variant="h2"
+          component='h2'
+          variant='h2'
           gutterBottom
           sx={{ color: 'text.primary' }}
         >
           서비스 안내
         </Typography>
+        <Typography variant='h6' sx={{ color: 'text.secondary', mb: 1 }}>
+          입찰 횟수가 많아도, 체계적 관리로 안심!
+        </Typography>
         <Typography
-          variant="body1"
+          variant='body1'
           sx={{ color: 'text.secondary', mb: { xs: 2, sm: 4 } }}
         >
-          체르또는 20년 이상의 부동산 경매 노하우를 바탕으로 물건 분석부터 낙찰까지 전 과정을 책임지는 
-          토탈 솔루션을 제공합니다. 투명한 정보 제공, 전문적인 분석, 그리고 안전한 입찰 대행으로 
-          고객님의 성공적인 부동산 투자를 지원합니다.
+          체르토는 입찰 기일, 입찰 진행 현황, 결과 등 주요 정보를 포함해 입찰
+          현황을 체계적으로 관리하고 과거 입찰 기록을 제공합니다. 저장된
+          데이터를 활용해 입찰 경력을 세우고, 보다 나은 낙찰 성과를 준비해
+          보세요.
         </Typography>
       </Box>
       <Box
@@ -189,7 +193,8 @@ export default function Features() {
                     height: '100%',
                     width: '100%',
                     '&:hover': {
-                      backgroundColor: (theme.vars || theme).palette.action.hover,
+                      backgroundColor: (theme.vars || theme).palette.action
+                        .hover,
                     },
                   }),
                   selectedItemIndex === index && {
@@ -216,8 +221,8 @@ export default function Features() {
                 >
                   {icon}
 
-                  <Typography variant="h4">{title}</Typography>
-                  <Typography variant="body2">{description}</Typography>
+                  <Typography variant='h4'>{title}</Typography>
+                  <Typography variant='body2'>{description}</Typography>
                 </Box>
               </Box>
             ))}
@@ -236,7 +241,7 @@ export default function Features() {
           }}
         >
           <Card
-            variant="outlined"
+            variant='outlined'
             sx={{
               height: '100%',
               width: '100%',
@@ -268,5 +273,5 @@ export default function Features() {
         </Box>
       </Box>
     </Container>
-  );
+  )
 }
