@@ -341,7 +341,7 @@ const serviceHistory = () => {
   ];
 
   return (
-    <Box maxWidth="lg" sx={{ my: 5 }}>
+    <Container maxWidth="lg" sx={{ my: 5 }}>
       <Typography variant="h4" sx={{ fontWeight: "bold", mb: 3 }}>
         입찰 신청 내역
       </Typography>
@@ -415,19 +415,6 @@ const serviceHistory = () => {
                 footerRowSelected: () => "",
                 footerTotalRows: "총 행 수:",
                 paginationRowsPerPage: "페이지당 행 수:",
-              }}
-              sx={{
-                border: 0,
-                '& .MuiDataGrid-columnHeaders': {
-                  backgroundColor: '#f9fafb',
-                  borderBottom: '1px solid #e0e0e0',
-                },
-                '& .MuiDataGrid-cell': {
-                  borderBottom: '1px solid #f0f0f0',
-                },
-                '& .MuiDataGrid-row:hover': {
-                  backgroundColor: '#f5f5f5',
-                },
               }}
               slots={{
                 noRowsOverlay: () => (
@@ -740,7 +727,7 @@ const serviceHistory = () => {
           </Button>
         </DialogActions>
       </Dialog>
-    </Box>
+    </Container>
   );
 };
 

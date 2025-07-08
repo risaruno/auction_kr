@@ -5,7 +5,7 @@ import { Container } from '@mui/material'
 
 export default function ContactPage() {
   return (
-    <Container maxWidth='lg' sx={{ my: 5 }}>
+    <Container maxWidth='lg'>
       {/* <LogoCollection /> */}
       <CancelPolicy />
     </Container>

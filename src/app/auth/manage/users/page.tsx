@@ -55,7 +55,7 @@ const getStatusLabel = (status: string) => {
   switch (status) {
     case 'Active':
       return '활성'
-    case 'Suspended':
+    case 'Pending':
       return '정지됨'
     case 'Inactive':
       return '비활성'
@@ -132,8 +132,7 @@ const UserManagementContent = () => {
       console.error('Error fetching users:', error)
       setSnackbar({
         open: true,
-        message:
-          error instanceof Error ? error.message : '사용자 조회 실패',
+        message: error instanceof Error ? error.message : '사용자 조회 실패',
         severity: 'error',
       })
     } finally {
@@ -224,8 +223,7 @@ const UserManagementContent = () => {
     } catch (error) {
       setSnackbar({
         open: true,
-        message:
-          error instanceof Error ? error.message : '사용자 정지 실패',
+        message: error instanceof Error ? error.message : '사용자 정지 실패',
         severity: 'error',
       })
     } finally {
@@ -264,9 +262,7 @@ const UserManagementContent = () => {
       setSnackbar({
         open: true,
         message:
-          error instanceof Error
-            ? error.message
-            : '비밀번호 재설정 전송 실패',
+          error instanceof Error ? error.message : '비밀번호 재설정 전송 실패',
         severity: 'error',
       })
     } finally {
@@ -380,14 +376,18 @@ const UserManagementContent = () => {
             sx={{ display: 'flex', gap: 1 }}
           >
             <TextField
-              size='small'
+              variant='outlined'
               placeholder='사용자 검색...'
               value={searchQuery}
               onChange={(e) => setSearchQuery(e.target.value)}
+              InputProps={{
+                endAdornment: (
+                  <IconButton onClick={handleSearch}>
+                    <SearchIcon />
+                  </IconButton>
+                ),
+              }}
             />
-            <Button type='submit' variant='outlined' size='small'>
-              <SearchIcon />
-            </Button>
           </Box>
         </Box>
 
@@ -559,7 +559,9 @@ const UserManagementContent = () => {
                           {selectedUser.name || '미입력'}
                         </Typography>
                         <Chip
-                          label={getStatusLabel(selectedUser.status || 'Unknown')}
+                          label={getStatusLabel(
+                            selectedUser.status || 'Unknown'
+                          )}
                           color={
                             selectedUser.status === 'Active'
                               ? 'success'

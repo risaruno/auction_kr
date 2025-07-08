@@ -11,6 +11,7 @@
 -- Create the admin role enum first
 CREATE TYPE "admin_role" AS ENUM (
   'super_admin',
+  'admin',
   'content_manager',
   'customer_support',
   'expert',
@@ -25,6 +26,7 @@ CREATE TABLE "profiles" (
   "phone" text,
   "email" text UNIQUE,
   "address" text,
+  "zip_no" text,
   "addr_detail" text,
   "bank" text,
   "account_number" text,

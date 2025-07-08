@@ -12,6 +12,7 @@ import {
   DialogContent,
   DialogActions,
   Chip,
+  Container,
 } from '@mui/material'
 import {
   DataGrid,
@@ -172,7 +173,7 @@ export default function InquiriesList() {
   }
 
   return (
-    <Box sx={{ my: 5, px: { xs: 2, md: 4 } }}>
+    <Container sx={{ my: 5, px: { xs: 2, md: 4 } }}>
       <Typography variant="h4" sx={{ fontWeight: 'bold', mb: 3 }}>
         문의 내역
       </Typography>
@@ -206,12 +207,6 @@ export default function InquiriesList() {
               },
             }}
             disableRowSelectionOnClick
-            sx={{
-              '& .MuiDataGrid-columnHeaders': {
-                backgroundColor: '#f9fafb',
-                fontWeight: 'bold',
-              },
-            }}
           />
         </Box>
       )}
@@ -279,6 +274,6 @@ export default function InquiriesList() {
           </Button>
         </DialogActions>
       </Dialog>
-    </Box>
+    </Container>
   )
 }

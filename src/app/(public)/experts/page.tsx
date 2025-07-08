@@ -150,7 +150,7 @@ export default function ExpertPage() {
   );
 
   return (
-    <Container maxWidth="lg" sx={{ my: 5 }}>
+    <Container maxWidth="lg">
       <Headline
         headline={
           <Typography

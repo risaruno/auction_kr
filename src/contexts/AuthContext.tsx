@@ -253,7 +253,7 @@ export function useAuth() {
 
 export function useIsAdmin() {
   const { user } = useAuth()
-  const adminRoles: AdminRole[] = ['super_admin', 'content_manager', 'customer_support']
+  const adminRoles: AdminRole[] = ['super_admin', 'admin', 'content_manager', 'customer_support']
   return user?.admin_role ? adminRoles.includes(user.admin_role) : false
 }
 
@@ -264,17 +264,17 @@ export function useIsSuperAdmin() {
 
 export function useCanManageContent() {
   const { user } = useAuth()
-  const contentRoles: AdminRole[] = ['super_admin', 'content_manager']
+  const contentRoles: AdminRole[] = ['super_admin', 'admin', 'content_manager']
   return user?.admin_role ? contentRoles.includes(user.admin_role) : false
 }
 
 export function useCanManageUsers() {
   const { user } = useAuth()
-  return user?.admin_role === 'super_admin'
+  return user?.admin_role === 'super_admin' || user?.admin_role === 'admin'
 }
 
 export function useCanHandleSupport() {
   const { user } = useAuth()
-  const supportRoles: AdminRole[] = ['super_admin', 'content_manager', 'customer_support']
+  const supportRoles: AdminRole[] = ['super_admin', 'admin', 'content_manager', 'customer_support']
   return user?.admin_role ? supportRoles.includes(user.admin_role) : false
 }

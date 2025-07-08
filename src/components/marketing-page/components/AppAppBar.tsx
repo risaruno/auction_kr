@@ -213,7 +213,7 @@ export default function AppAppBar() {
                       </MenuItem>
                       <MenuItem
                         onClick={() => {
-                          router.push("/auth/user/profile");
+                          router.push("/auth/user/info");
                           handleUserMenuClose();
                         }}
                       >
@@ -321,11 +321,11 @@ export default function AppAppBar() {
                     </MenuItem>
                     <MenuItem
                       onClick={() => {
-                        router.push("/auth/user/profile");
+                        router.push("/auth/user/info");
                         setOpen(false);
                       }}
                     >
-                      프로필 관리
+                      입찰 정보
                     </MenuItem>
                     <MenuItem onClick={handleLogout}>로그아웃</MenuItem>
                   </Box>

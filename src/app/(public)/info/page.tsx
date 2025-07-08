@@ -11,7 +11,7 @@ import Timeline from '@/components/marketing-page/components/Timeline'
 
 export default function InfoPage() {
   return (
-    <Container maxWidth='lg' sx={{ my: 5 }}>
+    <Container maxWidth='lg'>
       <Headline
         headline={
           <Typography

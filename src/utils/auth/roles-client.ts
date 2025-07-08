@@ -1,5 +1,5 @@
 // Client-side role utilities (no server imports)
-export type AdminRole = 'super_admin' | 'content_manager' | 'customer_support' | 'expert' | 'user'
+export type AdminRole = 'super_admin' | 'admin' | 'content_manager' | 'customer_support' | 'expert' | 'user'
 
 export interface UserWithRole {
   id: string
@@ -10,7 +10,7 @@ export interface UserWithRole {
 
 // Check if user has any admin role
 export function isAdmin(role: AdminRole | null | undefined): boolean {
-  const adminRoles: AdminRole[] = ['super_admin', 'content_manager', 'customer_support']
+  const adminRoles: AdminRole[] = ['super_admin', 'admin', 'content_manager', 'customer_support']
   return role ? adminRoles.includes(role) : false
 }
 

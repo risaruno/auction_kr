@@ -150,8 +150,8 @@ const BiddingInfoForm = () => {
   }
 
   return (
-    <Paper elevation={0} sx={{ p: 4, flex: 1 }}>
-      <Typography variant='h5' sx={{ fontWeight: 'bold', mb: 2 }}>
+    <Container maxWidth='lg' sx={{ my: 5 }}>
+      <Typography variant='h4' sx={{ mb: 3 }}>
         입찰 정보 수정
       </Typography>
       <Alert severity='info' sx={{ mb: 4, backgroundColor: '#e3f2fd' }}>
@@ -364,7 +364,7 @@ const BiddingInfoForm = () => {
           />
         </Box>
       </Modal>
-    </Paper>
+    </Container>
   )
 }
 

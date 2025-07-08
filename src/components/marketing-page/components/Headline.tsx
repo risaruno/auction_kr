@@ -16,7 +16,7 @@ export default function Headline({ headline }: HeadlineProps) {
         backgroundRepeat: "no-repeat",
 
         backgroundImage:
-          "radial-gradient(ellipse 80% 50% at 50% -20%, hsl(210, 100%, 90%), transparent)",
+          "radial-gradient(ellipse 80% 50% at 50% -20%, hsl(148, 100.00%, 90.00%), transparent)",
         ...theme.applyStyles("dark", {
           backgroundImage:
             "radial-gradient(ellipse 80% 50% at 50% -20%, hsl(210, 100%, 16%), transparent)",
