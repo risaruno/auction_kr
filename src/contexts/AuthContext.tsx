@@ -65,7 +65,6 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   const lastRefreshTime = useRef<number>(0)
   const lastActivityTrackTime = useRef<number>(0) // Throttle activity tracking
   const supabase = createClient()
-  const router = useRouter()
 
   // Helper function for debug logging
   const logSession = (message: string, ...args: unknown[]) => {
