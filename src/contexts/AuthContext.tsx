@@ -26,9 +26,8 @@ const SESSION_CONFIG = {
   
   // Events that count as user activity
   ACTIVITY_EVENTS: [
-    'mousedown', 'mousemove', 'keypress', 'scroll', 
-    'touchstart', 'click', 'focus'
-  ],
+    'mousedown', 'keypress', 'touchstart', 'click', 'focus'
+  ], // Removed 'mousemove' and 'scroll' to prevent excessive firing
   
   // Whether to show console logs for session management
   DEBUG_LOGS: true,
@@ -62,7 +61,9 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   const [isInitialized, setIsInitialized] = useState(false)
   const [sessionExpiresAt, setSessionExpiresAt] = useState<number | null>(null)
   const [lastActivityTime, setLastActivityTime] = useState<number | null>(null)
+  const [isSigningOut, setIsSigningOut] = useState(false) // Add signing out state
   const lastRefreshTime = useRef<number>(0)
+  const lastActivityTrackTime = useRef<number>(0) // Throttle activity tracking
   const supabase = createClient()
   const router = useRouter()
 
@@ -93,6 +94,10 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   const refreshSession = useCallback(async () => {
     try {
       logSession('Manually refreshing session...')
+      
+      // Update lastRefreshTime immediately to prevent multiple simultaneous refreshes
+      lastRefreshTime.current = Date.now()
+      
       const { data: { session }, error } = await supabase.auth.refreshSession()
       
       if (error) {
@@ -108,10 +113,8 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
         
         if (expirationTime) {
           setSessionExpiresAt(expirationTime)
-          logSession('Session refreshed, new expiry:', new Date(expirationTime).toISOString())
+          logSession('Session refreshed successfully, new expiry:', new Date(expirationTime).toISOString())
         }
-        
-        lastRefreshTime.current = Date.now()
       }
     } catch (error) {
       console.error('Error in refreshSession:', error)
@@ -121,22 +124,35 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   // Activity tracking function
   const trackActivity = useCallback(() => {
     const now = Date.now()
+    
+    // Throttle activity tracking to once per 5 seconds to prevent excessive calls
+    if (now - lastActivityTrackTime.current < 5000) {
+      return
+    }
+    
+    lastActivityTrackTime.current = now
     setLastActivityTime(now)
+    
+    // Don't auto-refresh if user is being signed out, loading, or no session
+    if (loading || !session || isSessionExpired || isSigningOut) {
+      return
+    }
     
     // Auto-refresh session if enabled and conditions are met
     if (SESSION_CONFIG.ACTIVITY_REFRESH_ENABLED && 
-        session && 
-        !isSessionExpired && 
         (now - lastRefreshTime.current) > SESSION_CONFIG.ACTIVITY_REFRESH_THRESHOLD) {
       
-      logSession('User activity detected, refreshing session...')
+      logSession('User activity detected, refreshing session...', {
+        timeSinceLastRefresh: now - lastRefreshTime.current,
+        threshold: SESSION_CONFIG.ACTIVITY_REFRESH_THRESHOLD
+      })
       refreshSession()
     }
-  }, [session, isSessionExpired, refreshSession])
+  }, [session, isSessionExpired, refreshSession, loading, isSigningOut])
 
   // Register activity listeners
   useEffect(() => {
-    if (!SESSION_CONFIG.ACTIVITY_REFRESH_ENABLED || typeof window === 'undefined') {
+    if (!SESSION_CONFIG.ACTIVITY_REFRESH_ENABLED || typeof window === 'undefined' || isSigningOut) {
       return
     }
 
@@ -161,7 +177,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
         }
       })
     }
-  }, [trackActivity])
+  }, [trackActivity, isSigningOut])
 
   const fetchUserWithRole = useCallback(async (forceRefresh = false) => {
     try {
@@ -294,29 +310,35 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       setLastActivityTime(null)
     } finally {
       setLoading(false)
+      setIsInitialized(true) // Always set initialized to true after fetchUserWithRole completes
     }
   }, [supabase, isInitialized]) // Only depend on supabase and isInitialized
 
   const signOut = async () => {
     try {
+      setIsSigningOut(true) // Set signing out state to disable activity tracking
       setLoading(true)
       logSession('Starting sign out process...')
+      
+      // Clear state immediately to prevent UI confusion
+      setUser(null)
+      setSession(null)
+      setSessionExpiresAt(null)
+      setLastActivityTime(null)
       
       const { error } = await supabase.auth.signOut()
       if (error) {
         console.error('Supabase sign out error:', error)
       }
       
-      setUser(null)
-      setSession(null)
-      setSessionExpiresAt(null)
-      setLastActivityTime(null)
+      logSession('Sign out completed, redirecting...')
       
       if (typeof window !== 'undefined') {
         localStorage.clear()
         sessionStorage.clear()
         
-        router.push('/')
+        // Use window.location for immediate redirect to avoid router conflicts
+        window.location.href = '/'
       }
     } catch (error) {
       console.error('Error during sign out:', error)
@@ -325,10 +347,11 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       setSessionExpiresAt(null)
       setLastActivityTime(null)
       if (typeof window !== 'undefined') {
-        router.push('/')
+        window.location.href = '/'
       }
     } finally {
       setLoading(false)
+      setIsSigningOut(false)
     }
   }
 
@@ -412,23 +435,23 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     const { data: { subscription } } = supabase.auth.onAuthStateChange(
       async (event, session) => {
         if (!isMounted) return
-        if (!isInitialized) return
         
-        // PERUBAHAN 2: setTimeout (debounce) 500ms DIHAPUS. 
-        // Logika di dalamnya sekarang berjalan instan untuk mencegah delay.
-        console.log('Auth state changed:', event, session?.user?.email || 'no user')
+        // Allow auth state changes even if not initialized - this helps with login flow
+        logSession('Auth state changed:', event, session?.user?.email || 'no user')
         
         if (event === 'SIGNED_IN' && session?.user) {
-          console.log('User signed in, fetching user with role...')
+          logSession('User signed in, fetching user with role...')
           await fetchUserWithRole(true)
         } else if (event === 'SIGNED_OUT' || !session) {
-          console.log('User signed out, clearing user state')
+          logSession('User signed out, clearing user state')
           setUser(null)
           setSession(null)
+          setSessionExpiresAt(null)
+          setLastActivityTime(null)
           setLoading(false)
           setIsInitialized(true)
         } else if (event === 'TOKEN_REFRESHED' && session?.user) {
-          console.log('Token refreshed, updating user...')
+          logSession('Token refreshed, updating user...')
           if (user) {
             const { data: profile } = await supabase
               .from('profiles')
@@ -457,7 +480,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       isMounted = false
       subscription.unsubscribe()
     }
-  }, [fetchUserWithRole, isInitialized]) // Remove handleVisibilityChange from dependencies
+  }, [fetchUserWithRole]) // Removed isInitialized dependency since we're not checking it anymore
 
   // Separate effect for visibility change handler to avoid circular dependencies
   useEffect(() => {

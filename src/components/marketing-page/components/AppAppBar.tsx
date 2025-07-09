@@ -47,6 +47,7 @@ export default function AppAppBar() {
   const [open, setOpen] = useState(false)
   const [userMenuAnchor, setUserMenuAnchor] = useState<null | HTMLElement>(null)
   const [userIsAdmin, setUserIsAdmin] = useState(false)
+  const [isLoggingOut, setIsLoggingOut] = useState(false)
 
   const handleInquiryClick = () => {
     // Track user activity when they interact with the app
@@ -78,13 +79,17 @@ export default function AppAppBar() {
   }, [user])
 
   const handleLogout = async () => {
+    if (isLoggingOut) return // Prevent multiple logout attempts
+    
     trackActivity() // Track activity before logout
+    setIsLoggingOut(true)
     try {
       await signOut()
       setUserMenuAnchor(null)
     } catch (error) {
       console.error('Logout error:', error)
       setUserMenuAnchor(null)
+      setIsLoggingOut(false)
     }
   }
 
@@ -250,7 +255,9 @@ export default function AppAppBar() {
                         </MenuItem>,
                         <Divider key='user-divider' />,
                       ]}
-                  <MenuItem onClick={handleLogout}>로그아웃</MenuItem>
+                  <MenuItem onClick={handleLogout} disabled={isLoggingOut}>
+                    {isLoggingOut ? '로그아웃 중...' : '로그아웃'}
+                  </MenuItem>
                 </Menu>
               </>
             ) : (
@@ -372,7 +379,9 @@ export default function AppAppBar() {
                     >
                       입찰 정보
                     </MenuItem>
-                    <MenuItem onClick={handleLogout}>로그아웃</MenuItem>
+                    <MenuItem onClick={handleLogout} disabled={isLoggingOut}>
+                      {isLoggingOut ? '로그아웃 중...' : '로그아웃'}
+                    </MenuItem>
                   </Box>
                 ) : (
                   // If the user is logged out:

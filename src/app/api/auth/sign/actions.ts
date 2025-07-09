@@ -53,7 +53,7 @@ export async function login(
   }
 
   // 4. On success, revalidate and redirect.
-  revalidatePath('/', 'layout')
+  revalidatePath('/auth/user/history', 'layout')
 
   // MODIFIKASI: Gunakan redirectTo jika ada, jika tidak, gunakan default path
   redirect(redirectTo || '/auth/user/history')

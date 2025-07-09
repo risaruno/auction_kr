@@ -33,6 +33,20 @@ function AccountSidebarPreview(props: AccountPreviewProps & { mini: boolean }) {
 
 const SidebarFooterAccountPopover = () => {
   const { signOut } = useAuth()
+  const [isLoggingOut, setIsLoggingOut] = React.useState(false)
+  
+  const handleLogout = async () => {
+    if (isLoggingOut) return // Prevent multiple clicks
+    
+    setIsLoggingOut(true)
+    try {
+      await signOut()
+    } catch (error) {
+      console.error('Logout error:', error)
+      setIsLoggingOut(false)
+    }
+  }
+  
   return (
     <Stack direction='column' sx={{ width: 150, gap: 0 }}>
       <MenuList>
@@ -50,9 +64,10 @@ const SidebarFooterAccountPopover = () => {
           variant='text'
           fullWidth
           startIcon={<LogoutIcon />}
-          onClick={signOut}
+          onClick={handleLogout}
+          disabled={isLoggingOut}
         >
-          로그아웃
+          {isLoggingOut ? '로그아웃 중...' : '로그아웃'}
         </Button>
       </MenuList>
     </Stack>

@@ -1,7 +1,7 @@
 'use client'
 
-import * as React from "react";
-import { NextAppProvider } from "@toolpad/core/nextjs";
+import * as React from 'react'
+import { NextAppProvider } from '@toolpad/core/nextjs'
 import {
   Dashboard as DashboardIcon,
   AssignmentInd as ExpertIcon,
@@ -13,122 +13,172 @@ import {
   QuestionAnswer as QuestionAnswerIcon,
   Quiz as QuizIcon,
   ArrowBack,
-} from "@mui/icons-material";
-import type { Navigation } from "@toolpad/core/AppProvider";
-import theme from "@/theme";
+} from '@mui/icons-material'
+import type { Navigation } from '@toolpad/core/AppProvider'
+import theme from '@/theme'
 
-import Stack from "@mui/material/Stack";
-import CircularProgress from "@mui/material/CircularProgress";
-import Box from "@mui/material/Box";
-import Typography from "@mui/material/Typography";
-import { DashboardLayout, ThemeSwitcher } from "@toolpad/core/DashboardLayout";
-import Copyright from "@/components/dashboard/Copyright";
-import Sitemark from "@/components/marketing-page/components/SitemarkIcon";
+import Stack from '@mui/material/Stack'
+import CircularProgress from '@mui/material/CircularProgress'
+import Box from '@mui/material/Box'
+import Typography from '@mui/material/Typography'
+import { DashboardLayout, ThemeSwitcher } from '@toolpad/core/DashboardLayout'
+import Copyright from '@/components/dashboard/Copyright'
+import Sitemark from '@/components/marketing-page/components/SitemarkIcon'
 import SidebarFooterAccount, {
   ToolbarAccountOverride,
-} from "./SidebarFooterAccount";
-import { useAuth } from "@/contexts/AuthContext";
+} from './SidebarFooterAccount'
+import { useAuth } from '@/contexts/AuthContext'
 import {
   isAdmin,
   isSuperAdmin,
   canManageContent,
   canHandleSupport,
   isUser,
-} from "@/utils/auth/roles-client";
-import { useRouter, usePathname } from "next/navigation";
+} from '@/utils/auth/roles-client'
+import { useRouter, usePathname } from 'next/navigation'
 
 function CustomActions() {
   return (
-    <Stack direction="row" alignItems="center">
+    <Stack direction='row' alignItems='center'>
       <ThemeSwitcher />
       <ToolbarAccountOverride />
     </Stack>
-  );
+  )
 }
 
 function useNavigation(): Navigation {
-  const { user } = useAuth();
-  const userRole = user?.admin_role;
+  const { user } = useAuth()
+  const userRole = user?.admin_role
 
   const baseNavigation: Navigation = [
     {
-      segment: "/",
-      title: "홈으로",
+      segment: '/',
+      title: '홈으로',
       icon: <ArrowBack />,
     },
     {
-      kind: "divider",
+      kind: 'divider',
     },
-  ];
+  ]
 
   if (isAdmin(userRole)) {
     if (isSuperAdmin(userRole)) {
       baseNavigation.push(
-        { kind: "header", title: "콘텐츠 관리" },
-        { segment: "auth/manage", title: "대시보드", icon: <DashboardIcon /> },
-        { segment: "auth/manage/bids", title: "입찰 신청 관리", icon: <GavelIcon /> },
-        { segment: "auth/manage/experts", title: "전문가 관리", icon: <ExpertIcon /> },
-        { segment: "auth/manage/faqs", title: "자주하는 질문 관리", icon: <QuizIcon /> },
-        { kind: "divider" },
-        { kind: "header", title: "고객 지원" },
-        { segment: "auth/manage/inquiries", title: "문의 관리", icon: <QuestionAnswerIcon /> },
-        { kind: "divider" },
-        { kind: "header", title: "관리자 메뉴" },
-        { segment: "auth/manage/users", title: "사용자 관리", icon: <PersonIcon /> },
-        { segment: "auth/manage/managers", title: "관리자 관리", icon: <SupervisorAccountIcon /> },
-        { kind: "divider" }
-      );
+        { kind: 'header', title: '콘텐츠 관리' },
+        { segment: 'auth/manage', title: '대시보드', icon: <DashboardIcon /> },
+        {
+          segment: 'auth/manage/bids',
+          title: '입찰 신청 관리',
+          icon: <GavelIcon />,
+        },
+        {
+          segment: 'auth/manage/experts',
+          title: '전문가 관리',
+          icon: <ExpertIcon />,
+        },
+        {
+          segment: 'auth/manage/faqs',
+          title: '자주하는 질문 관리',
+          icon: <QuizIcon />,
+        },
+        { kind: 'divider' },
+        { kind: 'header', title: '고객 지원' },
+        {
+          segment: 'auth/manage/inquiries',
+          title: '문의 관리',
+          icon: <QuestionAnswerIcon />,
+        },
+        { kind: 'divider' },
+        { kind: 'header', title: '관리자 메뉴' },
+        {
+          segment: 'auth/manage/users',
+          title: '사용자 관리',
+          icon: <PersonIcon />,
+        },
+        {
+          segment: 'auth/manage/managers',
+          title: '관리자 관리',
+          icon: <SupervisorAccountIcon />,
+        },
+        { kind: 'divider' }
+      )
     }
 
     if (canManageContent(userRole)) {
       baseNavigation.push(
-        { kind: "header", title: "콘텐츠 관리" },
-        { segment: "auth/manage/dashboard", title: "대시보드", icon: <DashboardIcon /> },
-        { segment: "auth/manage/experts", title: "전문가 관리", icon: <ExpertIcon /> },
-        { segment: "auth/manage/faqs", title: "자주하는 질문 관리", icon: <QuizIcon /> },
-        { kind: "divider" },
-        { kind: "header", title: "고객 지원" },
-        { segment: "auth/manage/inquiries", title: "문의 관리", icon: <QuestionAnswerIcon /> },
-        { kind: "divider" }
-      );
+        { kind: 'header', title: '콘텐츠 관리' },
+        {
+          segment: 'auth/manage/dashboard',
+          title: '대시보드',
+          icon: <DashboardIcon />,
+        },
+        {
+          segment: 'auth/manage/experts',
+          title: '전문가 관리',
+          icon: <ExpertIcon />,
+        },
+        {
+          segment: 'auth/manage/faqs',
+          title: '자주하는 질문 관리',
+          icon: <QuizIcon />,
+        },
+        { kind: 'divider' },
+        { kind: 'header', title: '고객 지원' },
+        {
+          segment: 'auth/manage/inquiries',
+          title: '문의 관리',
+          icon: <QuestionAnswerIcon />,
+        },
+        { kind: 'divider' }
+      )
     }
 
     if (canHandleSupport(userRole)) {
       baseNavigation.push(
-        { kind: "header", title: "고객 지원" },
-        { segment: "auth/manage/inquiries", title: "문의 관리", icon: <QuestionAnswerIcon /> },
-        { kind: "divider" }
-      );
+        { kind: 'header', title: '고객 지원' },
+        {
+          segment: 'auth/manage/inquiries',
+          title: '문의 관리',
+          icon: <QuestionAnswerIcon />,
+        },
+        { kind: 'divider' }
+      )
     }
   }
 
   if (isUser(userRole)) {
     baseNavigation.push(
-      { kind: "header", title: "마이페이지" },
-      { segment: "auth/user/history", title: "서비스 내역", icon: <HistoryIcon /> },
-      { segment: "auth/user/info", title: "입찰 정보", icon: <AccountCircleIcon /> },
-      { segment: "auth/user/inquiry", title: "문의 내역", icon: <HistoryIcon /> },
-      { kind: "divider" }
-    );
+      { kind: 'header', title: '마이페이지' },
+      {
+        segment: 'auth/user/history',
+        title: '서비스 내역',
+        icon: <HistoryIcon />,
+      },
+      {
+        segment: 'auth/user/info',
+        title: '입찰 정보',
+        icon: <AccountCircleIcon />,
+      },
+      {
+        segment: 'auth/user/inquiry',
+        title: '문의 내역',
+        icon: <HistoryIcon />,
+      },
+      { kind: 'divider' }
+    )
   }
-  return baseNavigation;
+  return baseNavigation
 }
 
 export default function Layout({ children }: { children: React.ReactNode }) {
-  const { user, session, loading, signOut } = useAuth();
-  const router = useRouter();
-  const pathname = usePathname() || "/";
-  const navigation = useNavigation();
-
-  // Use effect for redirect logic
-  React.useEffect(() => {
-    if (!loading && !user && pathname !== '/sign/in') {
-      router.push(`/sign/in?redirectTo=${encodeURIComponent(pathname)}`);
-    }
-  }, [loading, user, pathname, router]);
+  const { user, session, loading, signOut, isInitialized } = useAuth()
+  const router = useRouter()
+  const pathname = usePathname() || '/'
+  const navigation = useNavigation()
+  const [isSigningOut, setIsSigningOut] = React.useState(false)
 
   const toolpadSession = React.useMemo(() => {
-    if (!session || !user) return null;
+    if (!session || !user) return null
     return {
       user: {
         id: user.id,
@@ -136,35 +186,83 @@ export default function Layout({ children }: { children: React.ReactNode }) {
         email: user.email,
         image: session.user.user_metadata?.avatar_url || null,
       },
-    };
-  }, [session, user]);
+    }
+  }, [session, user])
 
   const authentication = React.useMemo(() => {
     return {
       signIn: async () => {
-        router.push(`/sign/in?redirectTo=${encodeURIComponent(pathname)}`);
+        router.push(`/sign/in?redirectTo=${encodeURIComponent(pathname)}`)
       },
       signOut: async () => {
-        await signOut();
+        setIsSigningOut(true)
+        try {
+          await signOut()
+        } catch (error) {
+          console.error('Sign out error:', error)
+          setIsSigningOut(false)
+        }
       },
-    };
-  }, [signOut, router, pathname]);
+    }
+  }, [signOut, router, pathname])
 
-  if (loading) {
+  // Show loading while authentication is being determined
+  if (loading || !isInitialized) {
     return (
-      <Box display="flex" justifyContent="center" alignItems="center" height="100vh">
+      <Box
+        display='flex'
+        flexDirection='column'
+        justifyContent='center'
+        alignItems='center'
+        height='100vh'
+        gap={2}
+      >
         <CircularProgress />
+        <Typography>인증 정보를 확인하고 있습니다...</Typography>
       </Box>
-    );
+    )
   }
 
-  if (!user) {
+  // Show signing out state
+  if (isSigningOut) {
     return (
-      <Box display="flex" justifyContent="center" alignItems="center" height="100vh">
+      <Box
+        display='flex'
+        flexDirection='column'
+        justifyContent='center'
+        alignItems='center'
+        height='100vh'
+        gap={2}
+      >
         <CircularProgress />
-        <Typography>Redirecting to login...</Typography>
+        <Typography>로그아웃 중...</Typography>
       </Box>
-    );
+    )
+  }
+
+  // If authentication is complete but no user, redirect to login
+  if (!user) {
+    // Use a timeout to prevent immediate redirect during logout
+    React.useEffect(() => {
+      const timer = setTimeout(() => {
+        router.push(`/sign/in?redirectTo=${encodeURIComponent(pathname)}`)
+      }, 100)
+      return () => clearTimeout(timer)
+    }, [router, pathname])
+    
+    return (
+      <Box
+        display='flex'
+        flexDirection='column'
+        justifyContent='center'
+        alignItems='center'
+        height='100vh'
+        gap={2}
+      >
+        <CircularProgress />
+        <Typography>로그인 페이지로 이동 중...</Typography>
+      </Box>
+    )
   }
 
   return (
@@ -177,8 +275,8 @@ export default function Layout({ children }: { children: React.ReactNode }) {
       <DashboardLayout
         branding={{
           logo: <Sitemark />,
-          title: "",
-          homeUrl: "/auth",
+          title: '',
+          homeUrl: '/',
         }}
         slots={{
           toolbarActions: CustomActions,
@@ -189,5 +287,5 @@ export default function Layout({ children }: { children: React.ReactNode }) {
         <Copyright sx={{ my: 4 }} />
       </DashboardLayout>
     </NextAppProvider>
-  );
+  )
 }
