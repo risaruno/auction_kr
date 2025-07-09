@@ -44,5 +44,5 @@ export function getRedirectPath(role: AdminRole | null | undefined): string {
   if (isAdmin(role)) {
     return '/auth/manage'
   }
-  return '/auth/user'
+  return '/auth/user/history'
 }

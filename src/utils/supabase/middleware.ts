@@ -73,6 +73,7 @@ export async function updateSession(request: NextRequest) {
   const isAuthRoute = authRoutes.some(route => 
     pathname === route || pathname.startsWith(`${route}/`)
   )
+
   // Use user for authentication check (more secure than session)
   const isAuthenticated = !!user
 

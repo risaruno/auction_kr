@@ -17,7 +17,7 @@ import CloseRoundedIcon from '@mui/icons-material/CloseRounded'
 import AccountCircleIcon from '@mui/icons-material/AccountCircle'
 import CircularProgress from '@mui/material/CircularProgress'
 import Sitemark from './SitemarkIcon'
-import { useAuth, useActivityTracker } from '@/contexts/AuthContext'
+import { useAuth } from '@/contexts/AuthContext'
 import { useRouter } from 'next/navigation'
 import DebugAuth from '@/components/DebugAuth'
 import { Login as LoginIcon } from '@mui/icons-material'
@@ -40,9 +40,8 @@ const StyledToolbar = styled(Toolbar)(({ theme }) => ({
 }))
 
 export default function AppAppBar() {
-  const { user, signOut, loading, isSessionExpiringSoon, minutesUntilExpiry } =
+  const { user, signOut, loading } =
     useAuth()
-  const { trackActivity } = useActivityTracker()
   const router = useRouter()
   const [open, setOpen] = useState(false)
   const [userMenuAnchor, setUserMenuAnchor] = useState<null | HTMLElement>(null)
@@ -50,8 +49,6 @@ export default function AppAppBar() {
   const [isLoggingOut, setIsLoggingOut] = useState(false)
 
   const handleInquiryClick = () => {
-    // Track user activity when they interact with the app
-    trackActivity()
 
     // Jika masih dalam proses loading auth, jangan lakukan apa-apa
     if (loading) {
@@ -81,7 +78,6 @@ export default function AppAppBar() {
   const handleLogout = async () => {
     if (isLoggingOut) return // Prevent multiple logout attempts
     
-    trackActivity() // Track activity before logout
     setIsLoggingOut(true)
     try {
       await signOut()
@@ -94,12 +90,10 @@ export default function AppAppBar() {
   }
 
   const handleUserMenuOpen = (event: React.MouseEvent<HTMLElement>) => {
-    trackActivity() // Track activity when user opens menu
     setUserMenuAnchor(event.currentTarget)
   }
 
   const handleUserMenuClose = () => {
-    trackActivity() // Track activity when user closes menu
     setUserMenuAnchor(null)
   }
 
@@ -188,17 +182,6 @@ export default function AppAppBar() {
             ) : user ? (
               // If the user is logged in:
               <>
-                {/* Session expiry warning */}
-                {isSessionExpiringSoon && minutesUntilExpiry && (
-                  <Button
-                    size='small'
-                    color='warning'
-                    variant='outlined'
-                    sx={{ fontSize: '0.75rem', minWidth: 'auto', px: 1 }}
-                  >
-                    Session: {minutesUntilExpiry}m
-                  </Button>
-                )}
                 <Button
                   onClick={handleUserMenuOpen}
                   color='primary'

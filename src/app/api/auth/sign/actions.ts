@@ -3,6 +3,8 @@
 import { revalidatePath } from 'next/cache'
 import { redirect } from 'next/navigation'
 import { createClient } from '@/utils/supabase/server'
+import { getCurrentUserWithRole } from '@/utils/auth/server-roles'
+import { getRedirectPath } from '@/utils/auth/roles-client'
 
 // This interface defines the shape of the state our form will manage.
 export interface FormState {
@@ -52,11 +54,19 @@ export async function login(
     return { error: '이메일 또는 비밀번호가 일치하지 않습니다.', message: null }
   }
 
-  // 4. On success, revalidate and redirect.
+  // 4. On success, get user role and redirect accordingly
   revalidatePath('/auth/user/history', 'layout')
 
-  // MODIFIKASI: Gunakan redirectTo jika ada, jika tidak, gunakan default path
-  redirect(redirectTo || '/auth/user/history')
+  // Get the user with their role to determine redirect path
+  const userWithRole = await getCurrentUserWithRole()
+  
+  // If redirectTo is provided, use it; otherwise use role-based redirect
+  if (redirectTo) {
+    redirect(redirectTo)
+  } else {
+    const defaultPath = userWithRole ? getRedirectPath(userWithRole.admin_role) : '/'
+    redirect(defaultPath)
+  }
 }
 
 // ==================================================================

@@ -171,21 +171,47 @@ function useNavigation(): Navigation {
 }
 
 export default function Layout({ children }: { children: React.ReactNode }) {
-  const { user, session, loading, signOut, isInitialized } = useAuth()
+  const { user, session, loading, signOut, isInitialized, refreshUser } = useAuth()
   const router = useRouter()
   const pathname = usePathname() || '/'
   const navigation = useNavigation()
   const [isSigningOut, setIsSigningOut] = React.useState(false)
 
-  // Handle redirect to login when no user (moved to top level)
+  // Refresh user data when the layout mounts (especially after login redirects)
   React.useEffect(() => {
-    if (isInitialized && !loading && !user && !isSigningOut) {
+    // If we're on an auth route and don't have user data yet, 
+    // but we're initialized, try to refresh
+    if (isInitialized && !loading && !user && pathname.startsWith('/auth')) {
+      console.log('Layout mounted on auth route without user, refreshing...')
+      refreshUser()
+    }
+  }, [isInitialized, loading, user, pathname, refreshUser])
+
+  // Handle redirect to login when no user (moved to top level to avoid conditional hooks)
+  React.useEffect(() => {
+    if (!user && isInitialized && !loading) {
       const timer = setTimeout(() => {
-        router.push(`/sign/in?redirectTo=${encodeURIComponent(pathname)}`)
-      }, 100)
+        if (!user && isInitialized && !loading) {
+          console.log('No user found after delay, redirecting to login...')
+          router.push(`/sign/in?redirectTo=${encodeURIComponent(pathname)}`)
+        }
+      }, 1000) // Give 1 second for auth state to settle
+      
       return () => clearTimeout(timer)
     }
-  }, [isInitialized, loading, user, isSigningOut, router, pathname])
+  }, [user, isInitialized, loading, router, pathname])
+
+  // Handle timeout for loading/initialization state
+  React.useEffect(() => {
+    if (loading || !isInitialized) {
+      const timer = setTimeout(() => {
+        console.log('Auth initialization timeout, forcing refresh...')
+        refreshUser()
+      }, 3000) // Give 3 seconds for auth to initialize
+      
+      return () => clearTimeout(timer)
+    }
+  }, [loading, isInitialized, refreshUser])
 
   const toolpadSession = React.useMemo(() => {
     if (!session || !user) return null
@@ -202,7 +228,7 @@ export default function Layout({ children }: { children: React.ReactNode }) {
   const authentication = React.useMemo(() => {
     return {
       signIn: async () => {
-        router.push(`/sign/in?redirectTo=${encodeURIComponent(pathname)}`)
+        router.push(`/sign/in`)
       },
       signOut: async () => {
         setIsSigningOut(true)
@@ -262,7 +288,7 @@ export default function Layout({ children }: { children: React.ReactNode }) {
         gap={2}
       >
         <CircularProgress />
-        <Typography>로그인 페이지로 이동 중...</Typography>
+        <Typography>사용자 정보를 확인하고 있습니다...</Typography>
       </Box>
     )
   }
