@@ -1,8 +1,8 @@
 'use client'
 import * as React from 'react'
-import { useState } from 'react'
+import { useState, useEffect, useActionState, useCallback } from 'react'
 
-// Material-UI 컴포넌트 import (Grid는 제거됨)
+// Material-UI 컴포넌트 import
 import {
   Box,
   Button,
@@ -15,82 +15,163 @@ import {
   InputLabel,
   Alert,
   Paper,
+  CircularProgress,
+  Snackbar,
+  Modal,
 } from '@mui/material'
 
-// 왼쪽 네비게이션 메뉴 컴포넌트
-const SideNav = ({
-  activeView,
-  setActiveView,
-}: {
-  activeView: string
-  setActiveView: (view: string) => void
-}) => (
-  <Paper elevation={0} sx={{ p: 2, width: 240, mr: 4 }}>
-    <Typography variant='h5' sx={{ fontWeight: 'bold', mb: 1 }}>
-      내 정보
-    </Typography>
-    <Typography variant='body2' color='text.secondary' sx={{ mb: 3 }}>
-      내 정보 수정과 포인트 내역을 확인할 수 있습니다.
-    </Typography>
-    <Box sx={{ display: 'flex', flexDirection: 'column', gap: 1 }}>
-      <Button
-        variant={activeView === 'biddingInfo' ? 'contained' : 'text'}
-        onClick={() => setActiveView('biddingInfo')}
-        sx={{
-          justifyContent: 'flex-start',
-          py: 1.5,
-          px: 2,
-          fontSize: '1rem',
-          ...(activeView === 'biddingInfo'
-            ? {
-                backgroundColor: '#e3f2fd',
-                color: 'primary.main',
-                fontWeight: 'bold',
-              }
-            : { color: 'text.primary' }),
-        }}
-      >
-        입찰 정보
-      </Button>
-      <Button
-        variant={activeView === 'changePassword' ? 'contained' : 'text'}
-        onClick={() => setActiveView('changePassword')}
-        sx={{
-          justifyContent: 'flex-start',
-          py: 1.5,
-          px: 2,
-          fontSize: '1rem',
-          ...(activeView === 'changePassword'
-            ? {
-                backgroundColor: '#e3f2fd',
-                color: 'primary.main',
-                fontWeight: 'bold',
-              }
-            : { color: 'text.primary' }),
-        }}
-      >
-        비밀번호 변경
-      </Button>
-    </Box>
-  </Paper>
-)
+import { updateProfile, fetchUserProfile, UpdateProfileState } from '../actions'
+import { useAuth } from '@/contexts/AuthContext'
+import { getBankOptions } from '@/types/bank'
+import DaumPostcodeEmbed from 'react-daum-postcode'
 
-// 입찰 정보 수정 폼 컴포넌트 (Flexbox 사용)
+interface ProfileData {
+  full_name?: string
+  phone?: string
+  email?: string
+  address?: string
+  zip_no?: string
+  addr_detail?: string
+  bank?: string
+  account_number?: string
+}
+
 const BiddingInfoForm = () => {
-  const [bank, setBank] = useState('')
+  const { user } = useAuth()
+  const [isModalOpen, setIsModalOpen] = useState(false)
+  const [profile, setProfile] = useState<ProfileData | null>(null)
+  const [loading, setLoading] = useState(true)
+  const [showSnackbar, setShowSnackbar] = useState(false)
+  const [snackbarMessage, setSnackbarMessage] = useState('')
+  const [snackbarSeverity, setSnackbarSeverity] = useState<'success' | 'error'>(
+    'success'
+  )
+
+  const [formData, setFormData] = useState<{
+    fullName: string
+    phone: string
+    zipNo?: string
+    address: string
+    addrDetail: string
+    bank: string // Bank enum value
+    accountNumber: string
+    socialSecurityFirst: string
+    socialSecuritySecond: string
+  }>({
+    fullName: '',
+    phone: '',
+    address: '',
+    addrDetail: '',
+    bank: '',
+    accountNumber: '',
+    socialSecurityFirst: '',
+    socialSecuritySecond: '',
+  })
+
+  const handleDaumComplete = useCallback(
+    (data: { zonecode: string; address: string }) => {
+      setFormData((prev) => ({
+        ...prev,
+        zipNo: data.zonecode,
+        address: data.address,
+      }))
+      setIsModalOpen(false)
+    },
+    [setFormData]
+  )
+
+  const [updateState, updateFormAction, updatePending] = useActionState<
+    UpdateProfileState,
+    FormData
+  >(updateProfile, { error: null, message: null })
+
+  useEffect(() => {
+    const loadProfile = async () => {
+      if (!user) return
+
+      try {
+        const result = await fetchUserProfile()
+        if (result.success && result.data) {
+          const profileData = result.data
+          setProfile(profileData)
+          setFormData({
+            fullName: profileData.full_name || '',
+            phone: profileData.phone || '',
+            address: profileData.address || '',
+            zipNo: profileData.zip_no || '',
+            addrDetail: profileData.addr_detail || '',
+            bank: profileData.bank || '',
+            accountNumber: profileData.account_number || '',
+            socialSecurityFirst: '',
+            socialSecuritySecond: '',
+          })
+        }
+      } catch (error) {
+        console.error('Error loading profile:', error)
+      } finally {
+        setLoading(false)
+      }
+    }
+
+    loadProfile()
+  }, [user])
+
+  useEffect(() => {
+    if (updateState.message) {
+      setSnackbarMessage(updateState.message)
+      setSnackbarSeverity('success')
+      setShowSnackbar(true)
+    } else if (updateState.error) {
+      setSnackbarMessage(updateState.error)
+      setSnackbarSeverity('error')
+      setShowSnackbar(true)
+    }
+  }, [updateState])
+
+  const handleInputChange = (field: string, value: string) => {
+    setFormData((prev) => ({ ...prev, [field]: value }))
+  }
+
+  const handleSubmit = (event: React.FormEvent) => {
+    event.preventDefault()
+    const form = new FormData()
+    Object.entries(formData).forEach(([key, value]) => {
+      if (key === 'socialSecurityFirst' || key === 'socialSecuritySecond')
+        return
+      form.append(key, value)
+    })
+    updateFormAction(form)
+  }
+
+  if (loading) {
+    return (
+      <Paper
+        elevation={0}
+        sx={{
+          p: 4,
+          flex: 1,
+          display: 'flex',
+          justifyContent: 'center',
+          alignItems: 'center',
+        }}
+      >
+        <CircularProgress />
+      </Paper>
+    )
+  }
 
   return (
-    <Paper elevation={0} sx={{ p: 4, flex: 1 }}>
-      <Typography variant='h5' sx={{ fontWeight: 'bold', mb: 2 }}>
+    <Container maxWidth='lg' sx={{ my: 5 }}>
+      <Typography variant='h4' sx={{ mb: 3 }}>
         입찰 정보 수정
       </Typography>
       <Alert severity='info' sx={{ mb: 4, backgroundColor: '#e3f2fd' }}>
-        안심하세요 :) 대리입찰 외 다른 용도로 입찰인의 정보를 이용하지 않습니다
+        대리입찰 외 다른 용도로 입찰인의 정보를 이용하지 않습니다
       </Alert>
 
-      {/* Box와 Flexbox를 사용한 폼 레이아웃 */}
       <Box
         component='form'
+        onSubmit={handleSubmit}
         sx={{ display: 'flex', flexDirection: 'column', gap: 3 }}
       >
         <Box>
@@ -98,11 +179,36 @@ const BiddingInfoForm = () => {
             주민등록번호
           </Typography>
           <Box sx={{ display: 'flex', alignItems: 'center', gap: 2 }}>
-            <TextField sx={{ flex: 1 }} />
+            <TextField
+              sx={{ flex: 1 }}
+              value={formData.socialSecurityFirst}
+              onChange={(e) =>
+                handleInputChange('socialSecurityFirst', e.target.value)
+              }
+              inputProps={{
+                maxLength: 6,
+              }}
+              placeholder='앞 6자리'
+            />
             <Typography component='span'>-</Typography>
-            <TextField type='password' sx={{ flex: 1 }} />
+            <TextField
+              type='password'
+              sx={{ flex: 1 }}
+              value={formData.socialSecuritySecond}
+              onChange={(e) =>
+                handleInputChange('socialSecuritySecond', e.target.value)
+              }
+              inputProps={{
+                maxLength: 7,
+              }}
+              placeholder='뒤 7자리'
+            />
           </Box>
-          <Typography variant='caption' color='error' sx={{ mt: 1 }}>
+          <Typography
+            variant='caption'
+            color='error'
+            sx={{ mt: 1, display: 'block' }}
+          >
             주민등록번호는 입찰표 작성에만 사용됩니다.
           </Typography>
         </Box>
@@ -115,20 +221,28 @@ const BiddingInfoForm = () => {
             <FormControl sx={{ minWidth: 120 }}>
               <InputLabel>은행</InputLabel>
               <Select
-                value={bank}
+                value={formData.bank}
                 label='은행'
-                onChange={(e) => setBank(e.target.value)}
+                onChange={(e) => handleInputChange('bank', e.target.value)}
               >
-                <MenuItem value={'kb'}>국민은행</MenuItem>
-                <MenuItem value={'shinhan'}>신한은행</MenuItem>
-                <MenuItem value={'woori'}>우리은행</MenuItem>
+                {getBankOptions().map((bank) => (
+                  <MenuItem key={bank.value} value={bank.value}>
+                    {bank.labelKo}
+                  </MenuItem>
+                ))}
               </Select>
             </FormControl>
-            <TextField fullWidth placeholder='계좌번호 입력' />
+            <TextField
+              fullWidth
+              placeholder='계좌번호 입력'
+              value={formData.accountNumber}
+              onChange={(e) =>
+                handleInputChange('accountNumber', e.target.value)
+              }
+            />
           </Box>
         </Box>
 
-        {/* 2개의 필드를 한 줄에 배치하기 위한 Flexbox Row */}
         <Box
           sx={{
             display: 'flex',
@@ -140,13 +254,24 @@ const BiddingInfoForm = () => {
             <Typography variant='subtitle1' sx={{ fontWeight: 'bold', mb: 1 }}>
               입찰자 성명
             </Typography>
-            <TextField fullWidth defaultValue='리잔' />
+            <TextField
+              fullWidth
+              value={formData.fullName}
+              onChange={(e) => handleInputChange('fullName', e.target.value)}
+              required
+            />
           </Box>
           <Box sx={{ flex: 1 }}>
             <Typography variant='subtitle1' sx={{ fontWeight: 'bold', mb: 1 }}>
               연락처
             </Typography>
-            <TextField fullWidth placeholder='연락처 입력' />
+            <TextField
+              fullWidth
+              placeholder='연락처 입력'
+              value={formData.phone}
+              onChange={(e) => handleInputChange('phone', e.target.value)}
+              required
+            />
           </Box>
         </Box>
 
@@ -154,97 +279,110 @@ const BiddingInfoForm = () => {
           <Typography variant='subtitle1' sx={{ fontWeight: 'bold', mb: 1 }}>
             주소
           </Typography>
-          <TextField fullWidth placeholder='주소검색' sx={{ mb: 1 }} />
-          <TextField fullWidth placeholder='상세주소 입력' />
-        </Box>
-
-        <Box>
-          <Button
-            variant='contained'
-            size='large'
-            fullWidth
-            sx={{ py: 1.5, mt: 2, fontSize: '1.1rem', fontWeight: 'bold' }}
-          >
-            입찰인 정보 수정하기
-          </Button>
-        </Box>
-      </Box>
-    </Paper>
-  )
-}
-
-// 비밀번호 변경 폼 컴포넌트 (Flexbox 사용)
-const ChangePasswordForm = () => {
-  return (
-    <Paper elevation={0} sx={{ p: 4, flex: 1 }}>
-      <Typography variant='h5' sx={{ fontWeight: 'bold', mb: 4 }}>
-        비밀번호 변경
-      </Typography>
-
-      <Box
-        component='form'
-        sx={{ display: 'flex', flexDirection: 'column', gap: 3 }}
-      >
-        <Box>
-          <Typography variant='subtitle1' sx={{ fontWeight: 'bold', mb: 1 }}>
-            이메일
-          </Typography>
-          <TextField
-            fullWidth
-            defaultValue='risaruno@kakao.com'
-            InputProps={{
-              readOnly: true,
+          <Box
+            sx={{
+              display: 'flex',
+              flexDirection: { xs: 'column', sm: 'row' },
+              gap: 2,
             }}
-            sx={{ backgroundColor: '#f5f5f5' }}
-          />
-        </Box>
-
-        <Box>
-          <Typography variant='subtitle1' sx={{ fontWeight: 'bold', mb: 1 }}>
-            기존 비밀번호
-          </Typography>
-          <TextField type='password' fullWidth defaultValue='12345678' />
-        </Box>
-
-        <Box>
-          <Typography variant='subtitle1' sx={{ fontWeight: 'bold', mb: 1 }}>
-            새 비밀번호
-          </Typography>
+          >
+            <Box sx={{ flex: 3 }}>
+              <TextField
+                fullWidth
+                placeholder='주소검색'
+                sx={{ mb: 1 }}
+                value={formData.address}
+                InputProps={{ readOnly: true }}
+                onClick={() => setIsModalOpen(true)}
+                required
+              />
+            </Box>
+            <Box sx={{ flex: 1 }}>
+              <TextField
+                id='zipNo'
+                name='zipNo'
+                value={formData.zipNo}
+                placeholder='우편번호'
+                InputProps={{ readOnly: true }}
+                fullWidth
+                required
+              />
+            </Box>
+          </Box>
           <TextField
-            type='password'
             fullWidth
-            placeholder='새 비밀번호 (영문, 숫자, 특수문자 8-15자)'
+            placeholder='상세주소 입력'
+            value={formData.addrDetail}
+            onChange={(e) => handleInputChange('addrDetail', e.target.value)}
+            required
           />
         </Box>
 
         <Box>
           <Button
+            type='submit'
             variant='contained'
             size='large'
             fullWidth
+            disabled={updatePending}
             sx={{ py: 1.5, mt: 2, fontSize: '1.1rem', fontWeight: 'bold' }}
           >
-            비밀번호 수정하기
+            {updatePending ? (
+              <CircularProgress size={24} />
+            ) : (
+              '입찰인 정보 수정하기'
+            )}
           </Button>
         </Box>
       </Box>
-    </Paper>
+
+      <Snackbar
+        open={showSnackbar}
+        autoHideDuration={6000}
+        onClose={() => setShowSnackbar(false)}
+        anchorOrigin={{ vertical: 'bottom', horizontal: 'center' }}
+      >
+        <Alert
+          onClose={() => setShowSnackbar(false)}
+          severity={snackbarSeverity}
+          sx={{ width: '100%' }}
+        >
+          {snackbarMessage}
+        </Alert>
+      </Snackbar>
+
+      <Modal
+        open={isModalOpen}
+        onClose={() => setIsModalOpen(false)}
+        aria-labelledby='modal-address-search'
+      >
+        <Box
+          sx={{
+            position: 'absolute',
+            top: '50%',
+            left: '50%',
+            transform: 'translate(-50%, -50%)',
+            width: { xs: '90%', sm: 500 },
+            bgcolor: 'background.paper',
+            boxShadow: 24,
+            p: 0,
+            borderRadius: 1,
+          }}
+        >
+          <DaumPostcodeEmbed
+            onComplete={handleDaumComplete}
+            style={{ height: '400px' }}
+          />
+        </Box>
+      </Modal>
+    </Container>
   )
 }
 
-// 메인 페이지 컴포넌트
 export default function UserInfo() {
-  const [activeView, setActiveView] = useState('biddingInfo') // 'biddingInfo' or 'changePassword'
-
   return (
-    <Container maxWidth='lg' sx={{ my: 5 }}>
-      <Box sx={{ display: 'flex', flexDirection: { xs: 'column', md: 'row' } }}>
-        <SideNav activeView={activeView} setActiveView={setActiveView} />
-        <Box sx={{ flex: 1 }}>
-          {activeView === 'biddingInfo' && <BiddingInfoForm />}
-          {activeView === 'changePassword' && <ChangePasswordForm />}
-        </Box>
-      </Box>
+    <Container maxWidth='md' sx={{ my: 5 }}>
+      <BiddingInfoForm />
     </Container>
   )
 }

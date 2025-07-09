@@ -1,20 +1,10 @@
 'use client'
-import React, { useState, useEffect } from 'react' // Import useEffect
+import React, { useState, useEffect } from 'react'
 import {
   Box,
   CssBaseline,
-  Toolbar,
-  Card,
-  CardContent,
   Typography,
   Button,
-  Table,
-  TableContainer,
-  Paper,
-  TableHead,
-  TableRow,
-  TableCell,
-  TableBody,
   Avatar,
   Chip,
   IconButton,
@@ -32,24 +22,30 @@ import {
   DialogContent,
   DialogContentText,
   DialogActions,
+  Alert,
+  Snackbar,
 } from '@mui/material'
+import {
+  DataGrid,
+  GridColDef,
+  GridRenderCellParams,
+  GridPaginationModel,
+} from '@mui/x-data-grid'
 import {
   Edit as EditIcon,
   Delete as DeleteIcon,
   AddCircle as AddCircleIcon,
   Close as CloseIcon,
+  Search as SearchIcon,
+  PhotoCamera as PhotoCameraIcon,
 } from '@mui/icons-material'
-import AdminLayout from '../AdminLayout'
-
-// In a real app, you might want to create a proper interface file for this
-interface Expert {
-  id: number
-  name: string
-  location: string
-  description: string
-  photo?: string
-  services: string[]
-}
+import {
+  fetchExperts,
+  createExpert,
+  updateExpert,
+  deleteExpert,
+} from '@/app/api/expert/actions'
+import { Expert, ExpertCreateRequest, ExpertUpdateRequest } from '@/types/api'
 
 const allLocations = [
   '서울',
@@ -79,7 +75,7 @@ const allServices = [
 ]
 
 const modalStyle = {
-  position: 'absolute' as 'absolute',
+  position: 'absolute',
   top: '50%',
   left: '50%',
   transform: 'translate(-50%, -50%)',
@@ -95,48 +91,103 @@ const modalStyle = {
 const ExpertsContent = () => {
   const [experts, setExperts] = useState<Expert[]>([])
   const [loading, setLoading] = useState(true)
+  const [error, setError] = useState<string | null>(null)
+  const [successMessage, setSuccessMessage] = useState<string | null>(null)
   const [openFormModal, setOpenFormModal] = useState(false)
   const [openDeleteDialog, setOpenDeleteDialog] = useState(false)
   const [selectedExpert, setSelectedExpert] = useState<Partial<Expert> | null>(
     null
   )
   const [isEditing, setIsEditing] = useState(false)
+  const [profileImageFile, setProfileImageFile] = useState<File | null>(null)
+  const [profileImagePreview, setProfileImagePreview] = useState<string | null>(
+    null
+  )
+  const [uploadingImage, setUploadingImage] = useState(false)
 
-  // --- Fetch Experts on Load ---
-  const fetchExperts = async () => {
+  // Pagination and search states
+  const [paginationModel, setPaginationModel] = useState<GridPaginationModel>({
+    page: 0,
+    pageSize: 10,
+  })
+  const [totalCount, setTotalCount] = useState(0)
+  const [searchQuery, setSearchQuery] = useState('')
+  const [selectedLocation, setSelectedLocation] = useState('')
+
+  // --- Fetch Experts with pagination and search ---
+  const loadExperts = async () => {
     setLoading(true)
+    setError(null)
     try {
-      const response = await fetch('/api/experts')
-      if (!response.ok) throw new Error('Failed to fetch experts')
-      const data = await response.json()
-      setExperts(data)
+      const result = await fetchExperts({
+        page: paginationModel.page + 1, // API expects 1-based pagination
+        limit: paginationModel.pageSize,
+        search: searchQuery || undefined,
+        location: selectedLocation || undefined,
+        sortBy: 'created_at',
+        sortOrder: 'desc',
+      })
+
+      setExperts(result.data)
+      setTotalCount(result.total)
     } catch (error) {
-      console.error(error)
+      setError(
+        error instanceof Error ? error.message : 'Failed to fetch experts'
+      )
     } finally {
       setLoading(false)
     }
   }
 
   useEffect(() => {
-    fetchExperts()
-  }, [])
+    loadExperts()
+  }, [
+    paginationModel.page,
+    paginationModel.pageSize,
+    searchQuery,
+    selectedLocation,
+  ])
+
+  // Search handlers
+  const handleSearch = () => {
+    setPaginationModel((prev) => ({ ...prev, page: 0 })) // Reset to first page on new search
+    loadExperts()
+  }
+
+  const handleLocationFilter = (event: SelectChangeEvent<string>) => {
+    setSelectedLocation(event.target.value)
+    setPaginationModel((prev) => ({ ...prev, page: 0 })) // Reset to first page on filter change
+  }
+
+  // Pagination handlers
+  const handlePaginationModelChange = (newModel: GridPaginationModel) => {
+    setPaginationModel(newModel)
+  }
 
   // --- Modal & Form Handlers ---
   const handleOpenCreateModal = () => {
     setIsEditing(false)
-    setSelectedExpert({ name: '', location: '', description: '', services: [] })
+    setSelectedExpert({
+      name: '',
+      location: '',
+      description: '',
+      services: [],
+    })
     setOpenFormModal(true)
   }
-
   const handleOpenEditModal = (expert: Expert) => {
     setIsEditing(true)
     setSelectedExpert(expert)
     setOpenFormModal(true)
+    // Show existing photo if available
+    if (expert.photo_url) {
+      setProfileImagePreview(expert.photo_url)
+    }
   }
-
   const handleCloseFormModal = () => {
     setOpenFormModal(false)
     setSelectedExpert(null)
+    clearImagePreview()
   }
 
   const handleFormChange = (event: React.ChangeEvent<HTMLInputElement>) => {
@@ -154,49 +205,94 @@ const ExpertsContent = () => {
     }))
   }
 
-  // --- CRUD API Handlers ---
+  // --- Profile Image Upload Handlers ---
+  const handleImageUpload = (event: React.ChangeEvent<HTMLInputElement>) => {
+    const file = event.target.files?.[0]
+    if (file) {
+      setProfileImageFile(file)
+
+      // Create preview URL
+      const reader = new FileReader()
+      reader.onload = (e) => {
+        setProfileImagePreview(e.target?.result as string)
+      }
+      reader.readAsDataURL(file)
+    }
+  }
+
+  const uploadProfileImage = async (
+    expertId: string
+  ): Promise<string | null> => {
+    if (!profileImageFile) return null
+
+    try {
+      setUploadingImage(true)
+
+      // Create FormData for file upload
+      const formData = new FormData()
+      formData.append('file', profileImageFile)
+      formData.append('expertId', expertId)
+      formData.append('imageType', 'profile')
+
+      // TODO: Implement actual image upload to your server/storage
+      // For now, we'll simulate the upload and return a mock URL
+      await new Promise((resolve) => setTimeout(resolve, 2000))
+
+      const mockImageUrl = `/uploads/experts/${expertId}/profile.jpg`
+      return mockImageUrl
+    } catch (error) {
+      console.error('Image upload error:', error)
+      throw new Error('Failed to upload profile image')
+    } finally {
+      setUploadingImage(false)
+    }
+  }
+
+  const clearImagePreview = () => {
+    setProfileImageFile(null)
+    setProfileImagePreview(null)
+  }
+
+  // --- CRUD Action Handlers ---
   const handleSaveExpert = async () => {
     if (!selectedExpert) return
 
-    const method = isEditing ? 'PUT' : 'POST'
-    const body = JSON.stringify(selectedExpert)
-
+    setError(null)
     try {
-      const response = await fetch('/api/experts', {
-        method,
-        headers: { 'Content-Type': 'application/json' },
-        body,
-      })
+      let updatedExpert: any = { ...selectedExpert } // Upload profile image if exists
+      if (profileImageFile && selectedExpert.id) {
+        const imageUrl = await uploadProfileImage(selectedExpert.id)
+        updatedExpert = { ...updatedExpert, photo_url: imageUrl }
+      }
 
-      if (!response.ok) throw new Error('Failed to save expert')
+      if (isEditing && selectedExpert.id) {
+        await updateExpert(updatedExpert as ExpertUpdateRequest)
+        setSuccessMessage('Expert updated successfully')
+      } else {
+        await createExpert(updatedExpert as ExpertCreateRequest)
+        setSuccessMessage('Expert created successfully')
+      }
 
-      // Refresh data from the server to get the latest state
-      await fetchExperts()
-    } catch (error) {
-      console.error(error)
-    } finally {
+      await loadExperts() // Refresh the list
       handleCloseFormModal()
+    } catch (error) {
+      setError(error instanceof Error ? error.message : 'Failed to save expert')
     }
   }
 
   const handleDeleteExpert = async () => {
     if (!selectedExpert || !selectedExpert.id) return
 
+    setError(null)
     try {
-      const response = await fetch('/api/experts', {
-        method: 'DELETE',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ id: selectedExpert.id }),
-      })
-
-      if (!response.ok) throw new Error('Failed to delete expert')
-
-      // Update UI optimistically or refetch
-      setExperts((prev) => prev.filter((exp) => exp.id !== selectedExpert.id))
-    } catch (error) {
-      console.error(error)
-    } finally {
+      await deleteExpert(selectedExpert.id)
+      setSuccessMessage('Expert deleted successfully')
+      await loadExperts() // Refresh the list
       handleCloseDeleteDialog()
+    } catch (error) {
+      setError(
+        error instanceof Error ? error.message : 'Failed to delete expert'
+      )
     }
   }
 
@@ -210,110 +306,161 @@ const ExpertsContent = () => {
     setSelectedExpert(null)
   }
 
+  // Close snackbars
+  const handleCloseError = () => {
+    setError(null)
+  }
+
+  const handleCloseSuccess = () => {
+    setSuccessMessage(null)
+  }
+
+  // Define DataGrid columns
+  const columns: GridColDef[] = [
+    {
+      field: 'name',
+      headerName: '성함',
+      width: 200,
+      renderCell: (params: GridRenderCellParams) => (
+        <Box sx={{ display: 'flex', alignItems: 'center' }}>
+          <Avatar
+            sx={{
+              width: 32,
+              height: 32,
+              mr: 1,
+              bgcolor: 'primary.light',
+            }}
+            src={params.row.photo_url}
+          >
+            {params.row.name.charAt(0)}
+          </Avatar>
+          {params.row.name}
+        </Box>
+      ),
+    },
+    {
+      field: 'location',
+      headerName: '위치',
+      width: 150,
+    },
+    {
+      field: 'services',
+      headerName: '서비스',
+      width: 300,
+
+      renderCell: (params: GridRenderCellParams) => (
+        <Box sx={{ display: 'flex', flexWrap: 'wrap', gap: 0.5 }}>
+          {params.row.services.map((service: string) => (
+            <Chip key={service} label={service} size='small' />
+          ))}
+        </Box>
+      ),
+    },
+    {
+      field: 'actions',
+      headerName: '기타',
+      width: 120,
+      sortable: false,
+      renderCell: (params: GridRenderCellParams) => (
+        <Box>
+          <IconButton
+            size='small'
+            onClick={() => handleOpenEditModal(params.row)}
+          >
+            <EditIcon />
+          </IconButton>
+          <IconButton
+            size='small'
+            onClick={() => handleOpenDeleteDialog(params.row)}
+          >
+            <DeleteIcon />
+          </IconButton>
+        </Box>
+      ),
+    },
+  ]
+
   return (
     <Box sx={{ display: 'flex' }}>
       <CssBaseline />
       <Box component='main' sx={{ flexGrow: 1, p: 3 }}>
-        <Toolbar />
-        <Card>
-          <CardContent>
-            <Box
-              sx={{
-                display: 'flex',
-                justifyContent: 'space-between',
-                alignItems: 'center',
-                mb: 2,
-              }}
-            >
-              <Typography variant='h5' component='h2'>
-                Expert Services Management
-              </Typography>
-              <Button
-                variant='contained'
-                startIcon={<AddCircleIcon />}
-                onClick={handleOpenCreateModal}
-              >
-                Add New Expert
-              </Button>
-            </Box>
+        <Box
+          sx={{
+            display: 'flex',
+            justifyContent: 'space-between',
+            alignItems: 'center',
+            mb: 2,
+          }}
+        >
+          <Typography variant='h5' component='h2'>
+            전문가 관리
+          </Typography>
+          <Button
+            variant='outlined'
+            startIcon={<AddCircleIcon />}
+            onClick={handleOpenCreateModal}
+          >
+            새 전문가 추가
+          </Button>
+        </Box>
 
-            <TableContainer component={Paper} variant='outlined'>
-              <Table>
-                <TableHead sx={{ backgroundColor: 'grey.100' }}>
-                  <TableRow>
-                    <TableCell>Name</TableCell>
-                    <TableCell>Location</TableCell>
-                    <TableCell>Services</TableCell>
-                    <TableCell align='right'>Actions</TableCell>
-                  </TableRow>
-                </TableHead>
-                <TableBody>
-                  {loading ? (
-                    <TableRow>
-                      <TableCell colSpan={4} align='center'>
-                        Loading...
-                      </TableCell>
-                    </TableRow>
-                  ) : (
-                    experts.map((expert) => (
-                      <TableRow key={expert.id}>
-                        <TableCell>
-                          <Box sx={{ display: 'flex', alignItems: 'center' }}>
-                            <Avatar
-                              sx={{
-                                width: 40,
-                                height: 40,
-                                mr: 2,
-                                bgcolor: 'primary.light',
-                              }}
-                            >
-                              {expert.name.charAt(0)}
-                            </Avatar>
-                            {expert.name}
-                          </Box>
-                        </TableCell>
-                        <TableCell>{expert.location}</TableCell>
-                        <TableCell>
-                          <Box
-                            sx={{ display: 'flex', flexWrap: 'wrap', gap: 0.5 }}
-                          >
-                            {expert.services.map((service) => (
-                              <Chip
-                                key={service}
-                                label={service}
-                                size='small'
-                              />
-                            ))}
-                          </Box>
-                        </TableCell>
-                        <TableCell align='right'>
-                          <IconButton
-                            size='small'
-                            onClick={() => handleOpenEditModal(expert)}
-                          >
-                            <EditIcon />
-                          </IconButton>
-                          <IconButton
-                            size='small'
-                            onClick={() => handleOpenDeleteDialog(expert)}
-                          >
-                            <DeleteIcon />
-                          </IconButton>
-                        </TableCell>
-                      </TableRow>
-                    ))
-                  )}
-                </TableBody>
-              </Table>
-            </TableContainer>
-          </CardContent>
-        </Card>
+        {/* Search and Filter Controls */}
+        <Box sx={{ mb: 2, display: 'flex', gap: 2, alignItems: 'center' }}>
+          <TextField
+            label='전문가 검색...'
+            value={searchQuery}
+            onChange={(e) => setSearchQuery(e.target.value)}
+            sx={{ minWidth: 250 }}
+            InputProps={{
+              endAdornment: (
+                <IconButton onClick={handleSearch}>
+                  <SearchIcon />
+                </IconButton>
+              ),
+            }}
+          />
+          <FormControl sx={{ minWidth: 150 }}>
+            <InputLabel>위치</InputLabel>
+            <Select
+              value={selectedLocation}
+              label='위치'
+              onChange={handleLocationFilter}
+            >
+              <MenuItem value=''>모든 위치</MenuItem>
+              {allLocations.map((location) => (
+                <MenuItem key={location} value={location}>
+                  {location}
+                </MenuItem>
+              ))}
+            </Select>
+          </FormControl>
+        </Box>
+
+        <Box sx={{ height: 600, width: '100%' }}>
+          <DataGrid
+            rows={experts}
+            columns={columns}
+            paginationModel={paginationModel}
+            onPaginationModelChange={handlePaginationModelChange}
+            rowCount={totalCount}
+            loading={loading}
+            pageSizeOptions={[5, 10, 25, 50]}
+            paginationMode='server'
+            disableRowSelectionOnClick
+            sx={{
+              '& .MuiDataGrid-cell': {
+                display: 'flex',
+                alignItems: 'center',
+              },
+            }}
+          />
+        </Box>
       </Box>
 
       <Modal open={openFormModal} onClose={handleCloseFormModal}>
         <Box sx={modalStyle}>
           <Typography variant='h6' sx={{ mb: 2 }}>
-            {isEditing ? 'Edit Expert' : 'Add New Expert'}
+            {isEditing ? '전문가 정보 수정' : '새 전문가 추가'}
           </Typography>
           <IconButton
             onClick={handleCloseFormModal}
@@ -322,22 +469,86 @@ const ExpertsContent = () => {
             <CloseIcon />
           </IconButton>
           <Grid container spacing={2}>
+            {' '}
             <Grid size={{ xs: 12 }}>
               <TextField
                 name='name'
-                label='Expert Name'
+                label='전문가 성함'
                 value={selectedExpert?.name || ''}
                 onChange={handleFormChange}
                 fullWidth
               />
             </Grid>
+            {/* Profile Picture Upload Section */}
+            <Grid size={{ xs: 12 }}>
+              <Typography variant='subtitle2' gutterBottom>
+                프로필 사진
+              </Typography>
+              <Box sx={{ display: 'flex', alignItems: 'center', gap: 2 }}>
+                {' '}
+                <Avatar
+                  sx={{
+                    width: 80,
+                    height: 80,
+                    bgcolor: 'primary.light',
+                  }}
+                  src={profileImagePreview || selectedExpert?.photo_url}
+                >
+                  {!profileImagePreview &&
+                    !selectedExpert?.photo_url &&
+                    (selectedExpert?.name
+                      ? selectedExpert.name.charAt(0)
+                      : '?')}
+                </Avatar>
+                <Box>
+                  <input
+                    accept='image/*'
+                    style={{ display: 'none' }}
+                    id='profile-image-upload'
+                    type='file'
+                    onChange={handleImageUpload}
+                    disabled={uploadingImage}
+                  />
+                  <label htmlFor='profile-image-upload'>
+                    <Button
+                      variant='outlined'
+                      component='span'
+                      startIcon={<PhotoCameraIcon />}
+                      disabled={uploadingImage}
+                      sx={{ mb: 1 }}
+                    >
+                      {uploadingImage ? '업로드 중...' : '사진 선택'}
+                    </Button>
+                  </label>
+                  {(profileImagePreview || selectedExpert?.photo_url) && (
+                    <Box>
+                      <Button
+                        variant='text'
+                        size='small'
+                        onClick={clearImagePreview}
+                        color='error'
+                      >
+                        사진 제거
+                      </Button>
+                    </Box>
+                  )}
+                  <Typography
+                    variant='caption'
+                    color='text.secondary'
+                    display='block'
+                  >
+                    JPG, PNG 파일만 지원 (최대 5MB)
+                  </Typography>
+                </Box>
+              </Box>
+            </Grid>
             <Grid size={{ xs: 12 }}>
               <FormControl fullWidth>
-                <InputLabel>Location</InputLabel>
+                <InputLabel>위치</InputLabel>
                 <Select
                   name='location'
                   value={selectedExpert?.location || ''}
-                  label='Location'
+                  label='위치'
                   onChange={handleFormChange as any}
                 >
                   {allLocations.map((loc) => (
@@ -351,7 +562,7 @@ const ExpertsContent = () => {
             <Grid size={{ xs: 12 }}>
               <TextField
                 name='description'
-                label='Description'
+                label='설명'
                 value={selectedExpert?.description || ''}
                 onChange={handleFormChange}
                 multiline
@@ -361,12 +572,12 @@ const ExpertsContent = () => {
             </Grid>
             <Grid size={{ xs: 12 }}>
               <FormControl fullWidth>
-                <InputLabel>Services</InputLabel>
+                <InputLabel>서비스</InputLabel>
                 <Select
                   multiple
                   value={selectedExpert?.services || []}
                   onChange={handleMultiSelectChange}
-                  input={<OutlinedInput label='Services' />}
+                  input={<OutlinedInput label='서비스' />}
                   renderValue={(selected) => (
                     <Box sx={{ display: 'flex', flexWrap: 'wrap', gap: 0.5 }}>
                       {(selected as string[]).map((value) => (
@@ -379,7 +590,7 @@ const ExpertsContent = () => {
                     <MenuItem key={service} value={service}>
                       {service}
                     </MenuItem>
-                  ))}
+                  ))}{' '}
                 </Select>
               </FormControl>
             </Grid>
@@ -393,10 +604,10 @@ const ExpertsContent = () => {
               }}
             >
               <Button variant='outlined' onClick={handleCloseFormModal}>
-                Cancel
+                취소
               </Button>
               <Button variant='contained' onClick={handleSaveExpert}>
-                Save
+                저장
               </Button>
             </Grid>
           </Grid>
@@ -407,25 +618,56 @@ const ExpertsContent = () => {
         <DialogTitle>Confirm Deletion</DialogTitle>
         <DialogContent>
           <DialogContentText>
-            Are you sure you want to delete the expert "{selectedExpert?.name}"?
-            This action cannot be undone.
+            전문가 "{selectedExpert?.name}"를 삭제하시겠습니까? 이 작업은 취소할
+            수 없습니다.
           </DialogContentText>
         </DialogContent>
         <DialogActions>
-          <Button onClick={handleCloseDeleteDialog}>Cancel</Button>
+          <Button onClick={handleCloseDeleteDialog}>취소</Button>
           <Button onClick={handleDeleteExpert} color='error'>
-            Delete
+            삭제
           </Button>
         </DialogActions>
       </Dialog>
+
+      {/* Error/Success Snackbars */}
+      <Snackbar
+        open={!!error}
+        autoHideDuration={6000}
+        onClose={handleCloseError}
+        anchorOrigin={{ vertical: 'bottom', horizontal: 'center' }}
+      >
+        <Alert
+          onClose={handleCloseError}
+          severity='error'
+          sx={{ width: '100%' }}
+        >
+          {error}
+        </Alert>
+      </Snackbar>
+
+      <Snackbar
+        open={!!successMessage}
+        autoHideDuration={4000}
+        onClose={handleCloseSuccess}
+        anchorOrigin={{ vertical: 'bottom', horizontal: 'center' }}
+      >
+        <Alert
+          onClose={handleCloseSuccess}
+          severity='success'
+          sx={{ width: '100%' }}
+        >
+          {successMessage}
+        </Alert>
+      </Snackbar>
     </Box>
   )
 }
 
 export default function ExpertsAdminPanel() {
   return (
-    <AdminLayout>
+    <>
       <ExpertsContent />
-    </AdminLayout>
+    </>
   )
 }

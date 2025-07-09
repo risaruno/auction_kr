@@ -1,23 +1,10 @@
 "use client";
-import * as React from 'react';
-import AppAppBar from '@/marketing-page/components/AppAppBar';
-import CancelPolicy from '@/marketing-page/components/CancelPolicy';
-import Footer from '@/marketing-page/components/Footer';
-import AppTheme from '@/shared-theme/AppTheme';
-import { CssBaseline, Divider } from '@mui/material';
-import ServiceHistory from './ServiceHistory';
+import ServiceHistory from '@/app/auth/user/history/ServiceHistory';
 
-export default function AboutPage() {
+export default function UserHistoryPage() {
   return (
-    <AppTheme>
-      <CssBaseline enableColorScheme />
-
-      <AppAppBar />
-      <div>
-        <ServiceHistory />
-        <Divider />
-        <Footer />
-      </div>
-    </AppTheme>
+    <>
+      <ServiceHistory />
+    </>
   );
 }

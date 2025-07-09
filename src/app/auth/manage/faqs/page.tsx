@@ -2,11 +2,7 @@
 import React, { useState, useEffect } from 'react'
 import {
   Box,
-  Toolbar,
   Typography,
-  CssBaseline,
-  Card,
-  CardContent,
   Button,
   IconButton,
   Modal,
@@ -32,20 +28,18 @@ import {
   Close as CloseIcon,
   ExpandMore as ExpandMoreIcon,
 } from '@mui/icons-material'
-import AdminLayout from '../AdminLayout'
-
-// Define a proper interface for the FAQ data
-interface FAQ {
-  id: string
-  question: string
-  answer: string
-  category: string
-}
+import {
+  fetchFaqs,
+  createFaq,
+  updateFaq,
+  deleteFaq,
+} from '@/app/api/faq/actions'
+import { FAQ, FAQCreateRequest, FAQUpdateRequest } from '@/types/api'
 
 const faqTypes = ['전문가 서비스', '기타', '결제', '계정']
 
 const modalStyle = {
-  position: 'absolute' as 'absolute',
+  position: 'absolute',
   top: '50%',
   left: '50%',
   transform: 'translate(-50%, -50%)',
@@ -61,29 +55,44 @@ const modalStyle = {
 const FAQManagementContent = () => {
   const [faqs, setFaqs] = useState<FAQ[]>([])
   const [loading, setLoading] = useState(true)
+  const [error, setError] = useState<string | null>(null)
+  const [successMessage, setSuccessMessage] = useState<string | null>(null)
   const [openFormModal, setOpenFormModal] = useState(false)
   const [openDeleteDialog, setOpenDeleteDialog] = useState(false)
   const [selectedFaq, setSelectedFaq] = useState<Partial<FAQ> | null>(null)
   const [isEditing, setIsEditing] = useState(false)
 
-  // --- Fetch FAQs on Load ---
-  const fetchFaqs = async () => {
+  // Pagination and search states
+  const page = 0
+  const rowsPerPage = 10
+  const searchQuery = ''
+  const selectedCategory = ''
+
+  // --- Fetch FAQs with pagination and search ---
+  const loadFaqs = async () => {
     setLoading(true)
+    setError(null)
     try {
-      const response = await fetch('/api/faqs')
-      if (!response.ok) throw new Error('Failed to fetch FAQs')
-      const data = await response.json()
-      setFaqs(data)
+      const result = await fetchFaqs({
+        page: page + 1,
+        limit: rowsPerPage,
+        search: searchQuery || undefined,
+        category: selectedCategory || undefined,
+        sortBy: 'created_at',
+        sortOrder: 'desc',
+      })
+
+      setFaqs(result.data)
     } catch (error) {
-      console.error(error)
+      setError(error instanceof Error ? error.message : 'Failed to fetch FAQs')
     } finally {
       setLoading(false)
     }
   }
 
   useEffect(() => {
-    fetchFaqs()
-  }, [])
+    loadFaqs()
+  }, [page, rowsPerPage, searchQuery, selectedCategory])
 
   // --- Modal & Form Handlers ---
   const handleOpenCreateModal = () => {
@@ -114,40 +123,38 @@ const FAQManagementContent = () => {
     }
   }
 
-  // --- CRUD API Handlers ---
+  // --- CRUD Action Handlers ---
   const handleSaveFaq = async () => {
     if (!selectedFaq) return
-    const method = isEditing ? 'PUT' : 'POST'
+
+    setError(null)
     try {
-      const response = await fetch('/api/faqs', {
-        method,
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(selectedFaq),
-      })
-      if (!response.ok) throw new Error('Failed to save FAQ')
-      await fetchFaqs() // Refresh the list with the latest data
-    } catch (error) {
-      console.error(error)
-    } finally {
+      if (isEditing && selectedFaq.id) {
+        await updateFaq(selectedFaq as FAQUpdateRequest)
+        setSuccessMessage('FAQ updated successfully')
+      } else {
+        await createFaq(selectedFaq as FAQCreateRequest)
+        setSuccessMessage('FAQ created successfully')
+      }
+
+      await loadFaqs() // Refresh the list
       handleCloseFormModal()
+    } catch (error) {
+      setError(error instanceof Error ? error.message : 'Failed to save FAQ')
     }
   }
 
   const handleDeleteFaq = async () => {
     if (!selectedFaq?.id) return
+
+    setError(null)
     try {
-      const response = await fetch('/api/faqs', {
-        method: 'DELETE',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ id: selectedFaq.id }),
-      })
-      if (!response.ok) throw new Error('Failed to delete FAQ')
-      // Update UI optimistically
-      setFaqs((prev) => prev.filter((faq) => faq.id !== selectedFaq.id))
-    } catch (error) {
-      console.error(error)
-    } finally {
+      await deleteFaq(selectedFaq.id)
+      setSuccessMessage('FAQ deleted successfully')
+      await loadFaqs() // Refresh the list
       handleCloseDeleteDialog()
+    } catch (error) {
+      setError(error instanceof Error ? error.message : 'Failed to delete FAQ')
     }
   }
 
@@ -163,95 +170,89 @@ const FAQManagementContent = () => {
 
   return (
     <Box sx={{ display: 'flex' }}>
-      <CssBaseline />
       <Box component='main' sx={{ flexGrow: 1, p: 3 }}>
-        <Toolbar />
-        <Card>
-          <CardContent>
-            <Box
-              sx={{
-                display: 'flex',
-                justifyContent: 'space-between',
-                alignItems: 'center',
-                mb: 2,
-              }}
-            >
-              <Typography variant='h5'>FAQ Management</Typography>
-              <Button
-                variant='contained'
-                startIcon={<AddCircleIcon />}
-                onClick={handleOpenCreateModal}
-              >
-                Add New FAQ
-              </Button>
-            </Box>
+        <Box
+          sx={{
+            display: 'flex',
+            justifyContent: 'space-between',
+            alignItems: 'center',
+            mb: 2,
+          }}
+        >
+          <Typography variant='h5'>자주하는 질문 관리</Typography>
+          <Button
+            variant='outlined'
+            startIcon={<AddCircleIcon />}
+            onClick={handleOpenCreateModal}
+          >
+            새 항목 추가
+          </Button>
+        </Box>
 
-            {loading ? (
-              <Box sx={{ display: 'flex', justifyContent: 'center', my: 4 }}>
-                <CircularProgress />
-              </Box>
-            ) : (
-              <Box>
-                {faqs.map((faq) => (
-                  <Accordion key={faq.id} sx={{ my: 1 }}>
-                    <AccordionSummary expandIcon={<ExpandMoreIcon />}>
-                      <Box
-                        sx={{
-                          display: 'flex',
-                          alignItems: 'center',
-                          width: '100%',
+        {loading ? (
+          <Box sx={{ display: 'flex', justifyContent: 'center', my: 4 }}>
+            <CircularProgress />
+          </Box>
+        ) : (
+          <Box>
+            {faqs.map((faq) => (
+              <Accordion key={faq.id} sx={{ my: 1 }}>
+                <AccordionSummary expandIcon={<ExpandMoreIcon />}>
+                  <Box
+                    sx={{
+                      display: 'flex',
+                      alignItems: 'center',
+                      width: '100%',
+                    }}
+                  >
+                    <Typography
+                      sx={{ flexShrink: 0, color: 'text.secondary', mr: 2 }}
+                    >
+                      [{faq.category}]
+                    </Typography>
+                    <Typography sx={{ fontWeight: 'bold' }}>
+                      {faq.question}
+                    </Typography>
+                    <Box sx={{ ml: 'auto' }}>
+                      <IconButton
+                        size='small'
+                        onClick={(e) => {
+                          e.stopPropagation()
+                          handleOpenEditModal(faq)
                         }}
                       >
-                        <Typography
-                          sx={{ flexShrink: 0, color: 'text.secondary', mr: 2 }}
-                        >
-                          [{faq.category}]
-                        </Typography>
-                        <Typography sx={{ fontWeight: 'bold' }}>
-                          {faq.question}
-                        </Typography>
-                        <Box sx={{ ml: 'auto' }}>
-                          <IconButton
-                            size='small'
-                            onClick={(e) => {
-                              e.stopPropagation()
-                              handleOpenEditModal(faq)
-                            }}
-                          >
-                            <EditIcon />
-                          </IconButton>
-                          <IconButton
-                            size='small'
-                            onClick={(e) => {
-                              e.stopPropagation()
-                              handleOpenDeleteDialog(faq)
-                            }}
-                          >
-                            <DeleteIcon />
-                          </IconButton>
-                        </Box>
-                      </Box>
-                    </AccordionSummary>
-                    <AccordionDetails>
-                      <Typography
-                        sx={{ whiteSpace: 'pre-wrap', color: 'text.secondary' }}
+                        <EditIcon />
+                      </IconButton>
+                      <IconButton
+                        size='small'
+                        onClick={(e) => {
+                          e.stopPropagation()
+                          handleOpenDeleteDialog(faq)
+                        }}
                       >
-                        {faq.answer}
-                      </Typography>
-                    </AccordionDetails>
-                  </Accordion>
-                ))}
-              </Box>
-            )}
-          </CardContent>
-        </Card>
+                        <DeleteIcon />
+                      </IconButton>
+                    </Box>
+                  </Box>
+                </AccordionSummary>
+                <AccordionDetails>
+                  <Typography
+                    sx={{ whiteSpace: 'pre-wrap', color: 'text.secondary' }}
+                  >
+                    {faq.answer}
+                  </Typography>
+                </AccordionDetails>
+              </Accordion>
+            ))}
+          </Box>
+        )}
       </Box>
 
       {/* --- Create/Update Form Modal --- */}
       <Modal open={openFormModal} onClose={handleCloseFormModal}>
         <Box sx={modalStyle}>
           <Typography variant='h6' sx={{ mb: 2 }}>
-            {isEditing ? 'Edit FAQ' : 'Add New FAQ'}
+            {isEditing ? '항목 수정' : '새 항목 추가'}
           </Typography>
           <IconButton
             onClick={handleCloseFormModal}
@@ -262,7 +263,7 @@ const FAQManagementContent = () => {
 
           <TextField
             name='question'
-            label='Question (Title)'
+            label='질문 (제목)'
             value={selectedFaq?.question || ''}
             onChange={handleFormChange}
             fullWidth
@@ -270,11 +271,11 @@ const FAQManagementContent = () => {
           />
 
           <FormControl fullWidth sx={{ mb: 2 }}>
-            <InputLabel>Category</InputLabel>
+            <InputLabel>카테고리</InputLabel>
             <Select
               name='category'
               value={selectedFaq?.category || '기타'}
-              label='Category'
+              label='카테고리'
               onChange={handleFormChange as any}
             >
               {faqTypes.map((type) => (
@@ -287,7 +288,7 @@ const FAQManagementContent = () => {
 
           <TextField
             name='answer'
-            label='Answer (Content)'
+            label='답변 (내용)'
             value={selectedFaq?.answer || ''}
             onChange={handleFormChange}
             multiline
@@ -299,10 +300,10 @@ const FAQManagementContent = () => {
             sx={{ display: 'flex', justifyContent: 'flex-end', gap: 1, mt: 3 }}
           >
             <Button variant='outlined' onClick={handleCloseFormModal}>
-              Cancel
+              취소
             </Button>
             <Button variant='contained' onClick={handleSaveFaq}>
-              Save FAQ
+              저장
             </Button>
           </Box>
         </Box>
@@ -310,16 +311,16 @@ const FAQManagementContent = () => {
 
       {/* --- Delete Confirmation Dialog --- */}
       <Dialog open={openDeleteDialog} onClose={handleCloseDeleteDialog}>
-        <DialogTitle>Confirm Deletion</DialogTitle>
+        <DialogTitle>삭제 확인</DialogTitle>
         <DialogContent>
           <DialogContentText>
-            Are you sure you want to delete the FAQ: "{selectedFaq?.question}"?
+            "{selectedFaq?.question}" 항목을 삭제하시겠습니까?
           </DialogContentText>
         </DialogContent>
         <DialogActions>
-          <Button onClick={handleCloseDeleteDialog}>Cancel</Button>
+          <Button onClick={handleCloseDeleteDialog}>취소</Button>
           <Button onClick={handleDeleteFaq} color='error'>
-            Delete
+            삭제
           </Button>
         </DialogActions>
       </Dialog>
@@ -330,8 +331,8 @@ const FAQManagementContent = () => {
 // Wrapper component to include the main layout
 export default function FAQManagementPanel() {
   return (
-    <AdminLayout>
+    <>
       <FAQManagementContent />
-    </AdminLayout>
+    </>
   )
 }
