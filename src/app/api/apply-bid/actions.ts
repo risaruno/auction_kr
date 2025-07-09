@@ -22,12 +22,12 @@ export async function getCourtAuctionData(
   csNo: string
 ): Promise<CourtAuctionState> {
   try {
-    // Validate required fields
+    // 필수 필드 검증
     if (!cortOfcCd || !csNo) {
       return {
         success: false,
         data: null,
-        error: 'Court office code and case number are required'
+        error: '법원 사무소 코드와 사건번호가 필요합니다'
       }
     }
 
@@ -41,13 +41,13 @@ export async function getCourtAuctionData(
       'X-Requested-With': 'XMLHttpRequest',
     }
 
-    // --- Step 1: First fetch for auction base info ---
+    // --- 1단계: 경매 기본 정보 첫 번째 요청 ---
     const url1 = 'https://www.courtauction.go.kr/pgj/pgj15A/selectAuctnCsSrchRslt.on'
     const payload1 = { dma_srchCsDtlInf: { cortOfcCd, csNo } }
 
     const response1 = await axios.post(url1, payload1, { 
       headers: commonHeaders,
-      timeout: 10000 // 10 second timeout
+      timeout: 10000 // 10초 타임아웃
     })
     
     const json1 = response1.data
@@ -56,7 +56,7 @@ export async function getCourtAuctionData(
       return {
         success: false,
         data: null,
-        error: 'No auction item found'
+        error: '경매 물건을 찾을 수 없습니다'
       }
     }
 
@@ -70,8 +70,47 @@ export async function getCourtAuctionData(
       depositAmt: Math.floor(item.fstPbancLwsDspslPrc / 10),
       bidDate: item.dspslDxdyYmd,
     }
+    console.log('경매 데이터 가져옴:', auctionData)
 
-    // --- Step 2: Second fetch for picture data ---
+    // 입찰 시간이 지났는지 확인 (오늘 오전 10시 이후)
+    try {
+      const bidDateStr = auctionData.bidDate
+      const today = new Date()
+      const bidDate = new Date(
+        bidDateStr.slice(0, 4) + '-' + bidDateStr.slice(4, 6) + '-' + bidDateStr.slice(6, 8)
+      )
+      
+      // 입찰일이 오늘이거나 이미 지난 날인지 확인
+      console.log('입찰일:', bidDate, '오늘:', today)
+
+      const isSameDayOrPast = bidDate <= today
+      
+      if (isSameDayOrPast) {
+      const currentHour = today.getHours()
+      const currentMinute = today.getMinutes()
+      const currentTimeInMinutes = currentHour * 60 + currentMinute
+      const bidDeadlineInMinutes = 10 * 60 // 오전 10시 (분 단위)
+      
+      if (bidDate.toDateString() === today.toDateString() && currentTimeInMinutes >= bidDeadlineInMinutes) {
+        return {
+        success: false,
+        data: null,
+        error: '이 경매 사건 입찰 신청 시간은 이미 지났습니다.'
+        }
+      } else if (bidDate < today) {
+        return {
+        success: false,
+        data: null,
+        error: '이 경매 사건 입찰 신청 시간은 이미 지났습니다.'
+        }
+      }
+      }
+    } catch (dateError) {
+      console.warn('입찰일 시간 검증을 위한 날짜 파싱 오류:', dateError)
+      // 날짜 파싱이 실패해도 전체 요청을 실패시키지 않음
+    }
+
+    // --- 2단계: 사진 데이터 두 번째 요청 ---
     try {
       const url2 = 'https://www.courtauction.go.kr/pgj/pgj15B/selectAuctnCsSrchRslt.on'
       const payload2 = {
@@ -86,7 +125,7 @@ export async function getCourtAuctionData(
 
       const response2 = await axios.post(url2, payload2, { 
         headers: commonHeaders,
-        timeout: 5000 // 5 second timeout for images
+        timeout: 5000 // 이미지용 5초 타임아웃
       })
       
       const json2 = response2.data
@@ -94,8 +133,8 @@ export async function getCourtAuctionData(
       
       auctionData.picFile = picFile
     } catch (imageError) {
-      // Don't fail the entire request if image fetch fails
-      console.warn('Failed to fetch auction image:', imageError)
+      // 이미지 가져오기가 실패해도 전체 요청을 실패시키지 않음
+      console.warn('경매 이미지 가져오기 실패:', imageError)
       auctionData.picFile = undefined
     }
 
@@ -106,33 +145,33 @@ export async function getCourtAuctionData(
     }
 
   } catch (error: any) {
-    console.error('Court auction lookup error:', error)
+    console.error('법원 경매 조회 오류:', error)
 
-    // Handle axios errors specifically
+    // axios 오류를 구체적으로 처리
     if (axios.isAxiosError(error)) {
       if (error.code === 'ECONNABORTED') {
         return {
           success: false,
           data: null,
-          error: 'Request timeout - court system may be slow'
+          error: '요청 시간 초과 - 법원 시스템이 느릴 수 있습니다'
         }
       } else if (error.response?.status === 404) {
         return {
           success: false,
           data: null,
-          error: 'Auction case not found'
+          error: '경매 사건을 찾을 수 없습니다'
         }
       } else if (error.response && error.response.status >= 500) {
         return {
           success: false,
           data: null,
-          error: 'Court system is temporarily unavailable'
+          error: '법원 시스템이 일시적으로 사용할 수 없습니다'
         }
       } else {
         return {
           success: false,
           data: null,
-          error: 'Failed to fetch auction data from court system'
+          error: '법원 시스템에서 경매 데이터를 가져오지 못했습니다'
         }
       }
     }
@@ -140,7 +179,7 @@ export async function getCourtAuctionData(
     return {
       success: false,
       data: null,
-      error: 'An unexpected error occurred while fetching auction data'
+      error: '경매 데이터를 가져오는 중 예상치 못한 오류가 발생했습니다'
     }
   }
 }
@@ -152,7 +191,7 @@ export async function applyBid(
   const supabase = await createClient()
 
   try {
-    // 1. Get the logged-in user from the access token
+    // 1. 액세스 토큰에서 로그인한 사용자 가져오기
     const {
       data: { user },
       error: userError,
@@ -160,12 +199,12 @@ export async function applyBid(
 
     if (userError || !user) {
       return {
-        error: 'Unauthorized: You must be logged in to submit an application.',
+        error: '인증되지 않았습니다: 신청서를 제출하려면 로그인해야 합니다.',
         message: null,
       }
     }
 
-    // 1.5. Ensure user has a profile (create one if missing)
+    // 1.5. 사용자에게 프로필이 있는지 확인 (없으면 생성)
     const { data: existingProfile, error: profileError } = await supabase
       .from('profiles')
       .select('id')
@@ -173,8 +212,8 @@ export async function applyBid(
       .single()
 
     if (profileError && profileError.code === 'PGRST116') {
-      // Profile doesn't exist, create one
-      console.log('Profile not found, creating new profile for user:', user.id);
+      // 프로필이 존재하지 않음, 새로 생성
+      console.log('프로필을 찾을 수 없어 새 프로필을 생성합니다:', user.id);
       const { error: createProfileError } = await supabase
         .from('profiles')
         .insert([{
@@ -185,74 +224,74 @@ export async function applyBid(
         }])
 
       if (createProfileError) {
-        console.error('Failed to create profile:', createProfileError);
+        console.error('프로필 생성 실패:', createProfileError);
         return {
-          error: 'Failed to create user profile. Please contact support.',
+          error: '사용자 프로필 생성에 실패했습니다. 고객 지원에 문의하세요.',
           message: null,
         }
       }
-      console.log('Profile created successfully for user:', user.id);
+      console.log('사용자 프로필이 성공적으로 생성되었습니다:', user.id);
     } else if (profileError) {
-      console.error('Error checking user profile:', profileError);
+      console.error('사용자 프로필 확인 오류:', profileError);
       return {
-        error: 'Error verifying user profile. Please try again.',
+        error: '사용자 프로필 확인 중 오류가 발생했습니다. 다시 시도해 주세요.',
         message: null,
       }
     }
 
-    // 2. Validate the form data
+    // 2. 폼 데이터 검증
     const { caseResult, bidAmt } = formData
 
     if (!caseResult?.data || !bidAmt) {
       return {
-        error: 'Case information and bid amount are required.',
+        error: '사건 정보와 입찰 금액이 필요합니다.',
         message: null,
       }
     }
 
-    // Additional validation for required fields
+    // 필수 필드에 대한 추가 검증
     if (!formData.bidderName) {
       return {
-        error: 'Bidder name is required.',
+        error: '입찰자 이름이 필요합니다.',
         message: null,
       }
     }
 
     if (!formData.phoneNumber) {
       return {
-        error: 'Phone number is required.',
+        error: '전화번호가 필요합니다.',
         message: null,
       }
     }
 
     if (!formData.accountNumber) {
       return {
-        error: 'Account number is required.',
+        error: '계좌번호가 필요합니다.',
         message: null,
       }
     }
 
     if (!formData.signature) {
       return {
-        error: 'Electronic signature is required.',
+        error: '전자 서명이 필요합니다.',
         message: null,
       }
     }
 
     if (!formData.termsChecked) {
       return {
-        error: 'Terms agreement is required.',
+        error: '약관 동의가 필요합니다.',
         message: null,
       }
     }
 
-    // 3. Prepare the data for insertion into the 'bidding_applications' table
+    // 3. 'bidding_applications' 테이블에 삽입할 데이터 준비
     const baseApplicationData = {
-      user_id: user.id, // Link the application to the logged-in user
+      user_id: user.id, // 신청서를 로그인한 사용자와 연결
       case_number: caseResult.data.caseNumber,
       court_name: caseResult.data.courtName,
       bid_date: caseResult.data.bidDate,
-      bid_amount: Number(bidAmt.replace(/[^0-9]/g, '')), // Ensure bidAmt is a number
+      bid_amount: Number(bidAmt.replace(/[^0-9]/g, '')), // bidAmt가 숫자인지 확인
       evaluation_amount: caseResult.data.evaluationAmt,
       lowest_bid_amount: caseResult.data.lowestBidAmt,
       deposit_amount: caseResult.data.depositAmt,
@@ -264,7 +303,7 @@ export async function applyBid(
       deposit_status: 'pending',
     };
 
-    // Add type-specific data
+    // 유형별 데이터 추가
     let applicationData: any = { ...baseApplicationData };
 
     if (formData.applicationType === 'personal') {
@@ -303,8 +342,8 @@ export async function applyBid(
       };
     }
 
-    // 4. Insert the new application into the database
-    console.log('Attempting to insert application data:', applicationData);
+    // 4. 새 신청서를 데이터베이스에 삽입
+    console.log('신청서 데이터 삽입 시도:', applicationData);
     
     const { data, error: insertError } = await supabase
       .from('bidding_applications')
@@ -313,21 +352,21 @@ export async function applyBid(
       .single()
 
     if (insertError) {
-      console.error('Database insertion error:', insertError);
-      throw new Error(`Database error: ${insertError.message}`);
+      console.error('데이터베이스 삽입 오류:', insertError);
+      throw new Error(`데이터베이스 오류: ${insertError.message}`);
     }
 
-    console.log('Application successfully inserted:', data);
+    console.log('신청서가 성공적으로 삽입되었습니다:', data);
 
-    // 5. Return success message
+    // 5. 성공 메시지 반환
     return {
       error: null,
-      message: 'Application submitted successfully!',
+      message: '신청서가 성공적으로 제출되었습니다!',
     }
   } catch (error: any) {
-    console.error('Bid submission error:', error.message)
+    console.error('입찰 제출 오류:', error.message)
     return {
-      error: 'Failed to submit application.',
+      error: '신청서 제출에 실패했습니다.',
       message: null,
     }
   }

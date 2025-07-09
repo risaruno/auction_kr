@@ -102,12 +102,12 @@ export default function ContractSign({
           대리입찰 계약서
         </Typography>
         <Typography variant="body1" align="center" sx={{ mb: 4 }}>
-          입찰인은 아래 표시 경매 사건에 관하여 다음 내용과 같이 계약을
-          체결한다.
+          본 계약은 주식회사 솔하우징(이하 '회사'라 함)와 입찰인 간의 대리입찰
+          진행을 위하여 체결합니다.
         </Typography>
 
-        <ContractSection title="입찰인 정보">
-          {formData.applicationType === 'personal' && (
+        <ContractSection title="1. 입찰인 정보">
+          {formData.applicationType === "personal" && (
             <>
               <InfoRow label="입찰인 (성명)" value={formData.bidderName} />
               <InfoRow label="연락처" value={formData.phoneNumber} />
@@ -117,27 +117,42 @@ export default function ContractSign({
               />
             </>
           )}
-          {formData.applicationType === 'company' && (
+          {formData.applicationType === "company" && (
             <>
-              <InfoRow label="회사명" value={formData.companyName || ''} />
-              <InfoRow label="사업자등록번호" value={formData.businessNumber || ''} />
-              <InfoRow label="대표자명" value={formData.representativeName || ''} />
-              <InfoRow label="연락처" value={formData.companyPhoneNumber || ''} />
+              <InfoRow label="회사명" value={formData.companyName || ""} />
+              <InfoRow
+                label="사업자등록번호"
+                value={formData.businessNumber || ""}
+              />
+              <InfoRow
+                label="대표자명"
+                value={formData.representativeName || ""}
+              />
+              <InfoRow
+                label="연락처"
+                value={formData.companyPhoneNumber || ""}
+              />
               <InfoRow
                 label="주소"
-                value={`${formData.companyRoadAddr || ''} ${formData.companyAddrDetail || ''}`}
+                value={`${formData.companyRoadAddr || ""} ${formData.companyAddrDetail || ""}`}
               />
             </>
           )}
-          {formData.applicationType === 'group' && (
+          {formData.applicationType === "group" && (
             <>
-              <InfoRow label="공동입찰 대표자" value={formData.groupRepresentativeName || ''} />
+              <InfoRow
+                label="공동입찰 대표자"
+                value={formData.groupRepresentativeName || ""}
+              />
               <InfoRow label="연락처" value={formData.phoneNumber} />
               <InfoRow
                 label="주소"
                 value={`${formData.roadAddr} ${formData.addrDetail}`}
               />
-              <InfoRow label="공동입찰자 수" value={`${formData.groupMemberCount || 0}명`} />
+              <InfoRow
+                label="공동입찰자 수"
+                value={`${formData.groupMemberCount || 0}명`}
+              />
             </>
           )}
         </ContractSection>
@@ -145,27 +160,31 @@ export default function ContractSign({
         <ContractSection title="경매 사건 정보">
           <InfoRow
             label="경매사건번호"
-            value={formData.caseResult?.data?.printCaseNumber || ''}
+            value={formData.caseResult?.data?.printCaseNumber || ""}
           />
           <InfoRow
             label="집행 법원"
-            value={formData.caseResult?.data?.courtName || ''}
+            value={formData.caseResult?.data?.courtName || ""}
           />
         </ContractSection>
 
-        <ContractSection title="매수신청 대리 보수">
-          <InfoRow label="확정 보수" value={formData.fee} />
-          <InfoRow label="보수지급 시기" value={formData.feePaidOn} />
+        <ContractSection title="대리입찰 보수">
+          <InfoRow label="보수 금액" value={formData.fee} />
+          <InfoRow label="지급 시기" value={formData.feePaidOn} />
         </ContractSection>
 
-        <ContractSection title="위임 내용">
+        <ContractSection title="위임 범위">
           <Typography component="div" variant="body2">
             <ol>
+              <li>
+                입찰인은 아래 사항에 대해 회사가 중개하는 대리인에게 입찰 권한
+                일체를 위임합니다.
+              </li>
               <li>「민사집행법」 제113조의 규정에 따른 매수신청 보증의 제공</li>
               <li>입찰표의 작성 및 제출</li>
               <li>
-                「민사집행법」 제115조 제3항, 제142조 제6항의 규정에 따라
-                매수신청의 보증을 돌려줄 것을 신청하는 행위
+                「민사집행법」 제115조 제3항, 제142조 제6항에 따른 보증금 반환
+                신청 그 외 낙찰을 위한 필요한 제반 절차
               </li>
             </ol>
           </Typography>
@@ -175,21 +194,23 @@ export default function ContractSign({
           <Typography component="div" variant="body2" sx={{ lineHeight: 1.8 }}>
             <ol>
               <li>
-                ㈜케이디씨씨씨 파트너(이하 ‘회사’라 함)는 통신판매 시스템을
-                제공할 뿐, 통신판매의 당사자가 아니다.
+                회사는 통신판매 시스템과 경매 진행 지원을 제공하며, 입찰의
+                당사자가 아닙니다.
               </li>
               <li>
-                회사는 이용자의 관리를 위해 사건 정보를 제공할 뿐, 정보 오류에
-                대해 회사는 어떠한 책임도 지지 아니한다.
+                회사가 제공하는 사건 정보는 법원 정책 및 자료에 기반하되, 정보 오류 및 변경사항에 대해서는
+                특별매각 조건, 재매각 여부, 보증금 및 입찰 조건은 입찰인이 직접 해당 법원 경매계에 확인하여
+                입찰인은 정확한 입찰 진행을 위해 필요한 모든 서류와 정보를 회사 및 대링인에게 제공해야 합니다.
               </li>
+            </ol>
+          </Typography>
+        </ContractSection>
+
+        <ContractSection title="특약사항 (해당 시 기재)">
+          <Typography component="div" variant="body2" sx={{ lineHeight: 1.8 }}>
+            <ol>
               <li>
-                회사가 제공하는 경매 정보는 법원 정책에 기반하여 제공되며,
-                재매각 등 특별매각 조건 물건의 보증금은 입찰인이 직접 해당
-                경매계에 확인하여야 할 의무가 있다.
-              </li>
-              <li>
-                입찰인은 회사에서 중개한 대리인에게 입찰에 필요한 모든 정보를
-                제공하고, 입찰을 위한 모든 권한을 위임한다.
+                본 계약 내용을 충분히 이해하고 이에 동의하여 서명합니다.
               </li>
             </ol>
           </Typography>

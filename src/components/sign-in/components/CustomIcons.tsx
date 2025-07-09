@@ -1,4 +1,3 @@
-import * as React from 'react';
 import SvgIcon from '@mui/material/SvgIcon';
 import { Typography } from '@mui/material';
 

@@ -93,7 +93,7 @@ export default function PaymentForm({
           }}
         >
           <Typography variant="h5" sx={{ my: 1, fontWeight: "bold" }}>
-            대리입찰 수수료
+            입찰대행 수수료
           </Typography>
           <Typography variant="h4" sx={{ fontWeight: "bold" }}>
             100,000원
@@ -108,8 +108,8 @@ export default function PaymentForm({
             textAlign: "center",
           }}
         >
-          📢 대리입찰을 위해 <strong>전자본인서명확인서</strong> 발급등록이
-          필요합니다.
+          대리입찰 진행 시, <strong>전자본인서명확인서</strong> 발급 등록하셔야
+          합니다.
           <br />
           (주민센터에서 신청)
         </Typography>
@@ -141,7 +141,7 @@ export default function PaymentForm({
 
         {/* Terms and Refund Section */}
         <Typography variant="h5" sx={{ fontWeight: "bold", mt: 4, mb: 1 }}>
-          결제약관 및 환불 취소 규정 확인
+          결제 관련 약관 및 환불 취소 규정 확인 확인 요청
         </Typography>
         <Paper
           variant="outlined"
@@ -165,10 +165,11 @@ export default function PaymentForm({
           <Checkbox
             checked={formData.termsChecked}
             onChange={(event) => {
-              const updatedFormData = {
-                ...formData,
-                termsChecked: event.target.checked,
-              };
+              if (!formData.termsChecked) {
+                // If unchecked, show confirmation modal
+                setOpenRefundModal(true);
+                return;
+              }
               // Simulate the handleFormChange event
               const syntheticEvent = {
                 target: { name: "termsChecked", value: event.target.checked },

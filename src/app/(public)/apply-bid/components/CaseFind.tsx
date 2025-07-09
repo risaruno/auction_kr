@@ -10,7 +10,7 @@ import MenuItem from '@mui/material/MenuItem'
 import Box from '@mui/material/Box'
 import OutlinedInput from '@mui/material/OutlinedInput'
 import { styled } from '@mui/material/styles'
-import { Card, CardContent, CardMedia, FormControl } from '@mui/material'
+import { Card, CardContent, CardMedia, FormControl, Alert, AlertTitle } from '@mui/material'
 import { CaseResult } from '@/interfaces/CaseResult'
 import { CourtHouses } from '@/constants/CourtHouses'
 import CircularProgress from '@mui/material/CircularProgress'
@@ -24,7 +24,7 @@ const FormGrid = styled(Grid)(() => ({
 // 1. Defined a TypeScript interface for the component's props.
 interface CaseFindProps {
   caseResult: CaseResult | null
-  setCaseResult: (result: CaseResult) => void
+  setCaseResult: (result: CaseResult | null) => void
 }
 
 // 2. The component now accepts props.
@@ -52,13 +52,13 @@ export default function CaseFind({ caseResult, setCaseResult }: CaseFindProps) {
         })
       } else {
         setCaseResult({
-          error: response.error || 'Failed to fetch auction data',
+          error: response.error || '경매 데이터를 가져오는데 실패했습니다',
           data: null,
         })
       }
     } catch (error) {
       setCaseResult({
-        error: error instanceof Error ? error.message : String(error),
+        error: error instanceof Error ? error.message : '알 수 없는 오류가 발생했습니다',
         data: null,
       })
     } finally {
@@ -91,6 +91,28 @@ export default function CaseFind({ caseResult, setCaseResult }: CaseFindProps) {
             사건 조회 중...
           </Typography>
         </Box>
+      ) : caseResult && caseResult.error ? (
+        // Error state
+        <Grid container spacing={3} size={{ xs: 12 }}>
+          <Grid container spacing={0} size={{ xs: 12 }}>
+            <Typography variant='h4' fontWeight={'bold'} gutterBottom>
+              사건 조회 결과
+            </Typography>
+            <Grid container size={{ xs: 12 }} sx={{ mb: 3 }}>
+              <Alert severity="error" sx={{ width: '100%' }}>
+                {caseResult.error}
+              </Alert>
+            </Grid>
+            <Button
+              variant='outlined'
+              color="primary"
+              sx={{ width: { xs: '100%', sm: 'fit-content' } }}
+              onClick={() => setCaseResult({ error: '', data: null })}
+            >
+              다시 시도하기
+            </Button>
+          </Grid>
+        </Grid>
       ) : caseResult && typeof caseResult === 'object' && caseResult.data ? (
         // Case result display
         <Grid container spacing={3} size={{ xs: 12 }}>

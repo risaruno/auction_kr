@@ -19,6 +19,8 @@ import {
   IconButton,
   Divider,
   InputAdornment,
+  Checkbox,
+  FormControlLabel,
 } from '@mui/material'
 import CheckCircleIcon from '@mui/icons-material/CheckCircle'
 import AddIcon from '@mui/icons-material/Add'
@@ -27,6 +29,7 @@ import DaumPostcodeEmbed from 'react-daum-postcode'
 import { FormData, ApplicationType } from '@/interfaces/FormData'
 import { sendOtp, verifyOtp } from '@/utils/auth/otp'
 import { getBankOptions } from '@/types/bank'
+import { fetchUserProfile } from '@/app/auth/user/actions'
 
 const FormGrid = styled(Grid)(() => ({
   display: 'flex',
@@ -61,12 +64,21 @@ export default function InputForm({
   updateFormData,
   validationErrors = [],
 }: InputFormProps) {
+  // Debug logging for validation errors
+  React.useEffect(() => {
+    if (validationErrors.length > 0) {
+      console.log('Validation errors received:', validationErrors)
+    }
+  }, [validationErrors])
+
   // Local state for UI interactions
   const [isModalOpen, setIsModalOpen] = useState(false)
   const [otp, setOtp] = useState('')
   const [isOtpSent, setIsOtpSent] = useState(false)
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState<string | null>(null)
+  const [useProfileInfo, setUseProfileInfo] = useState(false)
+  const [profileLoading, setProfileLoading] = useState(false)
 
   // Utility function to get numeric value from formatted string
   const getNumericValue = useCallback((formattedValue: string): number => {
@@ -85,8 +97,12 @@ export default function InputForm({
   // Memoized error lookup function for performance
   const getFieldError = useCallback(
     (fieldName: string) => {
-      return validationErrors.find((error) => error.field === fieldName)
-        ?.message
+      const error = validationErrors.find((error) => error.field === fieldName)?.message
+      // Debug logging
+      if (fieldName === 'phoneNumber' && error) {
+        console.log('Phone validation error found:', error)
+      }
+      return error
     },
     [validationErrors]
   )
@@ -167,6 +183,56 @@ export default function InputForm({
     },
     [formData.applicationType, updateFormData]
   )
+
+  // Handle auto-fill from user profile
+  const handleUseProfileInfo = useCallback(async (checked: boolean) => {
+    setUseProfileInfo(checked)
+    
+    if (checked) {
+      setProfileLoading(true)
+      setError(null)
+      
+      try {
+        const result = await fetchUserProfile()
+        
+        if (result.success && result.data) {
+          console.log('Fetched user profile:', result.data)
+          const profile = result.data
+          
+          // Auto-fill personal information
+          if (profile.full_name) {
+            updateFormData('bidderName', profile.full_name)
+          }
+          if (profile.phone) {
+            updateFormData('phoneNumber', profile.phone)
+          }
+          if (profile.zip_no) {
+            updateFormData('zipNo', profile.zip_no)
+          }
+          if (profile.address) {
+            updateFormData('roadAddr', profile.address)
+          }
+          if (profile.addr_detail) {
+            updateFormData('addrDetail', profile.addr_detail)
+          }
+          if (profile.bank) {
+            updateFormData('bank', profile.bank)
+          }
+          if (profile.account_number) {
+            updateFormData('accountNumber', profile.account_number)
+          }
+        } else {
+          setError(result.error || '프로필 정보를 불러오는데 실패했습니다.')
+          setUseProfileInfo(false)
+        }
+      } catch (err) {
+        setError(err instanceof Error ? err.message : '프로필 정보를 불러오는 중 오류가 발생했습니다.')
+        setUseProfileInfo(false)
+      } finally {
+        setProfileLoading(false)
+      }
+    }
+  }, [updateFormData])
 
   // OTP handling
   const handleSendOtp = useCallback(async () => {
@@ -398,9 +464,28 @@ export default function InputForm({
         {formData.applicationType === 'personal' && (
           <Grid container spacing={3} size={{ xs: 12 }} mt={2}>
             <FormGrid size={{ xs: 12 }}>
-              <Typography variant='h6' gutterBottom>
-                개인 정보
-              </Typography>
+              <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', mb: 2 }}>
+                <Typography variant='h6' gutterBottom>
+                  개인 정보
+                </Typography>
+                <FormControlLabel
+                  control={
+                    <Checkbox
+                      checked={useProfileInfo}
+                      onChange={(e) => handleUseProfileInfo(e.target.checked)}
+                      disabled={profileLoading}
+                    />
+                  }
+                  label={
+                    <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
+                      {profileLoading && <CircularProgress size={16} />}
+                      <Typography variant="body2">
+                        사용자 정보와 동일
+                      </Typography>
+                    </Box>
+                  }
+                />
+              </Box>
             </FormGrid>
 
             <FormGrid size={{ xs: 12, md: 6 }}>
@@ -439,7 +524,7 @@ export default function InputForm({
                 type='password'
                 value={formData.residentId2}
                 onChange={handleResidentIdChange('residentId2')}
-                placeholder='1234567'
+                placeholder='*******'
                 inputProps={{ maxLength: 7 }}
                 error={!!getFieldError('residentId')}
                 helperText={getFieldError('residentId')}
@@ -455,8 +540,11 @@ export default function InputForm({
                 value={formData.phoneNumber}
                 onChange={handlePhoneNumberChange}
                 placeholder='01012345678'
-                error={!!getFieldError('phoneNumber')}
-                helperText={getFieldError('phoneNumber')}
+                error={!!getFieldError('phoneNumber') || !!getFieldError('phoneVerification')}
+                helperText={getFieldError('phoneNumber') || getFieldError('phoneVerification')}
+                inputProps={{
+                  'data-error': !!getFieldError('phoneNumber') || !!getFieldError('phoneVerification')
+                }}
                 InputProps={{
                   endAdornment: formData.isPhoneVerified ? (
                     <InputAdornment position='end'>
@@ -474,10 +562,13 @@ export default function InputForm({
                 variant='outlined'
                 onClick={handleSendOtp}
                 disabled={
-                  loading || formData.isPhoneVerified || !formData.phoneNumber
+                  loading || 
+                  formData.isPhoneVerified || 
+                  !formData.phoneNumber ||
+                  !!getFieldError('phoneNumber')
                 }
                 fullWidth
-                sx={{ height: '100%' }}
+                sx={{ height: '52.13px' }}
               >
                 {loading ? <CircularProgress size={20} /> : '인증번호 발송'}
               </Button>
@@ -504,7 +595,7 @@ export default function InputForm({
                     onClick={handleVerifyOtp}
                     disabled={loading || !otp}
                     fullWidth
-                    sx={{ height: '100%' }}
+                    sx={{ height: '52.13px' }}
                   >
                     {loading ? <CircularProgress size={20} /> : '인증확인'}
                   </Button>

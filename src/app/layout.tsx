@@ -1,5 +1,5 @@
 import type { Metadata } from 'next'
-import * as React from 'react'
+import { ReactNode } from 'react'
 import { AppRouterCacheProvider } from '@mui/material-nextjs/v15-appRouter'
 import CssBaseline from '@mui/material/CssBaseline'
 import InitColorSchemeScript from '@mui/material/InitColorSchemeScript'
@@ -16,7 +16,7 @@ export const metadata: Metadata = {
 
 export default async function RootLayout({
   children,
-}: Readonly<{ children: React.ReactNode }>) {
+}: Readonly<{ children: ReactNode }>) {
   return (
     <html lang='en' suppressHydrationWarning>
       <body>

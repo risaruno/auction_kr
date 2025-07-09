@@ -1,5 +1,5 @@
 "use client";
-import { ThemeProvider, createTheme } from '@mui/material/styles'
+import { createTheme } from '@mui/material/styles'
 import type { ThemeOptions } from '@mui/material/styles'
 import { inputsCustomizations } from '@/components/shared-theme/customizations/inputs'
 import { dataDisplayCustomizations } from '@/components/shared-theme/customizations/dataDisplay'
