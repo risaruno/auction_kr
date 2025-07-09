@@ -53,8 +53,8 @@ export async function fetchExperts(options?: {
       page,
       limit
     }
-  } catch (error: any) {
-    console.error('Error fetching experts:', error.message)
+  } catch (error: unknown) {
+    console.error('Error fetching experts:', (error as Error)?.message || 'Unknown error')
     throw new Error('Failed to fetch experts.')
   }
 }
@@ -89,9 +89,9 @@ export async function createExpert(expertData: ExpertCreateRequest) {
     if (error) throw error
 
     return data
-  } catch (error: any) {
-    console.error('Error creating expert:', error.message)
-    throw new Error(error.message || 'Failed to create expert.')
+  } catch (error: unknown) {
+    console.error('Error creating expert:', (error as Error)?.message || 'Unknown error')
+    throw new Error((error as Error).message || 'Failed to create expert.')
   }
 }
 
@@ -125,9 +125,9 @@ export async function updateExpert(expertData: ExpertUpdateRequest) {
     if (error) throw error
 
     return data
-  } catch (error: any) {
-    console.error('Error updating expert:', error.message)
-    throw new Error(error.message || 'Failed to update expert.')
+  } catch (error: unknown) {
+    console.error('Error updating expert:', (error as Error)?.message || 'Unknown error')
+    throw new Error((error as Error)?.message || 'Failed to update expert.')
   }
 }
 
@@ -148,9 +148,9 @@ export async function deleteExpert(expertId: string) {
     if (error) throw error
 
     return { success: true, message: 'Expert deleted successfully' }
-  } catch (error: any) {
-    console.error('Error deleting expert:', error.message)
-    throw new Error(error.message || 'Failed to delete expert.')
+  } catch (error: unknown) {
+    console.error('Error deleting expert:', (error as Error)?.message || 'Unknown error')
+    throw new Error((error as Error)?.message || 'Failed to delete expert.')
   }
 }
 
@@ -172,8 +172,8 @@ export async function getExpertById(expertId: string) {
     if (error) throw error
 
     return data
-  } catch (error: any) {
-    console.error('Error fetching expert:', error.message)
+  } catch (error: unknown) {
+    console.error('Error fetching expert:', (error as Error)?.message || 'Unknown error')
     throw new Error('Failed to fetch expert.')
   }
 }

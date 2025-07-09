@@ -19,7 +19,7 @@ export default function Features() {
           variant="body1"
           sx={{ color: 'text.secondary', mb: { xs: 2, sm: 4 } }}
         >
-          본 규정은 체로토(이하 "회사")가 제공하는 서비스 이용과 관련하여 발생하는 환불 및 취소에 대한 규정을 정한 것입니다.
+          본 규정은 체로토(이하 &quot;회사&quot;)가 제공하는 서비스 이용과 관련하여 발생하는 환불 및 취소에 대한 규정을 정한 것입니다.
           회사는 이용자의 안전한 서비스 이용을 위하여 본 규정을 제정하고 이를 준수하고 있습니다.
         </Typography>
         <Typography

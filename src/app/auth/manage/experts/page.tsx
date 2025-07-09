@@ -1,5 +1,5 @@
 'use client'
-import React, { useState, useEffect } from 'react'
+import React, { useState, useEffect, useCallback } from 'react'
 import {
   Box,
   CssBaseline,
@@ -115,7 +115,7 @@ const ExpertsContent = () => {
   const [selectedLocation, setSelectedLocation] = useState('')
 
   // --- Fetch Experts with pagination and search ---
-  const loadExperts = async () => {
+  const loadExperts = useCallback(async () => {
     setLoading(true)
     setError(null)
     try {
@@ -137,16 +137,11 @@ const ExpertsContent = () => {
     } finally {
       setLoading(false)
     }
-  }
+  }, [paginationModel.page, paginationModel.pageSize, searchQuery, selectedLocation])
 
   useEffect(() => {
     loadExperts()
-  }, [
-    paginationModel.page,
-    paginationModel.pageSize,
-    searchQuery,
-    selectedLocation,
-  ])
+  }, [loadExperts])
 
   // Search handlers
   const handleSearch = () => {
@@ -191,6 +186,11 @@ const ExpertsContent = () => {
   }
 
   const handleFormChange = (event: React.ChangeEvent<HTMLInputElement>) => {
+    const { name, value } = event.target
+    setSelectedExpert((prev) => ({ ...prev, [name]: value }))
+  }
+
+  const handleSelectChange = (event: { target: { name: string; value: string } }) => {
     const { name, value } = event.target
     setSelectedExpert((prev) => ({ ...prev, [name]: value }))
   }
@@ -259,10 +259,10 @@ const ExpertsContent = () => {
 
     setError(null)
     try {
-      let updatedExpert: any = { ...selectedExpert } // Upload profile image if exists
+      let updatedExpert: Partial<Expert> = { ...selectedExpert } // Upload profile image if exists
       if (profileImageFile && selectedExpert.id) {
         const imageUrl = await uploadProfileImage(selectedExpert.id)
-        updatedExpert = { ...updatedExpert, photo_url: imageUrl }
+        updatedExpert = { ...updatedExpert, photo_url: imageUrl || undefined }
       }
 
       if (isEditing && selectedExpert.id) {
@@ -549,7 +549,7 @@ const ExpertsContent = () => {
                   name='location'
                   value={selectedExpert?.location || ''}
                   label='위치'
-                  onChange={handleFormChange as any}
+                  onChange={handleSelectChange}
                 >
                   {allLocations.map((loc) => (
                     <MenuItem key={loc} value={loc}>
@@ -618,7 +618,7 @@ const ExpertsContent = () => {
         <DialogTitle>Confirm Deletion</DialogTitle>
         <DialogContent>
           <DialogContentText>
-            전문가 "{selectedExpert?.name}"를 삭제하시겠습니까? 이 작업은 취소할
+            전문가 &quot;{selectedExpert?.name}&quot;를 삭제하시겠습니까? 이 작업은 취소할
             수 없습니다.
           </DialogContentText>
         </DialogContent>

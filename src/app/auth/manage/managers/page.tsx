@@ -20,6 +20,7 @@ import {
   Alert,
   Snackbar,
   Avatar,
+  SelectChangeEvent,
 } from '@mui/material'
 import { DataGrid, GridColDef, GridPaginationModel } from '@mui/x-data-grid'
 import {
@@ -159,7 +160,7 @@ const AdminManagementContent = () => {
     setSelectedAdmin((prev) => ({ ...prev, [name]: value }))
   }
 
-  const handleRoleChange = (event: any) => {
+  const handleRoleChange = (event: SelectChangeEvent<string>) => {
     const value = event.target.value
     setSelectedAdmin((prev) => ({ ...prev, role: value }))
   }
@@ -464,7 +465,7 @@ const AdminManagementContent = () => {
         <DialogTitle>비활성화 확인</DialogTitle>
         <DialogContent>
           <DialogContentText>
-            정말로 관리자 "{selectedAdmin?.name}"을 비활성화하시겠습니까? 해당
+            정말로 관리자 &quot;{selectedAdmin?.name}&quot;을 비활성화하시겠습니까? 해당
             관리자는 관리자 패널에 대한 접근 권한을 잃게 됩니다.
           </DialogContentText>
         </DialogContent>

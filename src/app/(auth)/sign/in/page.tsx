@@ -1,5 +1,6 @@
 'use client'
 import * as React from 'react'
+import { Suspense } from 'react'
 import { useSearchParams } from 'next/navigation'
 import { useActionState } from 'react'
 import { useFormStatus } from 'react-dom'
@@ -49,102 +50,108 @@ function LoginButton() {
   )
 }
 
-export default function SignIn() {
+function SignInForm() {
   const initialState: FormState = { error: null, message: null }
   const [state, formAction] = useActionState(login, initialState)
   const searchParams = useSearchParams()
   const redirectTo = searchParams?.get('redirectTo')
 
   return (
-    <>
-      <SignContainer direction='column' justifyContent='space-between'>
-        <Card variant='outlined'>
-          <SitemarkIcon />
-          <Typography
-            component='h1'
-            variant='h4'
-            sx={{ width: '100%', fontSize: 'clamp(2rem, 10vw, 2.15rem)' }}
-          >
-            로그인
-          </Typography>
+    <SignContainer direction='column' justifyContent='space-between'>
+      <Card variant='outlined'>
+        <SitemarkIcon />
+        <Typography
+          component='h1'
+          variant='h4'
+          sx={{ width: '100%', fontSize: 'clamp(2rem, 10vw, 2.15rem)' }}
+        >
+          로그인
+        </Typography>
+        <Box
+          component='form'
+          action={formAction}
+          noValidate
+          sx={{
+            display: 'flex',
+            flexDirection: 'column',
+            width: '100%',
+            gap: 2,
+          }}
+        >
+          {redirectTo && (
+            <input type='hidden' name='redirectTo' value={redirectTo} />
+          )}
+          {state.error && <Alert severity='error'>{state.error}</Alert>}
+
+          <FormControl>
+            <FormLabel htmlFor='email'>이메일</FormLabel>
+            <TextField
+              id='email'
+              type='email'
+              name='email'
+              placeholder='your@email.com'
+              autoComplete='email'
+              autoFocus
+              required
+              fullWidth
+              variant='outlined'
+            />
+          </FormControl>
+          <FormControl>
+            <FormLabel htmlFor='password'>비밀번호</FormLabel>
+            <TextField
+              name='password'
+              placeholder='8-16자 사이의 비밀번호'
+              type='password'
+              id='password'
+              autoComplete='current-password'
+              required
+              fullWidth
+              variant='outlined'
+            />
+          </FormControl>
           <Box
-            component='form'
-            action={formAction}
-            noValidate
             sx={{
               display: 'flex',
-              flexDirection: 'column',
-              width: '100%',
-              gap: 2,
+              justifyContent: 'space-between',
+              alignItems: 'center',
             }}
           >
-            {redirectTo && (
-              <input type='hidden' name='redirectTo' value={redirectTo} />
-            )}
-            {state.error && <Alert severity='error'>{state.error}</Alert>}
-
-            <FormControl>
-              <FormLabel htmlFor='email'>이메일</FormLabel>
-              <TextField
-                id='email'
-                type='email'
-                name='email'
-                placeholder='your@email.com'
-                autoComplete='email'
-                autoFocus
-                required
-                fullWidth
-                variant='outlined'
-              />
-            </FormControl>
-            <FormControl>
-              <FormLabel htmlFor='password'>비밀번호</FormLabel>
-              <TextField
-                name='password'
-                placeholder='8-16자 사이의 비밀번호'
-                type='password'
-                id='password'
-                autoComplete='current-password'
-                required
-                fullWidth
-                variant='outlined'
-              />
-            </FormControl>
-            <Box
-              sx={{
-                display: 'flex',
-                justifyContent: 'space-between',
-                alignItems: 'center',
-              }}
+            <FormControlLabel
+              control={<Checkbox value='remember' color='primary' />}
+              label='이메일 기억하기'
+            />
+            <Link
+              href='/sign/find-password'
+              variant='body2'
+              sx={{ alignSelf: 'center' }}
             >
-              <FormControlLabel
-                control={<Checkbox value='remember' color='primary' />}
-                label='이메일 기억하기'
-              />
-              <Link
-                href='/sign/find-password'
-                variant='body2'
-                sx={{ alignSelf: 'center' }}
-              >
-                비밀번호 찾기
-              </Link>
-            </Box>
-
-            <LoginButton />
-
-            <Divider>or</Divider>
-            <Button
-              href='/sign/up'
-              type='button'
-              fullWidth
-              variant='contained'
-              color='info'
-            >
-              가입하기
-            </Button>
+              비밀번호 찾기
+            </Link>
           </Box>
-        </Card>
-      </SignContainer>
-    </>
+
+          <LoginButton />
+
+          <Divider>or</Divider>
+          <Button
+            href='/sign/up'
+            type='button'
+            fullWidth
+            variant='contained'
+            color='info'
+          >
+            가입하기
+          </Button>
+        </Box>
+      </Card>
+    </SignContainer>
+  )
+}
+
+export default function SignIn() {
+  return (
+    <Suspense fallback={<div>Loading...</div>}>
+      <SignInForm />
+    </Suspense>
   )
 }

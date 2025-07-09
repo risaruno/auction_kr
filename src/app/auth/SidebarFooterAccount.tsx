@@ -66,7 +66,7 @@ const createPreviewComponent = (mini: boolean) => {
   return PreviewComponent
 }
 
-const createPopoverComponent = (mini: boolean) => {
+const createPopoverComponent = () => {
   function PopoverComponent() {
     return <SidebarFooterAccountPopover />
   }
@@ -78,10 +78,7 @@ export default function SidebarFooterAccount({ mini }: SidebarFooterProps) {
     () => createPreviewComponent(mini),
     [mini]
   )
-  const PopoverComponent = React.useMemo(
-    () => createPopoverComponent(mini),
-    [mini]
-  )
+  const PopoverComponent = React.useMemo(() => createPopoverComponent(), [])
   // return (
   //   <>
   //     <Box

@@ -25,21 +25,9 @@ import { useAuth } from '@/contexts/AuthContext'
 import { getBankOptions } from '@/types/bank'
 import DaumPostcodeEmbed from 'react-daum-postcode'
 
-interface ProfileData {
-  full_name?: string
-  phone?: string
-  email?: string
-  address?: string
-  zip_no?: string
-  addr_detail?: string
-  bank?: string
-  account_number?: string
-}
-
 const BiddingInfoForm = () => {
   const { user } = useAuth()
   const [isModalOpen, setIsModalOpen] = useState(false)
-  const [profile, setProfile] = useState<ProfileData | null>(null)
   const [loading, setLoading] = useState(true)
   const [showSnackbar, setShowSnackbar] = useState(false)
   const [snackbarMessage, setSnackbarMessage] = useState('')
@@ -93,7 +81,6 @@ const BiddingInfoForm = () => {
         const result = await fetchUserProfile()
         if (result.success && result.data) {
           const profileData = result.data
-          setProfile(profileData)
           setFormData({
             fullName: profileData.full_name || '',
             phone: profileData.phone || '',

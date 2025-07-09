@@ -20,6 +20,8 @@ import {
   AccordionSummary,
   AccordionDetails,
   CircularProgress,
+  Snackbar,
+  Alert,
 } from '@mui/material'
 import {
   Edit as EditIcon,
@@ -62,22 +64,14 @@ const FAQManagementContent = () => {
   const [selectedFaq, setSelectedFaq] = useState<Partial<FAQ> | null>(null)
   const [isEditing, setIsEditing] = useState(false)
 
-  // Pagination and search states
-  const page = 0
-  const rowsPerPage = 10
-  const searchQuery = ''
-  const selectedCategory = ''
-
   // --- Fetch FAQs with pagination and search ---
   const loadFaqs = async () => {
     setLoading(true)
     setError(null)
     try {
       const result = await fetchFaqs({
-        page: page + 1,
-        limit: rowsPerPage,
-        search: searchQuery || undefined,
-        category: selectedCategory || undefined,
+        page: 1,
+        limit: 10,
         sortBy: 'created_at',
         sortOrder: 'desc',
       })
@@ -92,7 +86,7 @@ const FAQManagementContent = () => {
 
   useEffect(() => {
     loadFaqs()
-  }, [page, rowsPerPage, searchQuery, selectedCategory])
+  }, [])
 
   // --- Modal & Form Handlers ---
   const handleOpenCreateModal = () => {
@@ -119,7 +113,7 @@ const FAQManagementContent = () => {
   ) => {
     const { name, value } = event.target
     if (name) {
-      setSelectedFaq((prev: any) => ({ ...prev, [name]: value }))
+      setSelectedFaq((prev) => prev ? { ...prev, [name]: value } : null)
     }
   }
 
@@ -166,6 +160,15 @@ const FAQManagementContent = () => {
   const handleCloseDeleteDialog = () => {
     setOpenDeleteDialog(false)
     setSelectedFaq(null)
+  }
+
+  // Close notifications
+  const handleCloseError = () => {
+    setError(null)
+  }
+
+  const handleCloseSuccess = () => {
+    setSuccessMessage(null)
   }
 
   return (
@@ -276,7 +279,7 @@ const FAQManagementContent = () => {
               name='category'
               value={selectedFaq?.category || '기타'}
               label='카테고리'
-              onChange={handleFormChange as any}
+              onChange={(event) => handleFormChange({ target: { name: 'category', value: event.target.value } } as React.ChangeEvent<HTMLInputElement>)}
             >
               {faqTypes.map((type) => (
                 <MenuItem key={type} value={type}>
@@ -314,7 +317,7 @@ const FAQManagementContent = () => {
         <DialogTitle>삭제 확인</DialogTitle>
         <DialogContent>
           <DialogContentText>
-            "{selectedFaq?.question}" 항목을 삭제하시겠습니까?
+            &quot;{selectedFaq?.question}&quot; 항목을 삭제하시겠습니까?
           </DialogContentText>
         </DialogContent>
         <DialogActions>
@@ -324,6 +327,37 @@ const FAQManagementContent = () => {
           </Button>
         </DialogActions>
       </Dialog>
+
+      {/* Error/Success Snackbars */}
+      <Snackbar
+        open={!!error}
+        autoHideDuration={6000}
+        onClose={handleCloseError}
+        anchorOrigin={{ vertical: 'bottom', horizontal: 'center' }}
+      >
+        <Alert
+          onClose={handleCloseError}
+          severity='error'
+          sx={{ width: '100%' }}
+        >
+          {error}
+        </Alert>
+      </Snackbar>
+
+      <Snackbar
+        open={!!successMessage}
+        autoHideDuration={4000}
+        onClose={handleCloseSuccess}
+        anchorOrigin={{ vertical: 'bottom', horizontal: 'center' }}
+      >
+        <Alert
+          onClose={handleCloseSuccess}
+          severity='success'
+          sx={{ width: '100%' }}
+        >
+          {successMessage}
+        </Alert>
+      </Snackbar>
     </Box>
   )
 }

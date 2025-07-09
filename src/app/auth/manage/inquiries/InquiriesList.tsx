@@ -1,6 +1,6 @@
 'use client'
 
-import React, { useEffect, useState } from 'react'
+import React, { useEffect, useState, useCallback } from 'react'
 import {
   Box,
   Typography,
@@ -20,18 +20,30 @@ import AdminReplyForm from './AdminReplyForm'
 
 import { createClient } from '@/utils/supabase/client'
 
+interface Inquiry {
+  id: string
+  title: string
+  status: 'Unanswered' | 'Answered'
+  created_at: string
+  messages?: InquiryMessage[]
+}
+
+interface InquiryMessage {
+  id: string
+  content: string
+  sender_role: 'admin' | 'user'
+  sender_id?: string
+  created_at: string
+}
+
 export default function InquiriesList() {
   const supabase = createClient()
-  const [inquiries, setInquiries] = useState<any[]>([])
+  const [inquiries, setInquiries] = useState<Inquiry[]>([])
   const [userId, setUserId] = useState<string | null>(null)
   const [loading, setLoading] = useState(true)
 
-  const [selectedInquiry, setSelectedInquiry] = useState<any | null>(null)
+  const [selectedInquiry, setSelectedInquiry] = useState<Inquiry | null>(null)
   const [viewDialogOpen, setViewDialogOpen] = useState(false)
-
-  // State baru untuk menangani input balasan dan status loading
-  const [replyContent, setReplyContent] = useState('')
-  const [isReplying, setIsReplying] = useState(false)
   const getStatusChip = (status: string) => {
     const statusConfig = {
       Unanswered: { color: 'warning' as const, label: '대기중' },
@@ -108,7 +120,7 @@ export default function InquiriesList() {
     },
   ]
 
-  const fetchInquiries = async () => {
+  const fetchInquiries = useCallback(async () => {
     setLoading(true)
     const { data, error } = await supabase
       .from('inquiries')
@@ -123,7 +135,7 @@ export default function InquiriesList() {
 
     setInquiries(data)
     setLoading(false)
-  }
+  }, [supabase])
 
   useEffect(() => {
     const fetchUser = async () => {
@@ -134,11 +146,11 @@ export default function InquiriesList() {
     }
 
     fetchUser()
-  }, [])
+  }, [supabase.auth])
 
   useEffect(() => {
     if (userId) fetchInquiries()
-  }, [userId])
+  }, [userId, fetchInquiries])
 
   const handleView = async (inquiryId: number) => {
     // Logika untuk mengambil data tetap sama
@@ -159,17 +171,21 @@ export default function InquiriesList() {
       .eq('id', inquiryId)
       .single()
 
-    setSelectedInquiry({
-      ...inquiry,
-      messages,
-    })
+    if (inquiry) {
+      setSelectedInquiry({
+        id: inquiry.id,
+        title: inquiry.title,
+        status: inquiry.status,
+        created_at: inquiry.created_at,
+        messages,
+      } as Inquiry)
+    }
     setViewDialogOpen(true)
   }
 
   const handleCloseView = () => {
     setViewDialogOpen(false)
     setSelectedInquiry(null)
-    setReplyContent('') // Reset isi balasan saat dialog ditutup
   }
 
   return (
@@ -220,7 +236,7 @@ export default function InquiriesList() {
           {selectedInquiry && (
             <>
               {/* Riwayat Pesan (tidak berubah) */}
-              {selectedInquiry.messages?.map((msg: any, idx: number) => (
+              {selectedInquiry.messages?.map((msg: InquiryMessage, idx: number) => (
                 <Box
                   key={idx}
                   p={2}

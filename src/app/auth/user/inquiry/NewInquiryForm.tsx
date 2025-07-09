@@ -56,8 +56,8 @@ export default function NewInquiryForm({ userId, onSuccess }: NewInquiryFormProp
       if (messageError) throw messageError
 
       onSuccess()
-    } catch (err: any) {
-      setError(err.message || 'Failed to submit inquiry.')
+    } catch (err: unknown) {
+      setError(err instanceof Error ? err.message : 'Failed to submit inquiry.')
     } finally {
       setLoading(false)
     }

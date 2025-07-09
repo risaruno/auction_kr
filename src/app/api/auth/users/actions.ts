@@ -64,8 +64,8 @@ export async function fetchUsers(options?: {
       limit,
       totalPages: Math.ceil(authUsers.users.length / limit),
     }
-  } catch (error: any) {
-    console.error('Error fetching users:', error.message)
+  } catch (error: unknown) {
+    console.error('Error fetching users:', error instanceof Error ? error.message : 'Unknown error')
     throw new Error('Failed to fetch users.')
   }
 }
@@ -93,9 +93,13 @@ export async function suspendUser(userId: string) {
       .eq('id', userId)
 
     return { success: true, message: 'User suspended successfully' }
-  } catch (error: any) {
-    console.error('Error suspending user:', error.message)
-    throw new Error(error.message || 'Failed to suspend user.')
+  } catch (error: unknown) {
+    console.error('Error suspending user:', error instanceof Error ? error.message : 'Unknown error')
+    if (error instanceof Error) {
+      throw new Error(error.message || 'Failed to suspend user.');
+    } else {
+      throw new Error('Failed to suspend user.');
+    }
   }
 }
 
@@ -118,9 +122,13 @@ export async function updateUserPoints(userId: string, points: number) {
     if (error) throw error
 
     return data
-  } catch (error: any) {
-    console.error('Error updating user points:', error.message)
-    throw new Error(error.message || 'Failed to update user points.')
+  } catch (error: unknown) {
+    console.error('Error updating user points:', error instanceof Error ? error.message : 'Unknown error')
+    if (error instanceof Error) {
+      throw new Error(error.message || 'Failed to update user points.')
+    } else {
+      throw new Error('Failed to update user points.')
+    }
   }
 }
 
@@ -157,8 +165,8 @@ export async function getUserById(userId: string) {
       status: authUser.user.email_confirmed_at ? 'Active' : 'Pending',
       points: profile?.points || 0,
     } as User
-  } catch (error: any) {
-    console.error('Error fetching user:', error.message)
+  } catch (error: unknown) {
+    console.error('Error fetching user:', error instanceof Error ? error.message : 'Unknown error')
     throw new Error('Failed to fetch user.')
   }
 }

@@ -245,7 +245,7 @@ const ServiceHistory = () => {
     "입찰준비 완료",
   ];
 
-  const getStatusColor = (status: string) => {
+  const getStatusColor = (status: string): 'warning' | 'success' | 'error' | 'info' | 'default' => {
     switch (status?.toLowerCase()) {
       case "pending":
       case "대기":
@@ -335,7 +335,7 @@ const ServiceHistory = () => {
         return (
           <Chip
             label={params.row.status || "대기중"}
-            color={getStatusColor(params.row.status) as any}
+            color={getStatusColor(params.row.status)}
             variant="outlined"
             size="small"
           />

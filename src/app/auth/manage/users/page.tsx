@@ -1,5 +1,5 @@
 'use client'
-import React, { useState, useEffect } from 'react'
+import React, { useState, useEffect, useCallback } from 'react'
 import {
   Box,
   Divider,
@@ -93,7 +93,6 @@ const UserManagementContent = () => {
   const [openResetModal, setOpenResetModal] = useState(false)
   const [searchQuery, setSearchQuery] = useState('')
   const [page, setPage] = useState(1)
-  const [totalPages, setTotalPages] = useState(1)
   const [paginationModel, setPaginationModel] = useState<GridPaginationModel>({
     page: 0,
     pageSize: 10,
@@ -105,7 +104,7 @@ const UserManagementContent = () => {
   })
 
   // --- Fetch Users with pagination and search ---
-  const loadUsers = async (searchTerm?: string, pageNum: number = 1) => {
+  const loadUsers = useCallback(async (searchTerm?: string, pageNum: number = 1) => {
     setLoading(true)
     try {
       const result = await fetchUsers({
@@ -117,7 +116,6 @@ const UserManagementContent = () => {
       })
 
       setUsers(result.data)
-      setTotalPages(result.totalPages || 1)
     } catch (error) {
       console.error('Error fetching users:', error)
       setSnackbar({
@@ -128,11 +126,11 @@ const UserManagementContent = () => {
     } finally {
       setLoading(false)
     }
-  }
+  }, [])
 
   useEffect(() => {
     loadUsers(searchQuery, page)
-  }, [page])
+  }, [loadUsers, searchQuery, page])
 
   // Handle DataGrid pagination changes
   useEffect(() => {
@@ -140,7 +138,7 @@ const UserManagementContent = () => {
     if (newPage !== page) {
       setPage(newPage)
     }
-  }, [paginationModel.page])
+  }, [paginationModel.page, page])
 
   // --- Search handler ---
   const handleSearch = (event: React.FormEvent) => {
@@ -743,7 +741,7 @@ const UserManagementContent = () => {
                             })}
                           </Typography>
                         </Box>
-                        {(selectedUser as any).edited_at && (
+                        {selectedUser.edited_at && (
                           <Box sx={{ display: 'flex', alignItems: 'center' }}>
                             <Typography
                               variant='body2'
@@ -753,7 +751,7 @@ const UserManagementContent = () => {
                             </Typography>
                             <Typography variant='body2' color='text.secondary'>
                               {new Date(
-                                (selectedUser as any).edited_at
+                                selectedUser.edited_at
                               ).toLocaleString('ko-KR', {
                                 day: '2-digit',
                                 month: 'long',
@@ -819,7 +817,7 @@ const UserManagementContent = () => {
               정지 확인
             </Typography>
             <Typography id='suspend-modal-description' sx={{ mb: 3 }}>
-              정말로 "{selectedUser?.name}" 사용자를 정지하시겠습니까?
+              정말로 &quot;{selectedUser?.name}&quot; 사용자를 정지하시겠습니까?
             </Typography>
             <Box sx={{ display: 'flex', justifyContent: 'flex-end', gap: 1 }}>
               <Button onClick={() => setOpenSuspendModal(false)}>취소</Button>

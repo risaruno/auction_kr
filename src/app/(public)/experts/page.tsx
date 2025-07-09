@@ -108,7 +108,7 @@ export default function ExpertPage() {
     title: string;
     options: string[];
     value: string;
-    onChange: any;
+    onChange: (event: React.MouseEvent<HTMLElement>, value: string | null) => void;
   }) => (
     <Box
       sx={{ display: "flex", alignItems: "center", my: 2, flexWrap: "wrap" }}

@@ -11,7 +11,6 @@ import {
 } from '@mui/material'
 import SignatureCanvas from 'react-signature-canvas'
 import { FormData } from '@/interfaces/FormData'
-import Image from 'next/image'
 
 // 1. Defined a TypeScript interface for the component's props.
 interface ContractSignProps {
@@ -236,7 +235,7 @@ export default function ContractSign({
               {formData.bidderName}
             </Typography>
             {formData.signature ? (
-              <Image
+              <img
                 src={formData.signature}
                 alt='signature'
                 style={{ height: '40px', borderBottom: '1px solid #000' }}

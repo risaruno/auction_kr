@@ -1,5 +1,5 @@
 'use client'
-import React, { useState, useEffect } from 'react'
+import React, { useState, useEffect, useCallback } from 'react'
 import {
   Box,
   Typography,
@@ -102,7 +102,7 @@ const BiddingManagementContent = () => {
   const [resultNotes, setResultNotes] = useState('')
 
   // Load bidding applications
-  const loadBiddingApplications = async () => {
+  const loadBiddingApplications = useCallback(async () => {
     setLoading(true)
     setError(null)
     try {
@@ -125,7 +125,7 @@ const BiddingManagementContent = () => {
     } finally {
       setLoading(false)
     }
-  }
+  }, [paginationModel.page, paginationModel.pageSize, statusFilter])
 
   // Load experts
   const loadExperts = async () => {
@@ -140,7 +140,7 @@ const BiddingManagementContent = () => {
   useEffect(() => {
     loadBiddingApplications()
     loadExperts()
-  }, [paginationModel.page, paginationModel.pageSize, statusFilter])
+  }, [loadBiddingApplications]) // Now loadBiddingApplications is stable
 
   // Search handlers
   const handleSearch = () => {
@@ -181,7 +181,7 @@ const BiddingManagementContent = () => {
     setResultNotes('')
   }
 
-  const handleUpdateStatus = async (event: any) => {
+  const handleUpdateStatus = async (event: { target: { value: string } }) => {
     if (!selectedApplication) return
 
     const newStatus = event.target.value
@@ -200,7 +200,7 @@ const BiddingManagementContent = () => {
     }
   }
 
-  const handleAssignExpert = async (event: any) => {
+  const handleAssignExpert = async (event: { target: { value: string } }) => {
     if (!selectedApplication) return
 
     const expertId = event.target.value
@@ -330,14 +330,6 @@ const BiddingManagementContent = () => {
         variant='filled'
       />
     )
-  }
-
-  const formatCurrency = (amount: number | null) => {
-    if (!amount) return 'N/A'
-    return new Intl.NumberFormat('ko-KR', {
-      style: 'currency',
-      currency: 'KRW',
-    }).format(amount)
   }
 
   const formatDate = (dateString: string) => {

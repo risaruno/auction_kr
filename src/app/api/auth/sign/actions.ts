@@ -129,7 +129,7 @@ export async function signup(
       error: 'An unexpected error occurred during sign-up.',
       message: null,
     }
-  } catch (err: any) {
+  } catch (err: unknown) {
     console.error('Sign-up error:', err)
     return { error: 'Internal Server Error', message: null }
   }
@@ -177,7 +177,7 @@ export async function findPassword(
       message:
         'If an account with this email exists, a password reset link has been sent.',
     }
-  } catch (err: any) {
+  } catch (err: unknown) {
     console.error('Find password error:', err)
     return { error: 'Internal Server Error', message: null }
   }
@@ -246,7 +246,7 @@ export async function updatePassword(
       message:
         'Password updated successfully! You can now sign in with your new password.',
     }
-  } catch (err: any) {
+  } catch (err: unknown) {
     console.error('Update password error:', err)
     return { error: 'Internal Server Error', message: null }
   }

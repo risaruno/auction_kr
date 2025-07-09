@@ -7,7 +7,7 @@ import { createClient } from '@/utils/supabase/client'
 import { Box, Button, TextField, Alert, CircularProgress } from '@mui/material'
 
 interface AdminReplyFormProps {
-  inquiryId: number;
+  inquiryId: string;
   adminId: string;
   onSuccess: () => void;
 }
@@ -54,8 +54,8 @@ export default function AdminReplyForm({ inquiryId, adminId, onSuccess }: AdminR
       // Langkah 3: Jika semua berhasil, panggil onSuccess
       onSuccess()
 
-    } catch (err: any) {
-      setError(err.message || 'Failed to submit reply.')
+    } catch (err: unknown) {
+      setError(err instanceof Error ? err.message : 'Failed to submit reply.')
     } finally {
       setLoading(false)
     }

@@ -63,7 +63,7 @@ export function RequireAuth({ children, requiredRole, fallback }: RequireAuthPro
       return (
         fallback || (
           <Alert severity="error">
-            You don't have permission to access this page. Required role: {requiredRoles.join(' or ')}
+            You don&apos;t have permission to access this page. Required role: {requiredRoles.join(' or ')}
           </Alert>
         )
       )

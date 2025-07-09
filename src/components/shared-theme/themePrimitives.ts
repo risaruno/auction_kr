@@ -189,7 +189,7 @@ export const shape = {
   borderRadius: 8,
 }
 
-// @ts-ignore
+// @ts-expect-error - Shadows type array definition
 const defaultShadows: Shadows = [
   'none',
   'var(--template-palette-baseShadow)',

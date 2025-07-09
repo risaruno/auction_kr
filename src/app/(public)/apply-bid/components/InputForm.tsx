@@ -39,9 +39,9 @@ interface InputFormProps {
   handleFormChange: (
     event:
       | React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>
-      | { target: { name: string; value: any } }
+      | { target: { name: string; value: unknown } }
   ) => void
-  updateFormData: (field: string, value: any) => void
+  updateFormData: (field: string, value: unknown) => void
   validationErrors?: Array<{ field: string; message: string }>
 }
 
@@ -158,7 +158,7 @@ export default function InputForm({
   )
 
   const handleDaumComplete = useCallback(
-    (data: any) => {
+    (data: { zonecode: string; address: string }) => {
       const addressField =
         formData.applicationType === 'company' ? 'company' : ''
       updateFormData(`${addressField}zipNo`, data.zonecode)

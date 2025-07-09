@@ -56,8 +56,8 @@ export async function fetchBiddingApplications(options?: {
       page,
       limit
     }
-  } catch (error: any) {
-    console.error('Error fetching bidding applications:', error.message)
+  } catch (error: unknown) {
+    console.error('Error fetching bidding applications:', (error as Error).message)
     throw new Error('Failed to fetch bidding applications.')
   }
 }
@@ -75,7 +75,7 @@ export async function updateBiddingApplicationStatus(
       throw new Error('Application ID is required')
     }
 
-    const updateData: any = {
+    const updateData: Record<string, unknown> = {
       status,
       edited_at: new Date().toISOString(),
     }
@@ -94,9 +94,9 @@ export async function updateBiddingApplicationStatus(
     if (error) throw error
 
     return data
-  } catch (error: any) {
-    console.error('Error updating bidding application:', error.message)
-    throw new Error(error.message || 'Failed to update bidding application.')
+  } catch (error: unknown) {
+    console.error('Error updating bidding application:', (error as Error).message)
+    throw new Error((error as Error).message || 'Failed to update bidding application.')
   }
 }
 
@@ -123,9 +123,9 @@ export async function assignExpertToBid(applicationId: string, expertId: string)
     if (error) throw error
 
     return data
-  } catch (error: any) {
-    console.error('Error assigning expert to bid:', error.message)
-    throw new Error(error.message || 'Failed to assign expert.')
+  } catch (error: unknown) {
+    console.error('Error assigning expert to bid:', (error as Error).message)
+    throw new Error((error as Error).message || 'Failed to assign expert.')
   }
 }
 
@@ -151,9 +151,9 @@ export async function updatePaymentStatus(applicationId: string, paymentStatus: 
     if (error) throw error
 
     return data
-  } catch (error: any) {
-    console.error('Error updating payment status:', error.message)
-    throw new Error(error.message || 'Failed to update payment status.')
+  } catch (error: unknown) {
+    console.error('Error updating payment status:', (error as Error).message)
+    throw new Error((error as Error).message || 'Failed to update payment status.')
   }
 }
 
@@ -179,9 +179,9 @@ export async function updateDepositStatus(applicationId: string, depositStatus: 
     if (error) throw error
 
     return data
-  } catch (error: any) {
-    console.error('Error updating deposit status:', error.message)
-    throw new Error(error.message || 'Failed to update deposit status.')
+  } catch (error: unknown) {
+    console.error('Error updating deposit status:', (error as Error).message)
+    throw new Error((error as Error).message || 'Failed to update deposit status.')
   }
 }
 
@@ -194,7 +194,7 @@ export async function updateBidResult(applicationId: string, resultNotes: string
       throw new Error('Application ID is required')
     }
 
-    const updateData: any = {
+    const updateData: Record<string, unknown> = {
       result_notes: resultNotes,
       edited_at: new Date().toISOString(),
     }
@@ -214,9 +214,9 @@ export async function updateBidResult(applicationId: string, resultNotes: string
     if (error) throw error
 
     return data
-  } catch (error: any) {
-    console.error('Error updating bid result:', error.message)
-    throw new Error(error.message || 'Failed to update bid result.')
+  } catch (error: unknown) {
+    console.error('Error updating bid result:', (error as Error).message)
+    throw new Error((error as Error).message || 'Failed to update bid result.')
   }
 }
 
@@ -240,8 +240,8 @@ export async function getBiddingApplicationById(applicationId: string) {
     if (error) throw error
 
     return data
-  } catch (error: any) {
-    console.error('Error fetching bidding application:', error.message)
+  } catch (error: unknown) {
+    console.error('Error fetching bidding application:', (error as Error).message)
     throw new Error('Failed to fetch bidding application.')
   }
 }

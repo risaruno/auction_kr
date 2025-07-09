@@ -43,7 +43,7 @@ export default function ApplyBid() {
 
   const handleFormChange = (
     event: React.ChangeEvent<{ name?: string; value: unknown }> | 
-    { target: { name: string; value: any } }
+    { target: { name: string; value: unknown } }
   ) => {
     const { name, value, type } = event.target as HTMLInputElement;
     if (name) {
@@ -60,7 +60,7 @@ export default function ApplyBid() {
     }
   };
 
-  const updateFormData = (field: string, value: any) => {
+  const updateFormData = (field: string, value: unknown) => {
     setFormData((prev) => ({ ...prev, [field]: value }));
     
     // Clear validation errors for this field when data is updated

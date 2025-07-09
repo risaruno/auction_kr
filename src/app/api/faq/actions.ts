@@ -60,9 +60,9 @@ export async function fetchFaqs(options?: {
       page,
       limit
     }
-  } catch (error: any) {
-    console.error('Error fetching FAQs:', error.message)
-    throw new Error('Failed to fetch FAQs.')
+  } catch (error) {
+    console.error('Error fetching FAQs:', (error as Error).message)
+    throw new Error((error as Error).message || 'Failed to fetch FAQs.')
   }
 }
 
@@ -93,9 +93,9 @@ export async function createFaq(faqData: FAQCreateRequest) {
     if (error) throw error
 
     return data
-  } catch (error: any) {
-    console.error('Error creating FAQ:', error.message)
-    throw new Error(error.message || 'Failed to create FAQ.')
+  } catch (error) {
+    console.error('Error creating FAQ:', (error as Error).message)
+    throw new Error((error as Error).message || 'Failed to create FAQ.')
   }
 }
 
@@ -124,9 +124,9 @@ export async function updateFaq(faqData: FAQUpdateRequest) {
     if (error) throw error
 
     return data
-  } catch (error: any) {
-    console.error('Error updating FAQ:', error.message)
-    throw new Error(error.message || 'Failed to update FAQ.')
+  } catch (error) {
+    console.error('Error updating FAQ:', (error as Error).message)
+    throw new Error((error as Error).message || 'Failed to update FAQ.')
   }
 }
 
@@ -147,9 +147,9 @@ export async function deleteFaq(faqId: string) {
     if (error) throw error
 
     return { success: true, message: 'FAQ deleted successfully' }
-  } catch (error: any) {
-    console.error('Error deleting FAQ:', error.message)
-    throw new Error(error.message || 'Failed to delete FAQ.')
+  } catch (error) {
+    console.error('Error deleting FAQ:', (error as Error).message)
+    throw new Error((error as Error).message || 'Failed to delete FAQ.')
   }
 }
 
@@ -171,9 +171,9 @@ export async function getFaqById(faqId: string) {
     if (error) throw error
 
     return data
-  } catch (error: any) {
-    console.error('Error fetching FAQ:', error.message)
-    throw new Error('Failed to fetch FAQ.')
+  } catch (error) {
+    console.error('Error fetching FAQ:', (error as Error).message)
+    throw new Error((error as Error).message || 'Failed to fetch FAQ.')
   }
 }
 
@@ -197,8 +197,8 @@ export async function getFaqsByCategory(category?: string) {
     if (error) throw error
 
     return data || []
-  } catch (error: any) {
-    console.error('Error fetching FAQs by category:', error.message)
+  } catch (error: unknown) {
+    console.error('Error fetching FAQs by category:', (error as Error).message)
     throw new Error('Failed to fetch FAQs.')
   }
 }

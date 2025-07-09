@@ -1,6 +1,6 @@
 'use client'
 
-import React, { useEffect, useState } from 'react'
+import React, { useEffect, useState, useCallback } from 'react'
 import {
   Box,
   Typography,
@@ -25,14 +25,29 @@ import NewInquiryForm from './NewInquiryForm'
 
 import { createClient } from '@/utils/supabase/client'
 
+interface Inquiry {
+  id: string
+  title: string
+  status: 'Unanswered' | 'Answered'
+  created_at: string
+  messages?: InquiryMessage[]
+}
+
+interface InquiryMessage {
+  id: string
+  content: string
+  sender_role: 'admin' | 'user'
+  created_at: string
+}
+
 export default function InquiriesList() {
   const supabase = createClient()
-  const [inquiries, setInquiries] = useState<any[]>([])
+  const [inquiries, setInquiries] = useState<Inquiry[]>([])
   const [userId, setUserId] = useState<string | null>(null)
   const [open, setOpen] = useState(false)
   const [loading, setLoading] = useState(true)
 
-  const [selectedInquiry, setSelectedInquiry] = useState<any | null>(null)
+  const [selectedInquiry, setSelectedInquiry] = useState<Inquiry | null>(null)
   const [viewDialogOpen, setViewDialogOpen] = useState(false)
 
   const getStatusChip = (status: string) => {
@@ -107,7 +122,7 @@ export default function InquiriesList() {
     },
   ]
 
-  const fetchInquiries = async () => {
+  const fetchInquiries = useCallback(async () => {
     setLoading(true)
     const { data, error } = await supabase
       .from('inquiries')
@@ -122,7 +137,7 @@ export default function InquiriesList() {
 
     setInquiries(data)
     setLoading(false)
-  }
+  }, [supabase])
 
   useEffect(() => {
     const fetchUser = async () => {
@@ -132,11 +147,11 @@ export default function InquiriesList() {
     }
 
     fetchUser()
-  }, [])
+  }, [supabase.auth])
 
   useEffect(() => {
     if (userId) fetchInquiries()
-  }, [userId])
+  }, [userId, fetchInquiries])
 
   const handleOpen = () => setOpen(true)
   const handleClose = () => setOpen(false)
@@ -155,14 +170,19 @@ export default function InquiriesList() {
 
     const { data: inquiry } = await supabase
       .from('inquiries')
-      .select('id, title, created_at')
+      .select('id, title, status, created_at')
       .eq('id', inquiryId)
       .single()
 
-    setSelectedInquiry({
-      ...inquiry,
-      messages,
-    })
+    if (inquiry) {
+      setSelectedInquiry({
+        id: inquiry.id,
+        title: inquiry.title,
+        status: inquiry.status,
+        created_at: inquiry.created_at,
+        messages,
+      } as Inquiry)
+    }
     setViewDialogOpen(true)
   }
 
@@ -243,7 +263,7 @@ export default function InquiriesList() {
                 {selectedInquiry.title}
               </Typography>
 
-              {selectedInquiry.messages?.map((msg: any, idx: number) => (
+              {selectedInquiry.messages?.map((msg: InquiryMessage, idx: number) => (
                 <Box key={idx} mb={2}>
                   <Typography
                     variant="subtitle2"
