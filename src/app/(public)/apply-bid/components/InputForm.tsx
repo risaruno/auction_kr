@@ -62,12 +62,6 @@ export default function InputForm({
   updateFormData,
   validationErrors = [],
 }: InputFormProps) {
-  // Debug logging for validation errors
-  React.useEffect(() => {
-    if (validationErrors.length > 0) {
-      console.log('Validation errors received:', validationErrors)
-    }
-  }, [validationErrors])
 
   // Local state for UI interactions
   const [isModalOpen, setIsModalOpen] = useState(false)

@@ -19,7 +19,7 @@ export default async function RootLayout({
 }: Readonly<{ children: ReactNode }>) {
   return (
     <html lang='en' suppressHydrationWarning>
-      <body>
+      <body suppressHydrationWarning>
         <InitColorSchemeScript attribute='class' />
         <AppRouterCacheProvider options={{ enableCssLayer: true }}>
           <AppTheme>

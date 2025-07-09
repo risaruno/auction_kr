@@ -1,8 +1,8 @@
-'use client';
+'use client'
 
-import * as React from 'react';
-import { useState } from 'react';
-import { useRouter } from 'next/navigation';
+import * as React from 'react'
+import { useState } from 'react'
+import { useRouter } from 'next/navigation'
 import {
   Box,
   Button,
@@ -13,39 +13,39 @@ import {
   Stack,
   Grid,
   Alert,
-} from '@mui/material';
-import { createClient } from '@/utils/supabase/client';
-import CaseFind from './components/CaseFind';
-import InputForm from './components/InputForm';
-import ContractSign from './components/ContractSign';
-import PaymentForm from './components/PaymentForm';
-import Review from './components/Review';
-import { FormData, InitialFormData } from '@/interfaces/FormData';
-import { applyBid } from '@/app/api/apply-bid/actions';
-import { 
-  getValidationForStep, 
-  ValidationError,
-} from '@/utils/validation';
+} from '@mui/material'
+import { createClient } from '@/utils/supabase/client'
+import CaseFind from './components/CaseFind'
+import InputForm from './components/InputForm'
+import ContractSign from './components/ContractSign'
+import PaymentForm from './components/PaymentForm'
+import Review from './components/Review'
+import { FormData, InitialFormData } from '@/interfaces/FormData'
+import { applyBid } from '@/app/api/apply-bid/actions'
+import { getValidationForStep, ValidationError } from '@/utils/validation'
 
-const steps = ['사건조회', '입찰정보작성', '전자계약', '수수료결제', '내용확인'];
+const steps = ['사건조회', '입찰정보작성', '전자계약', '수수료결제', '내용확인']
 
 export default function ApplyBid() {
-  const router = useRouter();
-  const supabase = createClient();
+  const router = useRouter()
+  const supabase = createClient()
 
-  const [activeStep, setActiveStep] = useState(0);
-  const [formData, setFormData] = useState<FormData>(InitialFormData);
-  const [validationErrors, setValidationErrors] = useState<ValidationError[]>([]);
+  const [activeStep, setActiveStep] = useState(0)
+  const [formData, setFormData] = useState<FormData>(InitialFormData)
+  const [validationErrors, setValidationErrors] = useState<ValidationError[]>(
+    []
+  )
 
   // State for handling the final submission
-  const [isSubmitting, setIsSubmitting] = useState(false);
-  const [submitError, setSubmitError] = useState<string | null>(null);
+  const [isSubmitting, setIsSubmitting] = useState(false)
+  const [submitError, setSubmitError] = useState<string | null>(null)
 
   const handleFormChange = (
-    event: React.ChangeEvent<{ name?: string; value: unknown }> | 
-    { target: { name: string; value: unknown } }
+    event:
+      | React.ChangeEvent<{ name?: string; value: unknown }>
+      | { target: { name: string; value: unknown } }
   ) => {
-    const { name, value, type } = event.target as HTMLInputElement;
+    const { name, value, type } = event.target as HTMLInputElement
     if (name) {
       setFormData((prev) => ({
         ...prev,
@@ -53,41 +53,43 @@ export default function ApplyBid() {
           type === 'checkbox'
             ? (event.target as HTMLInputElement).checked
             : value,
-      }));
-      
+      }))
+
       // Clear validation errors for this field when user starts typing
-      setValidationErrors(prev => prev.filter(error => error.field !== name));
+      setValidationErrors((prev) =>
+        prev.filter((error) => error.field !== name)
+      )
     }
-  };
+  }
 
   const updateFormData = (field: string, value: unknown) => {
-    setFormData((prev) => ({ ...prev, [field]: value }));
-    
+    setFormData((prev) => ({ ...prev, [field]: value }))
+
     // Clear validation errors for this field when data is updated
-    setValidationErrors(prev => prev.filter(error => error.field !== field));
-  };
+    setValidationErrors((prev) => prev.filter((error) => error.field !== field))
+  }
 
   const validateCurrentStep = (step: number): boolean => {
-    const validate = getValidationForStep(step);
-    const result = validate(formData);
-    
-    setValidationErrors(result.errors);
-    
+    const validate = getValidationForStep(step)
+    const result = validate(formData)
+
+    setValidationErrors(result.errors)
+
     if (!result.isValid) {
       // Scroll to first error
       setTimeout(() => {
-        const firstErrorElement = document.querySelector('[data-error="true"]');
+        const firstErrorElement = document.querySelector('[data-error="true"]')
         if (firstErrorElement) {
-          firstErrorElement.scrollIntoView({ 
-            behavior: 'smooth', 
-            block: 'center' 
-          });
+          firstErrorElement.scrollIntoView({
+            behavior: 'smooth',
+            block: 'center',
+          })
         }
-      }, 100);
+      }, 100)
     }
-    
-    return result.isValid;
-  };
+
+    return result.isValid
+  }
 
   const getStepContent = (step: number) => {
     switch (step) {
@@ -97,7 +99,7 @@ export default function ApplyBid() {
             caseResult={formData.caseResult}
             setCaseResult={(r) => updateFormData('caseResult', r)}
           />
-        );
+        )
       case 1:
         return (
           <InputForm
@@ -106,86 +108,88 @@ export default function ApplyBid() {
             updateFormData={updateFormData}
             validationErrors={validationErrors}
           />
-        );
+        )
       case 2:
         return (
           <ContractSign
             formData={formData}
             setSignature={(s) => updateFormData('signature', s)}
           />
-        );
+        )
       case 3:
         return (
           <PaymentForm
             formData={formData}
             handleFormChange={handleFormChange}
           />
-        );
+        )
       case 4:
-        return (
-          <Review 
-            formData={formData} 
-          />
-        );
+        return <Review formData={formData} />
       default:
-        throw new Error('Unknown step');
+        throw new Error('Unknown step')
     }
-  };
+  }
 
   const handleNext = async () => {
     // Validate current step before proceeding
     if (!validateCurrentStep(activeStep)) {
-      return;
+      return
     }
 
     if (activeStep === steps.length - 1) {
       // Final submission
-      setIsSubmitting(true);
-      setSubmitError(null);
+      setIsSubmitting(true)
+      setSubmitError(null)
       try {
         const {
           data: { session },
-        } = await supabase.auth.getSession();
-        if (!session) throw new Error('User not authenticated');
+        } = await supabase.auth.getSession()
+        if (!session) throw new Error('User not authenticated')
 
         if (formData.caseResult === null) {
-          throw new Error('사건 조회가 필요합니다. 사건을 먼저 조회해주세요.');
+          throw new Error('사건 조회가 필요합니다. 사건을 먼저 조회해주세요.')
         }
 
-        const result = await applyBid(session.access_token, formData);
+        const result = await applyBid(session.access_token, formData)
         if (result.error) {
-          throw new Error(result.error);
+          throw new Error(result.error)
         }
 
         // Move to the "Thank You" screen on success
-        setActiveStep(activeStep + 1);
+        setActiveStep(activeStep + 1)
       } catch (error) {
         setSubmitError(
           error instanceof Error ? error.message : 'An unknown error occurred.'
-        );
+        )
       } finally {
-        setIsSubmitting(false);
+        setIsSubmitting(false)
       }
     } else {
-      setActiveStep(activeStep + 1);
+      setActiveStep(activeStep + 1)
     }
-  };
+  }
 
   const handleBack = () => {
-    setActiveStep(activeStep - 1);
-    setValidationErrors([]); // Clear validation errors when going back
-  };
+    setActiveStep(activeStep - 1)
+    setValidationErrors([]) // Clear validation errors when going back
+  }
 
   const getNextButtonText = () => {
     switch (activeStep) {
-      case 0: return '다음: 입찰정보 작성';
-      case 1: return '다음: 전자계약';
-      case 2: return '다음: 수수료 결제';
-      case 3: return '다음: 최종 확인';
-      case 4: return isSubmitting ? '신청 중...' : '신청 완료';
-      default: return '다음';
+      case 0:
+        return '다음: 입찰정보 작성'
+      case 1:
+        return '다음: 전자계약'
+      case 2:
+        return '다음: 수수료 결제'
+      case 3:
+        return '다음: 최종 확인'
+      case 4:
+        return isSubmitting ? '신청 중...' : '신청 완료'
+      default:
+        return '다음'
     }
-  };
+  }
 
   return (
     <>
@@ -213,7 +217,7 @@ export default function ApplyBid() {
           }}
         >
           <Stepper
-            id="desktop-stepper"
+            id='desktop-stepper'
             activeStep={activeStep}
             sx={{
               width: '100%',
@@ -241,26 +245,38 @@ export default function ApplyBid() {
           }}
         >
           {activeStep === steps.length ? (
-            <Stack spacing={2} useFlexGap>
-              <Typography variant="h1">📦</Typography>
-              <Typography variant="h5">신청이 완료되었습니다!</Typography>
-              <Typography variant="body1" color="text.secondary">
-                신청 내역은 마이페이지에서 확인하실 수 있습니다.
-              </Typography>
-              <Button
-                variant="contained"
-                onClick={() => router.push('/auth/user/history')}
-                sx={{ m: 3, alignSelf: 'center' }}
-              >
-                마이페이지로 이동
-              </Button>
-            </Stack>
+            <Box
+              sx={{
+                padding: 2,
+                margin: 2,
+                backgroundColor: '#fff',
+                borderRadius: 2,
+                p: { xs: 2, sm: 3 },
+                border: '1px solid',
+                borderColor: 'divider',
+              }}
+            >
+              <Stack spacing={2} useFlexGap>
+                <Typography variant='h1'>📦</Typography>
+                <Typography variant='h5'>신청이 완료되었습니다!</Typography>
+                <Typography variant='body1' color='text.secondary'>
+                  신청 내역은 마이페이지에서 확인하실 수 있습니다.
+                </Typography>
+                <Button
+                  variant='contained'
+                  onClick={() => router.push('/auth/user/history')}
+                  sx={{ m: 3, alignSelf: 'center' }}
+                >
+                  마이페이지로 이동
+                </Button>
+              </Stack>
+            </Box>
           ) : (
             <React.Fragment>
               {/* Display validation errors */}
               {validationErrors.length > 0 && (
-                <Alert severity="error" sx={{ mb: 2 }}>
-                  <Typography variant="body2" component="div">
+                <Alert severity='error' sx={{ mb: 2 }}>
+                  <Typography variant='body2' component='div'>
                     다음 항목을 확인해주세요:
                   </Typography>
                   <ul>
@@ -273,7 +289,7 @@ export default function ApplyBid() {
 
               {/* Display submission error on final step */}
               {activeStep === steps.length - 1 && submitError && (
-                <Alert severity="error" sx={{ mb: 2 }}>
+                <Alert severity='error' sx={{ mb: 2 }}>
                   {submitError}
                 </Alert>
               )}
@@ -284,7 +300,8 @@ export default function ApplyBid() {
                 sx={{
                   display: 'flex',
                   flexDirection: { xs: 'column-reverse', sm: 'row' },
-                  justifyContent: activeStep !== 0 ? 'space-between' : 'flex-end',
+                  justifyContent:
+                    activeStep !== 0 ? 'space-between' : 'flex-end',
                   alignItems: 'center',
                   flexGrow: 1,
                   gap: 1,
@@ -296,7 +313,7 @@ export default function ApplyBid() {
                 {activeStep !== 0 && (
                   <Button
                     onClick={handleBack}
-                    variant="text"
+                    variant='text'
                     sx={{ display: { xs: 'none', sm: 'flex' } }}
                   >
                     이전
@@ -304,7 +321,7 @@ export default function ApplyBid() {
                 )}
 
                 <Button
-                  variant="contained"
+                  variant='contained'
                   endIcon={null}
                   onClick={handleNext}
                   disabled={isSubmitting}
@@ -318,5 +335,5 @@ export default function ApplyBid() {
         </Box>
       </Grid>
     </>
-  );
+  )
 }
