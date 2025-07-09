@@ -3,9 +3,7 @@
 import { createAdminClient, createClient } from '@/utils/supabase/server'
 import { 
   canModifyUserRole, 
-  getAllowedRoles, 
-  canCreateAdmin, 
-  isProtectedRole 
+  canCreateAdmin
 } from '@/utils/admin-permissions'
 
 export interface AdminUser {
@@ -114,8 +112,8 @@ export async function fetchAdminUsers() {
 
     console.log('Total admin users found:', adminUsers.length)
     return adminUsers
-  } catch (error: any) {
-    console.error('Error fetching admin users:', error.message)
+  } catch (error: unknown) {
+    console.error('Error fetching admin users:', (error as Error).message)
     throw new Error('Failed to fetch admin users.')
   }
 }
@@ -199,9 +197,9 @@ export async function inviteAdminUser(email: string, name: string, role: string,
       // For now, let's throw an error since we can't create users without admin privileges
       throw new Error('Admin user creation requires proper service role configuration. Please contact system administrator.')
     }
-  } catch (error: any) {
-    console.error('Error inviting admin user:', error.message)
-    throw new Error(error.message || 'Failed to invite admin user.')
+  } catch (error: unknown) {
+    console.error('Error inviting admin user:', (error as Error).message)
+    throw new Error((error as Error).message || 'Failed to invite admin user.')
   }
 }
 
@@ -271,9 +269,9 @@ export async function updateAdminRole(userId: string, role: string, currentUserI
     }
 
     return { success: true, message: 'Admin role updated successfully' }
-  } catch (error: any) {
-    console.error('Error updating admin role:', error.message)
-    throw new Error(error.message || 'Failed to update admin role.')
+  } catch (error: unknown) {
+    console.error('Error updating admin role:', (error as Error).message)
+    throw new Error((error as Error).message || 'Failed to update admin role.')
   }
 }
 
@@ -314,9 +312,9 @@ export async function deactivateAdminUser(userId: string) {
     if (profileError) throw profileError
 
     return { success: true, message: 'Admin user deactivated successfully' }
-  } catch (error: any) {
-    console.error('Error deactivating admin user:', error.message)
-    throw new Error(error.message || 'Failed to deactivate admin user.')
+  } catch (error: unknown) {
+    console.error('Error deactivating admin user:', (error as Error).message)
+    throw new Error((error as Error).message || 'Failed to deactivate admin user.')
   }
 }
 
@@ -353,8 +351,8 @@ export async function reactivateAdminUser(userId: string) {
     if (profileError) throw profileError
 
     return { success: true, message: 'Admin user reactivated successfully' }
-  } catch (error: any) {
-    console.error('Error reactivating admin user:', error.message)
-    throw new Error(error.message || 'Failed to reactivate admin user.')
+  } catch (error: unknown) {
+    console.error('Error reactivating admin user:', (error as Error).message)
+    throw new Error((error as Error).message || 'Failed to reactivate admin user.')
   }
 }

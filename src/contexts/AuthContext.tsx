@@ -3,7 +3,7 @@
 import React, { createContext, useContext, useEffect, useState } from 'react'
 import { createClient } from '@/utils/supabase/client'
 import { type AdminRole, type UserWithRole } from '@/utils/auth/roles-client'
-import { Session, User } from "@supabase/supabase-js";
+import { Session } from "@supabase/supabase-js";
 
 interface AuthContextType {
   user: UserWithRole | null

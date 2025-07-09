@@ -118,31 +118,14 @@ export default function Layout({ children }: { children: React.ReactNode }) {
   const { user, session, loading, signOut } = useAuth();
   const router = useRouter();
   const pathname = usePathname() || "/";
-
-  if (loading) {
-    return (
-      <Box display="flex" justifyContent="center" alignItems="center" height="100vh">
-        <CircularProgress />
-      </Box>
-    );
-  }
-
-  if (!user) {
-    React.useEffect(() => {
-      if (pathname !== '/sign/in') {
-        router.push(`/sign/in?redirectTo=${encodeURIComponent(pathname)}`);
-      }
-    }, [pathname, router]);
-
-    return (
-      <Box display="flex" justifyContent="center" alignItems="center" height="100vh">
-        <CircularProgress />
-        <Typography>Redirecting to login...</Typography>
-      </Box>
-    );
-  }
-
   const navigation = useNavigation();
+
+  // Use effect for redirect logic
+  React.useEffect(() => {
+    if (!loading && !user && pathname !== '/sign/in') {
+      router.push(`/sign/in?redirectTo=${encodeURIComponent(pathname)}`);
+    }
+  }, [loading, user, pathname, router]);
 
   const toolpadSession = React.useMemo(() => {
     if (!session || !user) return null;
@@ -166,6 +149,23 @@ export default function Layout({ children }: { children: React.ReactNode }) {
       },
     };
   }, [signOut, router, pathname]);
+
+  if (loading) {
+    return (
+      <Box display="flex" justifyContent="center" alignItems="center" height="100vh">
+        <CircularProgress />
+      </Box>
+    );
+  }
+
+  if (!user) {
+    return (
+      <Box display="flex" justifyContent="center" alignItems="center" height="100vh">
+        <CircularProgress />
+        <Typography>Redirecting to login...</Typography>
+      </Box>
+    );
+  }
 
   return (
     <NextAppProvider

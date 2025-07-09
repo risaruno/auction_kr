@@ -2,20 +2,8 @@
 import React, { useState, useEffect } from 'react'
 import {
   Box,
-  Drawer,
-  AppBar,
-  Toolbar,
   Typography,
-  List,
-  ListItem,
-  ListItemButton,
-  ListItemIcon,
-  ListItemText,
-  CssBaseline,
-  Card,
-  CardContent,
   Button,
-  Paper,
   IconButton,
   Modal,
   TextField,
@@ -31,7 +19,6 @@ import {
   InputLabel,
   Alert,
   Snackbar,
-  CircularProgress,
   Avatar,
 } from '@mui/material'
 import { DataGrid, GridColDef, GridPaginationModel } from '@mui/x-data-grid'
@@ -52,19 +39,8 @@ import { useAuth } from '@/contexts/AuthContext'
 import { 
   canModifyUserRole, 
   getAllowedRoles, 
-  canCreateAdmin, 
-  canManageUsers,
   canDeactivateUser 
 } from '@/utils/admin-permissions'
-
-const adminRoles = [
-  'super_admin',
-  'admin',
-  'content_manager',
-  'customer_support',
-  'expert',
-  'user',
-]
 
 // Role translation helper
 const getRoleLabel = (role: string) => {
@@ -101,7 +77,7 @@ const getStatusLabel = (status: string) => {
 }
 
 const modalStyle = {
-  position: 'absolute' as 'absolute',
+  position: 'absolute',
   top: '50%',
   left: '50%',
   transform: 'translate(-50%, -50%)',
@@ -181,6 +157,11 @@ const AdminManagementContent = () => {
   const handleFormChange = (event: React.ChangeEvent<HTMLInputElement>) => {
     const { name, value } = event.target
     setSelectedAdmin((prev) => ({ ...prev, [name]: value }))
+  }
+
+  const handleRoleChange = (event: any) => {
+    const value = event.target.value
+    setSelectedAdmin((prev) => ({ ...prev, role: value }))
   }
 
   const handleSaveAdmin = async () => {
@@ -453,7 +434,7 @@ const AdminManagementContent = () => {
               name='role'
               value={selectedAdmin?.role || ''}
               label='역할'
-              onChange={handleFormChange as any}
+              onChange={handleRoleChange}
             >
               {(isEditing ? allowedRoles : allowedRoles).map((role) => {
                 if (role === 'super_admin') return null

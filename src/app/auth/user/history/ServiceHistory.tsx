@@ -24,7 +24,7 @@ import {
   CardContent,
   CardActions,
 } from "@mui/material";
-import { DataGrid, GridColDef, GridActionsCellItem, GridRenderCellParams } from "@mui/x-data-grid";
+import { DataGrid, GridColDef, GridActionsCellItem, GridRenderCellParams, GridRowParams } from "@mui/x-data-grid";
 import { styled } from "@mui/material/styles";
 import HomeOutlinedIcon from "@mui/icons-material/HomeOutlined";
 import ScreenSearchDesktopOutlinedIcon from "@mui/icons-material/ScreenSearchDesktopOutlined";
@@ -44,6 +44,24 @@ import { fetchUserApplications } from "../actions";
 import { getBiddingApplicationById } from "@/app/api/bidding-applications/actions";
 import { useAuth } from "@/contexts/AuthContext";
 import { uploadElectronicIdentityDocument } from "@/utils/supabase/fileUpload";
+
+interface BiddingApplication {
+  id: string
+  case_number?: string
+  court_case_number?: string
+  bid_amount?: number
+  bid_date?: string
+  created_at?: string
+  status?: string
+  result?: string
+  result_notes?: string
+  electronic_identity_document_url?: string
+  electronic_identity_document_name?: string
+  electronic_identity_document_uploaded_at?: string
+  experts?: {
+    name?: string
+  }
+}
 
 // --- Styled Components for a Custom Stepper Look ---
 const ColorlibConnector = styled(StepConnector)(({ theme }) => ({
@@ -113,12 +131,12 @@ function ColorlibStepIcon(props: StepIconProps) {
 }
 
 // --- Main Page Component ---
-const serviceHistory = () => {
+const ServiceHistory = () => {
   const [currentTab, setCurrentTab] = useState("proxyBidding");
-  const [applications, setApplications] = useState<any[]>([]);
+  const [applications, setApplications] = useState<BiddingApplication[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
-  const [selectedApplication, setSelectedApplication] = useState<any>(null);
+  const [selectedApplication, setSelectedApplication] = useState<BiddingApplication | null>(null);
   const [detailDialogOpen, setDetailDialogOpen] = useState(false);
   const [loadingDetail, setLoadingDetail] = useState(false);
   const [uploadingFile, setUploadingFile] = useState(false);
@@ -269,7 +287,7 @@ const serviceHistory = () => {
       field: "case_number",
       headerName: "사건번호",
       width: 180,
-      valueGetter: (params: any) => {
+      valueGetter: (params: { row: { case_number?: string; court_case_number?: string } }) => {
         return (
           params.row.case_number ||
           params.row.court_case_number ||
@@ -281,7 +299,7 @@ const serviceHistory = () => {
       field: "bid_amount",
       headerName: "입찰금액",
       width: 150,
-      valueGetter: (params: any) => {
+      valueGetter: (params: { row: { bid_amount?: number } }) => {
         return params.row.bid_amount ? formatCurrency(params.row.bid_amount) : "-";
       },
     },
@@ -289,7 +307,7 @@ const serviceHistory = () => {
       field: "bid_date",
       headerName: "입찰기일",
       width: 120,
-      valueGetter: (params: any) => {
+      valueGetter: (params: { row: BiddingApplication }) => {
         return params.row.bid_date ? formatDate(params.row.bid_date) : "-";
       },
     },
@@ -297,15 +315,15 @@ const serviceHistory = () => {
       field: "created_at",
       headerName: "요청일자",
       width: 120,
-      valueGetter: (params: any) => {
-        return formatDate(params.row.created_at);
+      valueGetter: (params: { row: BiddingApplication }) => {
+        return formatDate(params.row.created_at || "");
       },
     },
     {
       field: "expert_name",
       headerName: "대리인",
       width: 120,
-      valueGetter: (params: any) => {
+      valueGetter: (params: { row: BiddingApplication }) => {
         return params.row.experts?.name || "미배정";
       },
     },
@@ -329,8 +347,9 @@ const serviceHistory = () => {
       type: "actions",
       headerName: "상세보기",
       width: 100,
-      getActions: (params: any) => [
+      getActions: (params: GridRowParams<BiddingApplication>) => [
         <GridActionsCellItem
+          key="view"
           icon={<VisibilityIcon />}
           label="상세보기"
           onClick={() => handleViewDetails(params.row.id)}
@@ -516,7 +535,7 @@ const serviceHistory = () => {
                     신청일자
                   </Typography>
                   <Typography variant="body1" sx={{ mb: 2 }}>
-                    {formatDate(selectedApplication.created_at)}
+                    {selectedApplication.created_at ? formatDate(selectedApplication.created_at) : 'N/A'}
                   </Typography>
                 </Box>
               </Box>
@@ -577,7 +596,7 @@ const serviceHistory = () => {
                   </Typography>
                   <Chip
                     label={selectedApplication.status || "대기중"}
-                    color={getStatusColor(selectedApplication.status) as any}
+                    color={getStatusColor(selectedApplication.status || 'pending') as 'success' | 'warning' | 'error' | 'info'}
                     variant="outlined"
                     sx={{ mb: 2 }}
                   />
@@ -658,10 +677,9 @@ const serviceHistory = () => {
                             "전자본인서명확인서"}
                         </Typography>
                         <Typography variant="caption" color="text.secondary">
-                          업로드일:{" "}
-                          {formatDate(
-                            selectedApplication.electronic_identity_document_uploaded_at
-                          )}
+                          업로드일:{" "}                            {selectedApplication.electronic_identity_document_uploaded_at 
+                              ? formatDate(selectedApplication.electronic_identity_document_uploaded_at)
+                              : 'N/A'}
                         </Typography>
                       </Box>
                     ) : (
@@ -731,4 +749,4 @@ const serviceHistory = () => {
   );
 };
 
-export default serviceHistory;
+export default ServiceHistory;

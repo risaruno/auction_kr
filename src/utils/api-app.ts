@@ -50,10 +50,12 @@ export function formatPaginatedResponse<T>(
 }
 
 // Enhanced error handler for App Router
-export function handleApiError(error: any): NextResponse {
+export function handleApiError(error: unknown): NextResponse {
+  const err = error as Error & { code?: string; statusCode?: number }
+  
   console.error('API Error:', {
-    message: error.message,
-    stack: error.stack,
+    message: err.message || 'Unknown error',
+    stack: err.stack,
     timestamp: new Date().toISOString(),
   })
 
@@ -65,8 +67,8 @@ export function handleApiError(error: any): NextResponse {
   }
 
   // Supabase specific errors
-  if (error.code) {
-    switch (error.code) {
+  if (err.code) {
+    switch (err.code) {
       case 'PGRST116':
         return NextResponse.json(
           formatResponse(undefined, undefined, 'Resource not found'),
@@ -99,7 +101,7 @@ export function handleApiError(error: any): NextResponse {
 
 // Request validation
 export function validateRequiredFields(
-  body: any,
+  body: Record<string, unknown>,
   requiredFields: string[]
 ): string | null {
   const missingFields = requiredFields.filter(field => 
@@ -117,7 +119,7 @@ export function validateRequiredFields(
 export async function getSupabaseClient(adminRequired: boolean = false) {
   try {
     return adminRequired ? await createAdminClient() : await createClient()
-  } catch (error) {
+  } catch {
     throw new ApiError(500, 'Failed to initialize database connection')
   }
 }
@@ -155,7 +157,7 @@ export class CrudService<T> {
   async getAll(
     request: NextRequest,
     selectFields: string = '*',
-    additionalFilters?: any
+    additionalFilters?: Record<string, unknown>
   ): Promise<{ data: T[]; total: number }> {
     const supabase = await getSupabaseClient(this.adminRequired)
     const pagination = getPaginationParamsFromRequest(request)
@@ -289,7 +291,7 @@ export async function requireAdmin(request: NextRequest) {
 export async function parseRequestBody(request: NextRequest) {
   try {
     return await request.json()
-  } catch (error) {
+  } catch {
     throw new ApiError(400, 'Invalid JSON body')
   }
 }

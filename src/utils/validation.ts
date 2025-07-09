@@ -1,4 +1,4 @@
-import { FormData, ApplicationType } from '@/interfaces/FormData';
+import { FormData } from '@/interfaces/FormData';
 
 export interface ValidationError {
   field: string;
@@ -179,7 +179,7 @@ export function validateContractSign(formData: FormData): ValidationResult {
 }
 
 // Step 3: Payment Form validation
-export function validatePaymentForm(formData: FormData): ValidationResult {
+export function validatePaymentForm(): ValidationResult {
   const errors: ValidationError[] = [];
 
   // if (!formData.termsChecked) {
@@ -201,7 +201,7 @@ export function validateReview(formData: FormData): ValidationResult {
   const caseValidation = validateCaseFind(formData);
   const inputValidation = validateInputForm(formData);
   const contractValidation = validateContractSign(formData);
-  const paymentValidation = validatePaymentForm(formData);
+  const paymentValidation = validatePaymentForm();
 
   const allErrors = [
     ...caseValidation.errors,

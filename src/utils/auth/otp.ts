@@ -92,7 +92,7 @@ export async function sendOtp(phone: string): Promise<OtpState> {
       error: null,
       message: 'Verification code sent successfully.',
     }
-  } catch (err: any) {
+  } catch (err: unknown) {
     console.error("Send OTP error:", err);
     return {
       error: 'Unable to send verification code. Please try again later.',
@@ -162,7 +162,7 @@ export async function verifyOtp(phone: string, token: string): Promise<OtpState>
       error: null,
       message: 'Phone number verified successfully.',
     }
-  } catch (err: any) {
+  } catch (err: unknown) {
     console.error("Verify OTP error:", err);
     return {
       error: 'Unable to verify code. Please try again.',

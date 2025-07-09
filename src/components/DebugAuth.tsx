@@ -4,10 +4,14 @@ import { useAuth } from "@/contexts/AuthContext";
 import { Box, Typography, Button, Popover } from "@mui/material";
 import { createClient } from "@/utils/supabase/client";
 import { useEffect, useState } from "react";
+import { Session } from "@supabase/supabase-js";
 
 export default function DebugAuth() {
   const { user, loading, signOut, refreshUser } = useAuth();
-  const [rawSession, setRawSession] = useState<any>(null);
+  const [rawSession, setRawSession] = useState<Session | null>(null);
+  const [debugMenuAnchor, setDebugMenuAnchor] = useState<null | HTMLElement>(
+    null
+  );
 
   useEffect(() => {
     const checkSession = async () => {
@@ -54,10 +58,6 @@ export default function DebugAuth() {
     // Also refresh the AuthContext
     await refreshUser();
   };
-
-  const [debugMenuAnchor, setDebugMenuAnchor] = useState<null | HTMLElement>(
-    null
-  );
 
   const handleDebugMenuOpen = (event: React.MouseEvent<HTMLButtonElement>) => {
     setDebugMenuAnchor(event.currentTarget);

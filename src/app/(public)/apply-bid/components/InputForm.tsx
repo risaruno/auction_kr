@@ -7,7 +7,6 @@ import {
   TextField,
   MenuItem,
   Modal,
-  FormControl,
   FormLabel,
   CircularProgress,
   Alert,
@@ -15,7 +14,6 @@ import {
   CardMedia,
   CardContent,
   styled,
-  Chip,
   IconButton,
   Divider,
   InputAdornment,
@@ -79,20 +77,6 @@ export default function InputForm({
   const [error, setError] = useState<string | null>(null)
   const [useProfileInfo, setUseProfileInfo] = useState(false)
   const [profileLoading, setProfileLoading] = useState(false)
-
-  // Utility function to get numeric value from formatted string
-  const getNumericValue = useCallback((formattedValue: string): number => {
-    return parseInt(formattedValue.replace(/[^\d]/g, '')) || 0
-  }, [])
-
-  // Utility function to format number as currency
-  const formatCurrency = useCallback((value: string | number): string => {
-    if (typeof value === 'string') {
-      const numericValue = value.replace(/[^\d]/g, '')
-      return numericValue ? parseInt(numericValue).toLocaleString() : ''
-    }
-    return value ? value.toLocaleString() : ''
-  }, [])
 
   // Memoized error lookup function for performance
   const getFieldError = useCallback(

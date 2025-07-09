@@ -10,9 +10,6 @@ import Typography from "@mui/material/Typography";
 import ExpandMoreIcon from "@mui/icons-material/ExpandMore";
 import {
   fetchFaqs,
-  createFaq,
-  updateFaq,
-  deleteFaq,
 } from "@/app/api/faq/actions";
 import CircularProgress from "@mui/material/CircularProgress";
 import Alert from "@mui/material/Alert";
@@ -32,11 +29,10 @@ export default function FAQ() {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
 
-  const [page, setPage] = useState(0);
-  const [rowsPerPage, setRowsPerPage] = useState(10);
-  const [totalCount, setTotalCount] = useState(0);
-  const [searchQuery, setSearchQuery] = useState("");
-  const [selectedCategory, setSelectedCategory] = useState("");
+  const page = 0;
+  const rowsPerPage = 10;
+  const searchQuery = "";
+  const selectedCategory = "";
 
   // 2. Use useEffect to fetch data from your API when the component mounts.
   useEffect(() => {

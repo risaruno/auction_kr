@@ -2,7 +2,7 @@
 
 import { useState } from 'react'
 import { createClient } from '@/utils/supabase/client'
-import { Box, Button, TextField, Typography, Alert } from '@mui/material'
+import { Box, Button, TextField, Alert } from '@mui/material'
 
 interface NewInquiryFormProps {
   userId: string

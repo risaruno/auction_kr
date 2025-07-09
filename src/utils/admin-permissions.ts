@@ -13,10 +13,6 @@ export const ROLE_HIERARCHY = {
 
 // Check if current user can modify target user's role
 export function canModifyUserRole(currentUserRole: string, targetUserRole: string, newRole: string): boolean {
-  const currentLevel = ROLE_HIERARCHY[currentUserRole as keyof typeof ROLE_HIERARCHY] || 0
-  const targetLevel = ROLE_HIERARCHY[targetUserRole as keyof typeof ROLE_HIERARCHY] || 0
-  const newLevel = ROLE_HIERARCHY[newRole as keyof typeof ROLE_HIERARCHY] || 0
-
   // Super admin can do anything
   if (currentUserRole === 'super_admin') {
     // But super_admin role cannot be changed to anything else

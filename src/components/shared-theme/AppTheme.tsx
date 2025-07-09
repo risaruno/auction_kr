@@ -1,6 +1,6 @@
 'use client'
 import * as React from 'react'
-import { ThemeProvider, createTheme } from '@mui/material/styles'
+import { ThemeProvider } from '@mui/material/styles'
 import type { ThemeOptions } from '@mui/material/styles'
 import theme from '@/theme'
 
@@ -11,7 +11,7 @@ interface AppThemeProps {
 }
 
 export default function AppTheme(props: AppThemeProps) {
-  const { children, disableCustomTheme, themeComponents } = props
+  const { children, disableCustomTheme } = props
 
   // This correctly ensures only light mode is ever used.
   // React.useEffect(() => {

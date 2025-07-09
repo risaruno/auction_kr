@@ -1,12 +1,12 @@
 // API Types for consistent API responses and requests
-export interface ApiResponse<T = any> {
+export interface ApiResponse<T = unknown> {
   data?: T
   error?: string
   message?: string
   success: boolean
 }
 
-export interface PaginatedResponse<T = any> extends ApiResponse<T[]> {
+export interface PaginatedResponse<T = unknown> extends ApiResponse<T[]> {
   pagination?: {
     page: number
     limit: number
@@ -159,7 +159,7 @@ export interface BiddingApplicationCreateRequest {
   application_type: 'personal' | 'company' | 'group'
   
   // Conditional fields based on application type
-  [key: string]: any
+  [key: string]: unknown
 }
 
 export interface BiddingApplicationUpdateRequest {
@@ -170,7 +170,7 @@ export interface BiddingApplicationUpdateRequest {
   deposit_status?: 'pending' | 'confirmed' | 'refunded'
   result_notes?: string
   result?: string
-  [key: string]: any
+  [key: string]: unknown
 }
 
 // Inquiry Types
@@ -229,7 +229,7 @@ export interface PaginationParams {
 
 export interface SearchParams extends PaginationParams {
   q?: string
-  filters?: Record<string, any>
+  filters?: Record<string, unknown>
   // Allow additional dynamic properties
-  [key: string]: any
+  [key: string]: unknown
 }

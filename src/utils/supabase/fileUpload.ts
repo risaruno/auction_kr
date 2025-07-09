@@ -42,7 +42,7 @@ export async function uploadExpertProfileImage(
     const filePath = `experts/profiles/${fileName}`
 
     // Upload to Supabase Storage
-    const { data, error } = await supabase.storage
+    const { error } = await supabase.storage
       .from('expert-files')
       .upload(filePath, file, {
         cacheControl: '3600',
@@ -118,7 +118,7 @@ export async function uploadElectronicIdentityDocument(
     const filePath = `applications/identity-docs/${fileName}`
 
     // Upload to Supabase Storage
-    const { data, error } = await supabase.storage
+    const { error } = await supabase.storage
       .from('application-documents')
       .upload(filePath, file, {
         cacheControl: '3600',

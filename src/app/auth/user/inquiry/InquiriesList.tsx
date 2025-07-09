@@ -6,7 +6,6 @@ import {
   Typography,
   Button,
   IconButton,
-  Paper,
   Dialog,
   DialogTitle,
   DialogContent,

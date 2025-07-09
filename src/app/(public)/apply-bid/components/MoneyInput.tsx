@@ -2,8 +2,6 @@ import React from 'react'
 import {
   OutlinedInput,
   InputAdornment,
-  FormControl,
-  FormLabel,
   FormHelperText,
 } from '@mui/material'
 
@@ -26,11 +24,9 @@ interface MoneyInputProps {
  */
 const MoneyInput: React.FC<MoneyInputProps> = ({
   name,
-  label,
   value,
   onChange,
   helperText,
-  required,
   disabled = false,
   placeholder = '',
 }) => {

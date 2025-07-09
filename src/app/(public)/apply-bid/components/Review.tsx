@@ -7,7 +7,6 @@ import ListItemText from "@mui/material/ListItemText";
 import Stack from "@mui/material/Stack";
 import Typography from "@mui/material/Typography";
 import { FormData } from "@/interfaces/FormData";
-import { CaseResult } from "@/interfaces/CaseResult";
 
 // 1. Define the props interface for type safety.
 // It includes all the fields we want to display.

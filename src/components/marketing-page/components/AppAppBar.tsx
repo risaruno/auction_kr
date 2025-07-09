@@ -16,13 +16,10 @@ import MenuIcon from "@mui/icons-material/Menu";
 import CloseRoundedIcon from "@mui/icons-material/CloseRounded";
 import AccountCircleIcon from "@mui/icons-material/AccountCircle";
 import CircularProgress from "@mui/material/CircularProgress";
-import ColorModeIconDropdown from "@/components/shared-theme/ColorModeIconDropdown";
 import Sitemark from "./SitemarkIcon";
-import { Typography } from "@mui/material";
 import { useAuth } from "@/contexts/AuthContext";
 import { useRouter } from "next/navigation";
 import DebugAuth from "@/components/DebugAuth";
-import { green } from "@mui/material/colors";
 
 const StyledToolbar = styled(Toolbar)(({ theme }) => ({
   display: "flex",

@@ -15,35 +15,28 @@ export async function fetchUsers(options?: {
   const supabase = await createAdminClient()
 
   try {
-    const {
-      search,
-      status,
-      page = 1,
-      limit = 10,
-      sortBy = 'created_at',
-      sortOrder = 'desc'
-    } = options || {}
+    const { search, page = 1, limit = 10 } = options || {}
 
     // First get auth users
-    const { data: authUsers, error: authError } = await supabase.auth.admin.listUsers({
-      page,
-      perPage: limit
-    })
+    const { data: authUsers, error: authError } =
+      await supabase.auth.admin.listUsers({
+        page,
+        perPage: limit,
+      })
 
     if (authError) throw authError
 
     // Get user IDs
-    const userIds = authUsers.users.map(user => user.id)
+    const userIds = authUsers.users.map((user) => user.id)
 
     // Fetch profiles for these users
-    let profileQuery = supabase
-      .from('profiles')
-      .select('*')
-      .in('id', userIds)
+    let profileQuery = supabase.from('profiles').select('*').in('id', userIds)
 
     // Apply search filter
     if (search) {
-      profileQuery = profileQuery.or(`full_name.ilike.%${search}%,email.ilike.%${search}%`)
+      profileQuery = profileQuery.or(
+        `full_name.ilike.%${search}%,email.ilike.%${search}%`
+      )
     }
 
     const { data: profiles, error: profileError } = await profileQuery
@@ -51,8 +44,8 @@ export async function fetchUsers(options?: {
     if (profileError) throw profileError
 
     // Combine auth user data with profile data
-    const combinedUsers = authUsers.users.map(user => {
-      const profile = profiles?.find(p => p.id === user.id)
+    const combinedUsers = authUsers.users.map((user) => {
+      const profile = profiles?.find((p) => p.id === user.id)
       return {
         id: user.id,
         name: profile?.full_name || user.user_metadata?.full_name || 'N/A',
@@ -69,7 +62,7 @@ export async function fetchUsers(options?: {
       total: authUsers.users.length,
       page,
       limit,
-      totalPages: Math.ceil(authUsers.users.length / limit)
+      totalPages: Math.ceil(authUsers.users.length / limit),
     }
   } catch (error: any) {
     console.error('Error fetching users:', error.message)
@@ -88,7 +81,7 @@ export async function suspendUser(userId: string) {
 
     // Update user status in auth
     const { error } = await supabase.auth.admin.updateUserById(userId, {
-      ban_duration: 'none' // Permanent ban
+      ban_duration: 'none', // Permanent ban
     })
 
     if (error) throw error
@@ -141,7 +134,8 @@ export async function getUserById(userId: string) {
     }
 
     // Get auth user
-    const { data: authUser, error: authError } = await supabase.auth.admin.getUserById(userId)
+    const { data: authUser, error: authError } =
+      await supabase.auth.admin.getUserById(userId)
     if (authError) throw authError
 
     // Get profile
@@ -155,7 +149,8 @@ export async function getUserById(userId: string) {
 
     return {
       id: authUser.user.id,
-      name: profile?.full_name || authUser.user.user_metadata?.full_name || 'N/A',
+      name:
+        profile?.full_name || authUser.user.user_metadata?.full_name || 'N/A',
       email: authUser.user.email || '',
       phone: profile?.phone_number || 'N/A',
       signupDate: new Date(authUser.user.created_at).toLocaleDateString(),

@@ -1,7 +1,7 @@
 'use server'
 
 import { createClient } from '@/utils/supabase/server'
-import { FormData, InitialFormData } from '@/interfaces/FormData'
+import { FormData } from '@/interfaces/FormData'
 import axios from 'axios'
 import { CourtAuctionData } from '@/types/api'
 

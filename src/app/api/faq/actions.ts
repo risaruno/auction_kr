@@ -1,7 +1,7 @@
 'use server'
 
 import { createClient } from '@/utils/supabase/server'
-import { FAQ, FAQCreateRequest, FAQUpdateRequest } from '@/types/api'
+import { FAQCreateRequest, FAQUpdateRequest } from '@/types/api'
 
 // Fetch FAQs with optional filters and search
 export async function fetchFaqs(options?: {

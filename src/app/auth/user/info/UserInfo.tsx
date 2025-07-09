@@ -22,13 +22,24 @@ import {
 
 import { updateProfile, fetchUserProfile, UpdateProfileState } from '../actions'
 import { useAuth } from '@/contexts/AuthContext'
-import { getBankOptions, Bank } from '@/types/bank'
+import { getBankOptions } from '@/types/bank'
 import DaumPostcodeEmbed from 'react-daum-postcode'
+
+interface ProfileData {
+  full_name?: string
+  phone?: string
+  email?: string
+  address?: string
+  zip_no?: string
+  addr_detail?: string
+  bank?: string
+  account_number?: string
+}
 
 const BiddingInfoForm = () => {
   const { user } = useAuth()
   const [isModalOpen, setIsModalOpen] = useState(false)
-  const [profile, setProfile] = useState<any>(null)
+  const [profile, setProfile] = useState<ProfileData | null>(null)
   const [loading, setLoading] = useState(true)
   const [showSnackbar, setShowSnackbar] = useState(false)
   const [snackbarMessage, setSnackbarMessage] = useState('')
@@ -58,7 +69,7 @@ const BiddingInfoForm = () => {
   })
 
   const handleDaumComplete = useCallback(
-    (data: any) => {
+    (data: { zonecode: string; address: string }) => {
       setFormData((prev) => ({
         ...prev,
         zipNo: data.zonecode,

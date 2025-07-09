@@ -6,17 +6,13 @@ import {
   Typography,
   Button,
   IconButton,
-  Paper,
   Dialog,
   DialogTitle,
   DialogContent,
   DialogActions,
-  TextField, // Ditambahkan untuk input balasan
-  CircularProgress, // Ditambahkan untuk indikator loading
   Chip,
 } from '@mui/material'
 import { DataGrid, GridColDef, GridRenderCellParams } from '@mui/x-data-grid'
-import AddIcon from '@mui/icons-material/Add'
 import VisibilityIcon from '@mui/icons-material/Visibility'
 import InboxOutlinedIcon from '@mui/icons-material/InboxOutlined'
 import ReplyIcon from '@mui/icons-material/Reply'
@@ -28,7 +24,6 @@ export default function InquiriesList() {
   const supabase = createClient()
   const [inquiries, setInquiries] = useState<any[]>([])
   const [userId, setUserId] = useState<string | null>(null)
-  const [open, setOpen] = useState(false)
   const [loading, setLoading] = useState(true)
 
   const [selectedInquiry, setSelectedInquiry] = useState<any | null>(null)
@@ -145,9 +140,6 @@ export default function InquiriesList() {
     if (userId) fetchInquiries()
   }, [userId])
 
-  const handleOpen = () => setOpen(true)
-  const handleClose = () => setOpen(false)
-
   const handleView = async (inquiryId: number) => {
     // Logika untuk mengambil data tetap sama
     const { data: messages, error } = await supabase
@@ -178,45 +170,6 @@ export default function InquiriesList() {
     setViewDialogOpen(false)
     setSelectedInquiry(null)
     setReplyContent('') // Reset isi balasan saat dialog ditutup
-  }
-
-  // Fungsi baru untuk menangani pengiriman balasan
-  const handleReplySubmit = async () => {
-    if (!replyContent.trim() || !selectedInquiry || !userId) return
-
-    setIsReplying(true)
-
-    // 1. Kirim pesan balasan baru
-    const { error: messageError } = await supabase
-      .from('inquiry_messages')
-      .insert({
-        inquiry_id: selectedInquiry.id,
-        sender_id: userId, // ID Admin/User yang sedang login
-        content: replyContent,
-        sender_role: 'admin', // Tandai sebagai balasan dari admin
-      })
-
-    if (messageError) {
-      console.error('Error sending reply:', messageError)
-      setIsReplying(false)
-      return
-    }
-
-    // 2. Update status pertanyaan menjadi "Answered"
-    const { error: inquiryError } = await supabase
-      .from('inquiries')
-      .update({ status: 'Answered' })
-      .eq('id', selectedInquiry.id)
-
-    if (inquiryError) {
-      console.error('Error updating inquiry status:', inquiryError)
-      // Pertimbangkan untuk menangani kasus ini (misalnya, pesan balasan terkirim tapi status gagal diupdate)
-    }
-
-    // 3. Refresh data dan tutup dialog
-    await fetchInquiries() // Ambil ulang daftar pertanyaan untuk update status di tabel
-    handleCloseView()
-    setIsReplying(false)
   }
 
   return (

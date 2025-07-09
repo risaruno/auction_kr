@@ -3,20 +3,12 @@ import React, { useState, useEffect } from 'react'
 import {
   Box,
   Divider,
-  Toolbar,
   Typography,
-  CssBaseline,
-  Card,
-  CardContent,
   Button,
   IconButton,
   TextField,
-  InputAdornment,
   Chip,
   Avatar,
-  Tabs,
-  Tab,
-  CircularProgress,
   Alert,
   Snackbar,
   Modal,
@@ -33,8 +25,6 @@ import {
 import {
   fetchUsers,
   suspendUser,
-  updateUserPoints,
-  getUserById,
 } from '@/app/api/auth/users/actions'
 import { User } from '@/types/api'
 import { BankLabels, Bank } from '@/types/bank'
@@ -65,7 +55,7 @@ const getStatusLabel = (status: string) => {
 }
 
 const modalStyle = {
-  position: 'absolute' as 'absolute',
+  position: 'absolute',
   top: '50%',
   left: '50%',
   transform: 'translate(-50%, -50%)',
@@ -79,7 +69,7 @@ const modalStyle = {
 }
 
 const userDetailsModalStyle = {
-  position: 'absolute' as 'absolute',
+  position: 'absolute',
   top: '50%',
   left: '50%',
   transform: 'translate(-50%, -50%)',
@@ -268,10 +258,6 @@ const UserManagementContent = () => {
     } finally {
       setOpenResetModal(false)
     }
-  }
-
-  const handlePageChange = (newPage: number) => {
-    setPage(newPage)
   }
 
   const handleCloseSnackbar = () => {

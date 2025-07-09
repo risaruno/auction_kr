@@ -1,7 +1,6 @@
 'use server'
 
 import { createClient } from '@/utils/supabase/server'
-import { BiddingApplication } from '@/types/api'
 
 // Fetch bidding applications with optional filters
 export async function fetchBiddingApplications(options?: {

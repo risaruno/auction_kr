@@ -1,7 +1,7 @@
 'use server'
 
 import { createClient } from '@/utils/supabase/server'
-import { Expert, ExpertCreateRequest, ExpertUpdateRequest } from '@/types/api'
+import { ExpertCreateRequest, ExpertUpdateRequest } from '@/types/api'
 
 // Fetch experts with optional filters and search
 export async function fetchExperts(options?: {

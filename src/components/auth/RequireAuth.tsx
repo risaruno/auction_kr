@@ -13,8 +13,6 @@ interface RequireAuthProps {
 
 export function RequireAuth({ children, requiredRole, fallback }: RequireAuthProps) {
   const { user, loading, isInitialized } = useAuth()
-  const isAdmin = useIsAdmin()
-  const isSuperAdmin = useIsSuperAdmin()
 
   // Debug info for development
   React.useEffect(() => {

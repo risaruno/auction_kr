@@ -3,9 +3,6 @@ import React, { useState, useEffect } from 'react'
 import {
   Box,
   CssBaseline,
-  Toolbar,
-  Card,
-  CardContent,
   Typography,
   Button,
   Avatar,
@@ -78,7 +75,7 @@ const allServices = [
 ]
 
 const modalStyle = {
-  position: 'absolute' as 'absolute',
+  position: 'absolute',
   top: '50%',
   left: '50%',
   transform: 'translate(-50%, -50%)',

@@ -21,7 +21,6 @@ import AssignmentIndIcon from '@mui/icons-material/AssignmentInd'
 import RequestQuoteIcon from '@mui/icons-material/RequestQuote'
 import UploadFileIcon from '@mui/icons-material/UploadFile'
 import PeopleIcon from '@mui/icons-material/People'
-import HowToRegIcon from '@mui/icons-material/HowToReg'
 
 // Data for the top feature cards
 const features = [

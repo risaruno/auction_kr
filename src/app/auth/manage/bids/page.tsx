@@ -2,16 +2,11 @@
 import React, { useState, useEffect } from 'react'
 import {
   Box,
-  CssBaseline,
-  Toolbar,
-  Card,
-  CardContent,
   Typography,
   Button,
   Chip,
   IconButton,
   Modal,
-  Grid,
   TextField,
   FormControl,
   InputLabel,
@@ -31,12 +26,10 @@ import {
 } from '@mui/x-data-grid'
 import {
   Visibility as VisibilityIcon,
-  Edit as EditIcon,
   Search as SearchIcon,
   Close as CloseIcon,
   CheckCircle as CheckCircleIcon,
   Cancel as CancelIcon,
-  Assignment as AssignmentIcon,
 } from '@mui/icons-material'
 import {
   fetchBiddingApplications,
@@ -71,7 +64,7 @@ const depositStatusOptions = [
 ]
 
 const modalStyle = {
-  position: 'absolute' as 'absolute',
+  position: 'absolute',
   top: '50%',
   left: '50%',
   transform: 'translate(-50%, -50%)',

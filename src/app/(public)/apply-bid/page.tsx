@@ -6,8 +6,6 @@ import { useRouter } from 'next/navigation';
 import {
   Box,
   Button,
-  CssBaseline,
-  Divider,
   Step,
   Stepper,
   StepLabel,
@@ -27,11 +25,6 @@ import { applyBid } from '@/app/api/apply-bid/actions';
 import { 
   getValidationForStep, 
   ValidationError,
-  validateCaseFind,
-  validateInputForm,
-  validateContractSign,
-  validatePaymentForm,
-  validateReview 
 } from '@/utils/validation';
 
 const steps = ['사건조회', '입찰정보작성', '전자계약', '수수료결제', '내용확인'];
@@ -191,16 +184,6 @@ export default function ApplyBid() {
       case 3: return '다음: 최종 확인';
       case 4: return isSubmitting ? '신청 중...' : '신청 완료';
       default: return '다음';
-    }
-  };
-
-  const canProceed = () => {
-    switch (activeStep) {
-      case 0: return formData.caseResult?.data != null;
-      case 1: return formData.bidAmt && formData.bidderName;
-      case 2: return formData.signature != null;
-      case 3: return formData.termsChecked;
-      default: return true;
     }
   };
 
