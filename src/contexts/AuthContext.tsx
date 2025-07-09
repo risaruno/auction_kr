@@ -4,7 +4,6 @@ import React, { createContext, useContext, useEffect, useState, useCallback, use
 import { createClient } from '@/utils/supabase/client'
 import { type AdminRole, type UserWithRole } from '@/utils/auth/roles-client'
 import { Session } from "@supabase/supabase-js";
-import { useRouter } from 'next/navigation';
 
 // ===== SESSION CONFIGURATION =====
 // Configure session management settings here

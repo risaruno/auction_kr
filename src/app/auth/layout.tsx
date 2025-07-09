@@ -177,6 +177,16 @@ export default function Layout({ children }: { children: React.ReactNode }) {
   const navigation = useNavigation()
   const [isSigningOut, setIsSigningOut] = React.useState(false)
 
+  // Handle redirect to login when no user (moved to top level)
+  React.useEffect(() => {
+    if (isInitialized && !loading && !user && !isSigningOut) {
+      const timer = setTimeout(() => {
+        router.push(`/sign/in?redirectTo=${encodeURIComponent(pathname)}`)
+      }, 100)
+      return () => clearTimeout(timer)
+    }
+  }, [isInitialized, loading, user, isSigningOut, router, pathname])
+
   const toolpadSession = React.useMemo(() => {
     if (!session || !user) return null
     return {
@@ -241,15 +251,7 @@ export default function Layout({ children }: { children: React.ReactNode }) {
   }
 
   // If authentication is complete but no user, redirect to login
-  if (!user) {
-    // Use a timeout to prevent immediate redirect during logout
-    React.useEffect(() => {
-      const timer = setTimeout(() => {
-        router.push(`/sign/in?redirectTo=${encodeURIComponent(pathname)}`)
-      }, 100)
-      return () => clearTimeout(timer)
-    }, [router, pathname])
-    
+  if (!user && isInitialized && !loading) {
     return (
       <Box
         display='flex'
