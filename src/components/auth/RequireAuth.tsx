@@ -4,6 +4,7 @@ import React from 'react'
 import { useAuth, useIsAdmin, useIsSuperAdmin } from '@/contexts/AuthContext'
 import { Box, CircularProgress, Typography, Alert } from '@mui/material'
 import { type AdminRole } from '@/utils/auth/roles-client'
+import { useRouter } from 'next/navigation';
 
 interface RequireAuthProps {
   children: React.ReactNode
@@ -13,6 +14,7 @@ interface RequireAuthProps {
 
 export function RequireAuth({ children, requiredRole, fallback }: RequireAuthProps) {
   const { user, loading, isInitialized } = useAuth()
+  const router = useRouter();
 
   // Debug info for development
   React.useEffect(() => {
@@ -42,7 +44,7 @@ export function RequireAuth({ children, requiredRole, fallback }: RequireAuthPro
   if (!user) {
     // Redirect to login page instead of showing error
     if (typeof window !== 'undefined') {
-      window.location.href = '/sign/in'
+      router.push('/')
       return null
     }
     

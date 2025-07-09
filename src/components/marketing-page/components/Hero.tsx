@@ -4,6 +4,7 @@ import Button from '@mui/material/Button'
 import Container from '@mui/material/Container'
 import Stack from '@mui/material/Stack'
 import Typography from '@mui/material/Typography'
+import Link from 'next/link'
 
 export default function Hero() {
   return (
@@ -88,15 +89,16 @@ export default function Hero() {
               width: { xs: '100%', sm: 'auto' },
             }}
           >
-            <Button
-              variant='contained'
-              color='primary'
-              size='large'
-              sx={{ minWidth: 'fit-content' }}
-              href='/apply-bid'
-            >
-              대리입찰 신청
-            </Button>
+            <Link href='/apply-bid' passHref>
+              <Button
+                variant='contained'
+                color='primary'
+                size='large'
+                sx={{ minWidth: 'fit-content' }}
+              >
+                대리입찰 신청
+              </Button>
+            </Link>
           </Stack>
         </Stack>
       </Container>
