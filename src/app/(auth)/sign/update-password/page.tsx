@@ -49,10 +49,78 @@ function UpdatePasswordButton() {
 
 export default function UpdatePasswordPage() {
   const router = useRouter();
+  const [tokens, setTokens] = React.useState<{
+    access_token: string | null;
+    refresh_token: string | null;
+  }>({ access_token: null, refresh_token: null });
+  
+  // Extract tokens from URL hash on component mount
+  React.useEffect(() => {
+    const hash = window.location.hash;
+    console.log('URL hash:', hash);
+    
+    if (hash) {
+      const params = new URLSearchParams(hash.substring(1)); // Remove the # character
+      const accessToken = params.get('access_token');
+      const refreshToken = params.get('refresh_token');
+      const type = params.get('type');
+      
+      console.log('Extracted tokens:', {
+        hasAccessToken: !!accessToken,
+        hasRefreshToken: !!refreshToken,
+        type,
+        accessTokenLength: accessToken?.length || 0
+      });
+      
+      if (accessToken && refreshToken && type === 'recovery') {
+        setTokens({
+          access_token: accessToken,
+          refresh_token: refreshToken
+        });
+        
+        // Clean up the URL hash for security
+        window.history.replaceState(null, '', window.location.pathname);
+      } else {
+        console.error('Invalid or missing tokens in URL');
+      }
+    } else {
+      console.error('No hash found in URL');
+    }
+  }, []);
   
   // Initialize useFormState to manage the response from the server action
   const initialState: FormState = { error: null, message: null }
   const [state, formAction] = useFormState(updatePassword, initialState)
+
+  // Custom form action that includes the tokens
+  const formActionWithTokens = (formData: FormData) => {
+    console.log('Submitting form with tokens:', {
+      hasAccessToken: !!tokens.access_token,
+      hasRefreshToken: !!tokens.refresh_token
+    });
+    
+    if (tokens.access_token) {
+      formData.append('access_token', tokens.access_token);
+    }
+    if (tokens.refresh_token) {
+      formData.append('refresh_token', tokens.refresh_token);
+    }
+    
+    return formAction(formData);
+  };
+
+  // Show loading if tokens are not yet extracted
+  if (!tokens.access_token) {
+    return (
+      <SignContainer direction="column" justifyContent="center" alignItems="center">
+        <Card variant="outlined">
+          <Typography variant="h6" textAlign="center">
+            링크를 처리하고 있습니다...
+          </Typography>
+        </Card>
+      </SignContainer>
+    );
+  }
 
   return (
     <>
@@ -68,7 +136,7 @@ export default function UpdatePasswordPage() {
           </Typography>
           <Box
             component="form"
-            action={formAction}
+            action={formActionWithTokens}
             noValidate
             sx={{ display: "flex", flexDirection: "column", gap: 2 }}
           >

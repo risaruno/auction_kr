@@ -269,11 +269,19 @@ export async function updatePassword(
   prevState: FormState,
   formData: FormData
 ): Promise<FormState> {
-  const supabase = await createClient() // Use regular client, not admin client
+  const supabase = await createClient()
   
   try {
     const newPassword = formData.get('newPassword') as string
     const confirmPassword = formData.get('confirmPassword') as string
+    const accessToken = formData.get('access_token') as string
+    const refreshToken = formData.get('refresh_token') as string
+
+    console.log('Update password - received tokens:', {
+      hasAccessToken: !!accessToken,
+      hasRefreshToken: !!refreshToken,
+      accessTokenLength: accessToken?.length || 0
+    })
 
     // Validate input
     if (!newPassword || !confirmPassword) {
@@ -295,14 +303,35 @@ export async function updatePassword(
       }
     }
 
-    // Check if user is authenticated via the password reset link
-    // This should work because the reset link authenticates the user temporarily
+    // If we have tokens from the reset link, set the session first
+    if (accessToken && refreshToken) {
+      console.log('Setting session with provided tokens...')
+      const { data: sessionData, error: sessionError } = await supabase.auth.setSession({
+        access_token: accessToken,
+        refresh_token: refreshToken
+      })
+
+      if (sessionError) {
+        console.error('Failed to set session with tokens:', sessionError.message)
+        return {
+          error: '인증 토큰이 유효하지 않습니다. 새로운 비밀번호 재설정 링크를 요청해주세요.',
+          message: null,
+        }
+      }
+
+      console.log('Session set successfully:', {
+        hasUser: !!sessionData.user,
+        userEmail: sessionData.user?.email
+      })
+    }
+
+    // Check if user is now authenticated
     const {
       data: { user },
       error: userError,
     } = await supabase.auth.getUser()
 
-    console.log('Update password - user check:', {
+    console.log('Update password - user check after session setup:', {
       hasUser: !!user,
       userEmail: user?.email,
       userError: userError?.message
@@ -318,7 +347,6 @@ export async function updatePassword(
     }
 
     // Update the user's password using the regular client
-    // The user should be authenticated via the reset link at this point
     const { error: updateError } = await supabase.auth.updateUser({
       password: newPassword,
     })
