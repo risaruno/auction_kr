@@ -269,7 +269,8 @@ export async function updatePassword(
   prevState: FormState,
   formData: FormData
 ): Promise<FormState> {
-  const adminSupabase = await createAdminClient()
+  const supabase = await createClient() // Use regular client, not admin client
+  
   try {
     const newPassword = formData.get('newPassword') as string
     const confirmPassword = formData.get('confirmPassword') as string
@@ -294,13 +295,21 @@ export async function updatePassword(
       }
     }
 
-    // Check if user is authenticated (should be via password reset link)
+    // Check if user is authenticated via the password reset link
+    // This should work because the reset link authenticates the user temporarily
     const {
       data: { user },
       error: userError,
-    } = await adminSupabase.auth.getUser()
+    } = await supabase.auth.getUser()
+
+    console.log('Update password - user check:', {
+      hasUser: !!user,
+      userEmail: user?.email,
+      userError: userError?.message
+    })
 
     if (userError || !user) {
+      console.error('User authentication failed in updatePassword:', userError?.message)
       return {
         error:
           '인증이 필요합니다. 이메일의 비밀번호 재설정 링크를 사용해주세요.',
@@ -308,8 +317,9 @@ export async function updatePassword(
       }
     }
 
-    // Update the user's password (user must be authenticated via email link)
-    const { error: updateError } = await adminSupabase.auth.updateUser({
+    // Update the user's password using the regular client
+    // The user should be authenticated via the reset link at this point
+    const { error: updateError } = await supabase.auth.updateUser({
       password: newPassword,
     })
 
@@ -320,6 +330,8 @@ export async function updatePassword(
         message: null,
       }
     }
+
+    console.log('Password updated successfully for user:', user.id)
 
     // Return success message instead of redirecting immediately
     return {
