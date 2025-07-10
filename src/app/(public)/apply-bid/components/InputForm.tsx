@@ -309,7 +309,7 @@ export default function InputForm({
     if (!formData.caseResult?.data) return null
 
     return (
-      <Grid container spacing={3} size={{ xs: 12 }}>
+      <Grid container spacing={2} size={{ xs: 12 }}>
         <Grid container size={{ xs: 12 }}>
           <Card
             sx={{
@@ -333,10 +333,10 @@ export default function InputForm({
               }}
             />
             <CardContent sx={{ flex: 2, p: 3 }}>
-              <Typography variant='h6' gutterBottom>
+              <Typography variant='h6'>
                 {formData.caseResult.data.printCaseNumber}
               </Typography>
-              <Typography variant='body2' color='text.secondary' gutterBottom>
+              <Typography variant='body2' color='text.secondary'>
                 {formData.caseResult.data.courtName}
               </Typography>
               <Box sx={{ mt: 2 }}>
@@ -381,10 +381,10 @@ export default function InputForm({
         }}
       >
         {/* Application Type Selection */}
-        <Grid container spacing={3} size={{ xs: 12 }}>
+        <Grid container spacing={2} size={{ xs: 12 }}>
           <FormGrid size={{ xs: 12 }}>
-            <Typography variant='h5' fontWeight='bold' gutterBottom>
-              입찰자 정보를 입력해주세요
+            <Typography variant='h5' fontWeight='bold'>
+              입찰 정보를 입력해주세요
             </Typography>
           </FormGrid>
 
@@ -408,11 +408,15 @@ export default function InputForm({
         </Grid>
 
         {/* Bid Amount Section */}
-        <Grid container spacing={3} size={{ xs: 12 }}>
+        <Grid container spacing={2} size={{ xs: 12 }}>
           <FormGrid size={{ xs: 12 }}>
-            <Typography variant='h6' gutterBottom>
+            <Typography variant='h6'>
               입찰 정보
             </Typography>
+          </FormGrid>
+
+          <FormGrid size={{ xs: 12 }}>
+            <Alert severity="info">입찰가는 대리인에게만 공개됩니다.</Alert>
           </FormGrid>
 
           <FormGrid size={{ xs: 12, md: 6 }}>
@@ -440,11 +444,11 @@ export default function InputForm({
 
         {/* Personal Application Fields */}
         {formData.applicationType === 'personal' && (
-          <Grid container spacing={3} size={{ xs: 12 }} mt={2}>
+          <Grid container spacing={2} size={{ xs: 12 }}>
             <FormGrid size={{ xs: 12 }}>
-              <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', mb: 2 }}>
-                <Typography variant='h6' gutterBottom>
-                  개인 정보
+              <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between'}}>
+                <Typography variant='h6'>
+                  입찰차 정보를 입력해주세요.
                 </Typography>
                 <FormControlLabel
                   control={
@@ -464,6 +468,10 @@ export default function InputForm({
                   }
                 />
               </Box>
+
+            <FormGrid size={{ xs: 12 }}>
+              <Alert severity="info">입찰자 정보는 입찰표에 그대로 반영되므로, 정확하게 기재해주세요.</Alert>
+            </FormGrid>
             </FormGrid>
 
             <FormGrid size={{ xs: 12, md: 6 }}>
@@ -585,9 +593,9 @@ export default function InputForm({
 
         {/* Company Application Fields */}
         {formData.applicationType === 'company' && (
-          <Grid container spacing={3} size={{ xs: 12 }} mt={2}>
+          <Grid container spacing={2} size={{ xs: 12 }} mt={2}>
             <FormGrid size={{ xs: 12 }}>
-              <Typography variant='h6' gutterBottom>
+              <Typography variant='h6'>
                 법인 정보
               </Typography>
             </FormGrid>
@@ -655,9 +663,9 @@ export default function InputForm({
 
         {/* Group Application Fields */}
         {formData.applicationType === 'group' && (
-          <Grid container spacing={3} size={{ xs: 12 }} mt={2}>
+          <Grid container spacing={2} size={{ xs: 12 }} mt={2}>
             <FormGrid size={{ xs: 12 }}>
-              <Typography variant='h6' gutterBottom>
+              <Typography variant='h6'>
                 공동입찰 대표자 정보
               </Typography>
             </FormGrid>
@@ -728,7 +736,7 @@ export default function InputForm({
 
             <FormGrid size={{ xs: 12 }}>
               <Divider sx={{ my: 2 }} />
-              <Typography variant='h6' gutterBottom>
+              <Typography variant='h6'>
                 공동입찰자 정보
               </Typography>
             </FormGrid>
@@ -801,9 +809,9 @@ export default function InputForm({
         )}
 
         {/* Address Section */}
-        <Grid container spacing={3} size={{ xs: 12 }} mt={2}>
+        <Grid container spacing={2} size={{ xs: 12 }} mt={2}>
           <FormGrid size={{ xs: 12 }}>
-            <Typography variant='h6' gutterBottom>
+            <Typography variant='h6'>
               {formData.applicationType === 'company' ? '회사 주소' : '주소'} *
             </Typography>
           </FormGrid>
@@ -862,9 +870,9 @@ export default function InputForm({
         </Grid>
 
         {/* Bank Account Section */}
-        <Grid container spacing={3} size={{ xs: 12 }} mt={2}>
+        <Grid container spacing={2} size={{ xs: 12 }} mt={2}>
           <FormGrid size={{ xs: 12 }}>
-            <Typography variant='h6' gutterBottom>
+            <Typography variant='h6'>
               입찰보증금 입금계좌
             </Typography>
           </FormGrid>

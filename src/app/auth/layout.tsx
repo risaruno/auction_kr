@@ -162,7 +162,7 @@ function useNavigation(): Navigation {
       {
         segment: 'auth/user/inquiry',
         title: '문의 내역',
-        icon: <HistoryIcon />,
+        icon: <QuestionAnswerIcon />,
       },
       { kind: 'divider' }
     )
