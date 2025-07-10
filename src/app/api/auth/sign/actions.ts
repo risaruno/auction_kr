@@ -78,7 +78,6 @@ export async function signup(
   prevState: FormState,
   formData: FormData
 ): Promise<FormState> {
-  const supabase = await createClient()
   const adminSupabase = await createAdminClient()
 
   try {
@@ -286,7 +285,6 @@ export async function updatePassword(
   formData: FormData
 ): Promise<FormState> {
   const supabase = await createClient()
-  const adminSupabase = await createAdminClient()
 
   try {
     const newPassword = formData.get('newPassword') as string
