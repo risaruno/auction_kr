@@ -2,9 +2,10 @@
 
 import { revalidatePath } from 'next/cache'
 import { redirect } from 'next/navigation'
-import { createClient } from '@/utils/supabase/server'
+import { createClient, createAdminClient } from '@/utils/supabase/server'
 import { getCurrentUserWithRole } from '@/utils/auth/server-roles'
 import { getRedirectPath } from '@/utils/auth/roles-client'
+import { sendCustomPasswordResetEmail, sendConfirmationEmail } from '@/utils/email/custom-email'
 
 // This interface defines the shape of the state our form will manage.
 export interface FormState {
@@ -78,6 +79,7 @@ export async function signup(
   formData: FormData
 ): Promise<FormState> {
   const supabase = await createClient()
+  const adminSupabase = await createAdminClient()
 
   try {
     const name = formData.get('name') as string
@@ -103,20 +105,33 @@ export async function signup(
       }
     }
 
-    // 2. Use Supabase's signUp method
+    // 2. Use Supabase's signUp method with custom email confirmation
+    const confirmRedirectUrl = `${
+      process.env.NEXT_PUBLIC_SITE_URL || 'http://localhost:3000'
+    }/auth/confirm`
+
+    // Option 1: Supabase built-in email confirmation (comment out for custom)
+    /*
     const { data, error } = await supabase.auth.signUp({
       email: email,
       password: password,
       options: {
-        // Store the user's full name in the metadata
         data: {
           full_name: name,
         },
-        // Set the redirect URL for email confirmation
-        emailRedirectTo: `${
-          process.env.NEXT_PUBLIC_SITE_URL || 'http://localhost:3000'
-        }/auth/confirm`,
+        emailRedirectTo: confirmRedirectUrl,
       },
+    })
+    */
+
+    // Option 2: Custom email confirmation (enabled)
+    const { data, error } = await adminSupabase.auth.admin.createUser({
+      email: email,
+      password: password,
+      user_metadata: {
+        full_name: name,
+      },
+      email_confirm: false, // We'll send custom confirmation email
     })
 
     if (error) {
@@ -124,14 +139,34 @@ export async function signup(
       return { error: error.message, message: null }
     }
 
-    // 3. Handle the response from Supabase
+    // 3. Generate custom email confirmation link and send custom email
     if (data.user) {
-      // Supabase's default is to require email confirmation.
-      // The user object is returned, but the session is null until confirmed.
+      try {
+        // Generate confirmation link
+        const { data: linkData, error: linkError } = await adminSupabase.auth.admin.generateLink({
+          type: 'signup',
+          email: email,
+          password: password,
+          options: {
+            redirectTo: confirmRedirectUrl
+          }
+        })
+
+        if (linkError) {
+          console.error('Link generation error:', linkError.message)
+        } else if (linkData.properties?.action_link) {
+          // Send custom confirmation email
+          await sendConfirmationEmail(email, linkData.properties.action_link)
+        }
+      } catch (emailError) {
+        console.error('Error sending confirmation email:', emailError)
+        // Don't fail the signup if email sending fails
+      }
+
       return {
         error: null,
         message:
-          'Sign-up successful! Please check your email to verify your account.',
+          '회원가입이 완료되었습니다! 이메일을 확인하여 계정을 활성화해주세요.',
       }
     }
 
@@ -150,30 +185,83 @@ export async function findPassword(
   formData: FormData
 ): Promise<FormState> {
   const supabase = await createClient()
+  const adminSupabase = await createAdminClient()
 
   try {
     const email = formData.get('email') as string
 
     // Validate input
     if (!email) {
-      return { error: 'Email is required.', message: null }
+      return { error: '이메일 필수로 입력해주세요.', message: null }
     }
 
     // Email validation
     const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/
     if (!emailRegex.test(email)) {
-      return { error: 'Please enter a valid email address.', message: null }
+      return { error: '유효한 이메일 주소를 입력해주세요.', message: null }
     }
 
-    // This is the page where the user will be redirected to set their new password.
+    // Check if user exists with this email
+    const { data: existingUser, error: userCheckError } = await supabase
+      .from('profiles')
+      .select('id, email')
+      .eq('email', email)
+      .single()
+
+    if (userCheckError && userCheckError.code !== 'PGRST116') {
+      // PGRST116 is "not found" error, other errors are actual problems
+      console.error('Error checking user existence:', userCheckError.message)
+      // Don't reveal the error, just log it
+    }
+
+    // If no user exists with this email, silently skip sending email
+    // But still return success message to prevent user enumeration
+    if (!existingUser) {
+      console.log(`Password reset attempted for non-existent email: ${email}`)
+      // Return success message without actually sending email
+      return {
+        error: null,
+        message:
+          '해당 이메일로 비밀번호 재설정 링크가 전송되었습니다. 이메일을 확인해주세요.',
+      }
+    }
+
+    // Option 1: Use Supabase built-in email (with custom template from dashboard)
+    // Comment out this section if using custom email service
+    /*
+    const { error } = await supabase.auth.resetPasswordForEmail(email, {
+      redirectTo,
+      // You can customize the email template in Supabase Dashboard
+      // or disable Supabase emails and use your own service below
+    })
+    */
+
+    // Option 2: Custom email service (enabled for better control)
+    // Only proceed if user exists
+    let error = null
     const redirectTo = `${
       process.env.NEXT_PUBLIC_SITE_URL || 'http://localhost:3000'
     }/sign/update-password`
 
-    // Call Supabase's built-in function to send the password reset email
-    const { error } = await supabase.auth.resetPasswordForEmail(email, {
-      redirectTo,
+    // Generate a password reset token using admin client
+    const { data, error: tokenError } = await adminSupabase.auth.admin.generateLink({
+      type: 'recovery',
+      email: email,
+      options: {
+        redirectTo: redirectTo
+      }
     })
+
+    if (tokenError) {
+      console.error('Token generation error:', tokenError.message)
+      error = tokenError
+    } else if (data.properties?.action_link) {
+      // Send custom email using your preferred service
+      const emailSent = await sendCustomPasswordResetEmail(email, data.properties.action_link)
+      if (!emailSent) {
+        error = { message: 'Failed to send email' }
+      }
+    }
 
     if (error) {
       // For security, do not reveal if the user does or does not exist.
@@ -185,7 +273,7 @@ export async function findPassword(
     return {
       error: null,
       message:
-        'If an account with this email exists, a password reset link has been sent.',
+        '해당 이메일로 비밀번호 재설정 링크가 전송되었습니다. 이메일을 확인해주세요.',
     }
   } catch (err: unknown) {
     console.error('Find password error:', err)
@@ -198,6 +286,7 @@ export async function updatePassword(
   formData: FormData
 ): Promise<FormState> {
   const supabase = await createClient()
+  const adminSupabase = await createAdminClient()
 
   try {
     const newPassword = formData.get('newPassword') as string
@@ -206,19 +295,19 @@ export async function updatePassword(
     // Validate input
     if (!newPassword || !confirmPassword) {
       return {
-        error: 'New password and confirmation are required.',
+        error: '새 비밀번호와 확인 비밀번호가 필요합니다.',
         message: null,
       }
     }
 
     if (newPassword !== confirmPassword) {
-      return { error: 'Passwords do not match.', message: null }
+      return { error: '비밀번호가 일치하지 않습니다.', message: null }
     }
 
     // Password validation: 8-16 characters
     if (newPassword.length < 8 || newPassword.length > 16) {
       return {
-        error: 'Password must be between 8 and 16 characters long.',
+        error: '비밀번호는 8자에서 16자 사이여야 합니다.',
         message: null,
       }
     }
@@ -232,7 +321,7 @@ export async function updatePassword(
     if (userError || !user) {
       return {
         error:
-          'Authentication required. Please use the password reset link from your email.',
+          '인증이 필요합니다. 이메일의 비밀번호 재설정 링크를 사용해주세요.',
         message: null,
       }
     }
@@ -245,7 +334,7 @@ export async function updatePassword(
     if (updateError) {
       console.error('Error updating password:', updateError.message)
       return {
-        error: 'Failed to update password. Please try the reset link again.',
+        error: '비밀번호 업데이트에 실패했습니다. 다시 시도해주세요.',
         message: null,
       }
     }
@@ -254,7 +343,7 @@ export async function updatePassword(
     return {
       error: null,
       message:
-        'Password updated successfully! You can now sign in with your new password.',
+        '비밀번호가 성공적으로 업데이트되었습니다! 이제 새 비밀번호로 로그인할 수 있습니다.',
     }
   } catch (err: unknown) {
     console.error('Update password error:', err)
@@ -269,7 +358,7 @@ export async function logout(): Promise<void> {
 
   if (error) {
     console.error('Logout error:', error.message)
-    throw new Error('Failed to logout')
+    throw new Error('로그아웃에 실패했습니다.')
   }
 
   revalidatePath('/', 'layout')
