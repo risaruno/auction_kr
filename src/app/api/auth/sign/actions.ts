@@ -285,7 +285,7 @@ export async function updatePassword(
   formData: FormData
 ): Promise<FormState> {
   const supabase = await createClient()
-
+  const adminSupabase = await createAdminClient()
   try {
     const newPassword = formData.get('newPassword') as string
     const confirmPassword = formData.get('confirmPassword') as string
@@ -314,7 +314,7 @@ export async function updatePassword(
     const {
       data: { user },
       error: userError,
-    } = await supabase.auth.getUser()
+    } = await adminSupabase.auth.getUser()
 
     if (userError || !user) {
       return {
@@ -325,7 +325,7 @@ export async function updatePassword(
     }
 
     // Update the user's password (user must be authenticated via email link)
-    const { error: updateError } = await supabase.auth.updateUser({
+    const { error: updateError } = await adminSupabase.auth.updateUser({
       password: newPassword,
     })
 
