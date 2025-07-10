@@ -200,47 +200,24 @@ export async function findPassword(
       return { error: '유효한 이메일 주소를 입력해주세요.', message: null }
     }
 
-    // Check if user exists with this email
-    const { data: existingUser, error: userCheckError } = await supabase
-      .from('profiles')
-      .select('id, email')
-      .eq('email', email)
-      .single()
-
-    if (userCheckError && userCheckError.code !== 'PGRST116') {
-      // PGRST116 is "not found" error, other errors are actual problems
-      console.error('Error checking user existence:', userCheckError.message)
-      // Don't reveal the error, just log it
-    }
-
-    // If no user exists with this email, silently skip sending email
-    // But still return success message to prevent user enumeration
-    if (!existingUser) {
-      console.log(`Password reset attempted for non-existent email: ${email}`)
-      // Return success message without actually sending email
-      return {
-        error: null,
-        message:
-          '해당 이메일로 비밀번호 재설정 링크가 전송되었습니다. 이메일을 확인해주세요.',
-      }
-    }
-
-    // Option 1: Use Supabase built-in email (with custom template from dashboard)
-    // Comment out this section if using custom email service
-    /*
-    const { error } = await supabase.auth.resetPasswordForEmail(email, {
-      redirectTo,
-      // You can customize the email template in Supabase Dashboard
-      // or disable Supabase emails and use your own service below
-    })
-    */
+    // Simplified approach: Skip user existence check for now to focus on the main issue
+    // The original error suggests there's a Supabase configuration problem
+    // Let's just try to generate the reset token and see what happens
+    console.log(`Attempting password reset for email: ${email}`)
 
     // Option 2: Custom email service (enabled for better control)
-    // Only proceed if user exists
     let error = null
     const redirectTo = `${
       process.env.NEXT_PUBLIC_SITE_URL || 'http://localhost:3000'
     }/sign/update-password`
+
+    console.log('Environment check:', {
+      hasSupabaseUrl: !!process.env.NEXT_PUBLIC_SUPABASE_URL,
+      hasServiceRoleKey: !!process.env.SUPABASE_SERVICE_ROLE_KEY,
+      hasResendKey: !!process.env.RESEND_API_KEY,
+      supabaseUrl: process.env.NEXT_PUBLIC_SUPABASE_URL?.substring(0, 20) + '...',
+      redirectTo
+    })
 
     // Generate a password reset token using admin client
     const { data, error: tokenError } = await adminSupabase.auth.admin.generateLink({
@@ -253,13 +230,22 @@ export async function findPassword(
 
     if (tokenError) {
       console.error('Token generation error:', tokenError.message)
+      console.error('Token generation error details:', tokenError)
       error = tokenError
     } else if (data.properties?.action_link) {
+      console.log('Reset token generated successfully, attempting to send email...')
       // Send custom email using your preferred service
       const emailSent = await sendCustomPasswordResetEmail(email, data.properties.action_link)
+      console.log('Email sending result:', emailSent)
       if (!emailSent) {
+        console.error('Failed to send email via custom email service')
         error = { message: 'Failed to send email' }
+      } else {
+        console.log('Password reset email sent successfully to:', email)
       }
+    } else {
+      console.error('No action link generated in reset token response')
+      error = { message: 'Failed to generate reset link' }
     }
 
     if (error) {
