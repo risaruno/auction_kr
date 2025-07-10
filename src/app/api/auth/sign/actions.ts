@@ -183,7 +183,6 @@ export async function findPassword(
   prevState: FormState,
   formData: FormData
 ): Promise<FormState> {
-  const supabase = await createClient()
   const adminSupabase = await createAdminClient()
 
   try {
