@@ -48,7 +48,7 @@ import { uploadElectronicIdentityDocument } from "@/utils/supabase/fileUpload";
 interface BiddingApplication {
   id: string
   case_number?: string
-  court_case_number?: string
+  print_case_number?: string
   bid_amount?: number
   bid_date?: string
   created_at?: string
@@ -58,9 +58,12 @@ interface BiddingApplication {
   electronic_identity_document_url?: string
   electronic_identity_document_name?: string
   electronic_identity_document_uploaded_at?: string
+  user_id?: string
   experts?: {
     name?: string
-  }
+  }[] | {
+    name?: string
+  } | null
 }
 
 // --- Styled Components for a Custom Stepper Look ---
@@ -146,25 +149,35 @@ const ServiceHistory = () => {
     const loadApplications = async () => {
       try {
         setLoading(true);
+        setError(null); // Reset error state
+        
         const result = await fetchUserApplications();
 
         if (result.success) {
           setApplications(result.data);
+          console.log("ServiceHistory: Loaded applications:", result.data);
           setError(null);
         } else {
-          setError(result.error || "신청 내역을 불러오는데 실패했습니다.");
+          const errorMessage = result.error || "신청 내역을 불러오는데 실패했습니다.";
+          setError(errorMessage);
           setApplications([]);
         }
       } catch (err) {
-        console.error("Error loading applications:", err);
-        setError("신청 내역을 불러오는 중 오류가 발생했습니다.");
+        console.error("ServiceHistory: Error loading applications:", err);
+        const errorMessage = err instanceof Error ? err.message : "신청 내역을 불러오는 중 오류가 발생했습니다.";
+        setError(errorMessage);
         setApplications([]);
       } finally {
         setLoading(false);
       }
     };
 
-    loadApplications();
+    // Only load if user is available
+    if (user) {
+      loadApplications();
+    } else {
+      setLoading(false);
+    }
   }, [user]);
 
   const handleTabChange = (event: React.SyntheticEvent, newValue: string) => {
@@ -287,10 +300,11 @@ const ServiceHistory = () => {
       field: "case_number",
       headerName: "사건번호",
       width: 180,
-      valueGetter: (params: { row: { case_number?: string; court_case_number?: string } }) => {
+      renderCell: (params: { row: BiddingApplication }) => {
+        console.log("ServiceHistory: Case number renderCell called", params);
         return (
-          params.row.case_number ||
-          params.row.court_case_number ||
+          params?.row?.print_case_number ||
+          params?.row?.case_number ||
           "-"
         );
       },
@@ -299,32 +313,40 @@ const ServiceHistory = () => {
       field: "bid_amount",
       headerName: "입찰금액",
       width: 150,
-      valueGetter: (params: { row: { bid_amount?: number } }) => {
-        return params.row.bid_amount ? formatCurrency(params.row.bid_amount) : "-";
+      renderCell: (params: { row: BiddingApplication }) => {
+        console.log("ServiceHistory: Bid amount renderCell called", params);
+        return params?.row?.bid_amount ? formatCurrency(params.row.bid_amount) : "-";
       },
     },
     {
       field: "bid_date",
       headerName: "입찰기일",
       width: 120,
-      valueGetter: (params: { row: BiddingApplication }) => {
-        return params.row.bid_date ? formatDate(params.row.bid_date) : "-";
+      renderCell: (params: { row: BiddingApplication }) => {
+        console.log("ServiceHistory: Bid date renderCell called", params);
+        return params?.row?.bid_date ? params.row.bid_date : "-";
       },
     },
     {
       field: "created_at",
       headerName: "요청일자",
       width: 120,
-      valueGetter: (params: { row: BiddingApplication }) => {
-        return formatDate(params.row.created_at || "");
+      renderCell: (params: { row: BiddingApplication }) => {
+        return formatDate(params?.row?.created_at || "");
       },
     },
     {
       field: "expert_name",
       headerName: "대리인",
       width: 120,
-      valueGetter: (params: { row: BiddingApplication }) => {
-        return params.row.experts?.name || "미배정";
+      renderCell: (params: { row: BiddingApplication }) => {
+        const experts = params?.row?.experts;
+        if (Array.isArray(experts) && experts.length > 0) {
+          return experts[0]?.name || "미배정";
+        } else if (experts && typeof experts === 'object' && 'name' in experts) {
+          return experts.name || "미배정";
+        }
+        return "미배정";
       },
     },
     {
@@ -332,10 +354,11 @@ const ServiceHistory = () => {
       headerName: "처리상태",
       width: 120,
       renderCell: (params: GridRenderCellParams) => {
+        const status = params?.row?.status || "대기중";
         return (
           <Chip
-            label={params.row.status || "대기중"}
-            color={getStatusColor(params.row.status)}
+            label={status}
+            color={getStatusColor(status)}
             variant="outlined"
             size="small"
           />
@@ -352,7 +375,7 @@ const ServiceHistory = () => {
           key="view"
           icon={<VisibilityIcon />}
           label="상세보기"
-          onClick={() => handleViewDetails(params.row.id)}
+          onClick={() => handleViewDetails(params?.row?.id)}
           title="상세보기"
         />,
       ],
@@ -419,6 +442,7 @@ const ServiceHistory = () => {
               rows={applications}
               columns={columns}
               loading={loading}
+              getRowId={(row) => row.id}
               disableRowSelectionOnClick
               disableColumnFilter
               disableColumnSelector
@@ -522,7 +546,6 @@ const ServiceHistory = () => {
                   </Typography>
                   <Typography variant="body1" sx={{ mb: 2 }}>
                     {selectedApplication.case_number ||
-                      selectedApplication.court_case_number ||
                       "-"}
                   </Typography>
                 </Box>
@@ -610,7 +633,15 @@ const ServiceHistory = () => {
                     대리인
                   </Typography>
                   <Typography variant="body1" sx={{ mb: 2 }}>
-                    {selectedApplication.experts?.name || "미배정"}
+                    {(() => {
+                      const experts = selectedApplication.experts;
+                      if (Array.isArray(experts) && experts.length > 0) {
+                        return experts[0]?.name || "미배정";
+                      } else if (experts && typeof experts === 'object' && 'name' in experts) {
+                        return experts.name || "미배정";
+                      }
+                      return "미배정";
+                    })()}
                   </Typography>
                 </Box>
               </Box>

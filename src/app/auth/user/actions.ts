@@ -183,11 +183,13 @@ export async function fetchUserApplications() {
   const supabase = await createClient()
 
   try {
+    console.log('Starting fetchUserApplications...')
+    
     // Get current user
     const { data: { user }, error: userError } = await supabase.auth.getUser()
     
     if (userError || !user) {
-      console.error('User auth error:', userError)
+      console.error('User auth error in fetchUserApplications:', userError?.message)
       return {
         success: false,
         data: [],
@@ -195,11 +197,27 @@ export async function fetchUserApplications() {
       }
     }
 
-    // Fetch user's bidding applications
+    console.log('User authenticated successfully:', {
+      userId: user.id,
+      userEmail: user.email
+    })
+
+    // Fetch user's bidding applications with enhanced error handling
     const { data: applications, error: applicationsError } = await supabase
       .from('bidding_applications')
       .select(`
-        *,
+        id,
+        case_number,
+        print_case_number,
+        bid_amount,
+        bid_date,
+        created_at,
+        status,
+        result,
+        electronic_identity_document_url,
+        electronic_identity_document_name,
+        electronic_identity_document_uploaded_at,
+        user_id,
         experts (
           name
         )
@@ -209,14 +227,31 @@ export async function fetchUserApplications() {
 
     if (applicationsError) {
       console.error('Applications fetch error:', applicationsError)
+      console.error('Applications fetch error details:', {
+        code: applicationsError.code,
+        message: applicationsError.message,
+        details: applicationsError.details,
+        hint: applicationsError.hint
+      })
+      
+      // Check if it's a table/permission issue
+      if (applicationsError.code === 'PGRST116') {
+        return {
+          success: true,
+          data: [],
+          error: null
+        }
+      }
+      
       return {
         success: false,
         data: [],
-        error: '신청 내역을 불러오는데 실패했습니다.'
+        error: `신청 내역을 불러오는데 실패했습니다: ${applicationsError.message}`
       }
     }
 
     console.log('Fetched applications for user:', user.id, 'Count:', applications?.length || 0)
+    console.log('Applications data sample:', applications?.length ? applications[0] : 'No applications')
 
     return {
       success: true,
@@ -225,7 +260,7 @@ export async function fetchUserApplications() {
     }
 
   } catch (error) {
-    console.error('Unexpected error fetching applications:', error)
+    console.error('Unexpected error in fetchUserApplications:', error)
     return {
       success: false,
       data: [],

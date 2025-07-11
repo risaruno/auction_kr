@@ -90,7 +90,11 @@ CREATE TABLE "bidding_applications" (
   "status" text NOT NULL DEFAULT 'new',
   "payment_status" text DEFAULT 'pending',
   "deposit_status" text DEFAULT 'pending',
-  "result" text
+  "result" text,
+  "result_notes" text DEFAULT null,
+  "electronic_identity_document_url" text,
+  "electronic_identity_document_name" text,
+  "electronic_identity_document_uploaded_at" timestamtz DEFAULT null;
 );
 
 CREATE TABLE "service_applications" (

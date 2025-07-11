@@ -298,6 +298,7 @@ export async function applyBid(
     const baseApplicationData = {
       user_id: user.id, // 신청서를 로그인한 사용자와 연결
       case_number: caseResult.data.caseNumber,
+      print_case_number: caseResult.data.printCaseNumber,
       court_name: caseResult.data.courtName,
       bid_date: caseResult.data.bidDate,
       bid_amount: Number(bidAmt.replace(/[^0-9]/g, '')), // bidAmt가 숫자인지 확인
