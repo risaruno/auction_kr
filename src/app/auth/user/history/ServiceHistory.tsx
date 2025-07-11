@@ -155,7 +155,6 @@ const ServiceHistory = () => {
 
         if (result.success) {
           setApplications(result.data);
-          console.log("ServiceHistory: Loaded applications:", result.data);
           setError(null);
         } else {
           const errorMessage = result.error || "신청 내역을 불러오는데 실패했습니다.";
@@ -301,7 +300,6 @@ const ServiceHistory = () => {
       headerName: "사건번호",
       width: 180,
       renderCell: (params: { row: BiddingApplication }) => {
-        console.log("ServiceHistory: Case number renderCell called", params);
         return (
           params?.row?.print_case_number ||
           params?.row?.case_number ||
@@ -314,7 +312,6 @@ const ServiceHistory = () => {
       headerName: "입찰금액",
       width: 150,
       renderCell: (params: { row: BiddingApplication }) => {
-        console.log("ServiceHistory: Bid amount renderCell called", params);
         return params?.row?.bid_amount ? formatCurrency(params.row.bid_amount) : "-";
       },
     },
@@ -323,7 +320,6 @@ const ServiceHistory = () => {
       headerName: "입찰기일",
       width: 120,
       renderCell: (params: { row: BiddingApplication }) => {
-        console.log("ServiceHistory: Bid date renderCell called", params);
         return params?.row?.bid_date ? params.row.bid_date : "-";
       },
     },

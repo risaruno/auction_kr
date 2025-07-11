@@ -16,11 +16,6 @@ export function RequireAuth({ children, requiredRole, fallback }: RequireAuthPro
   const { user, loading, isInitialized } = useAuth()
   const router = useRouter();
 
-  // Debug info for development
-  React.useEffect(() => {
-    console.log('RequireAuth state:', { loading, isInitialized, hasUser: !!user, userEmail: user?.email })
-  }, [loading, isInitialized, user])
-
   // Only show loading if we're not initialized yet
   if (loading && !isInitialized) {
     return (

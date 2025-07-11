@@ -199,24 +199,11 @@ export async function findPassword(
       return { error: '유효한 이메일 주소를 입력해주세요.', message: null }
     }
 
-    // Simplified approach: Skip user existence check for now to focus on the main issue
-    // The original error suggests there's a Supabase configuration problem
-    // Let's just try to generate the reset token and see what happens
-    console.log(`Attempting password reset for email: ${email}`)
-
     // Option 2: Custom email service (enabled for better control)
     let error = null
     const redirectTo = `${
       process.env.NEXT_PUBLIC_SITE_URL || 'http://localhost:3000'
     }/sign/update-password`
-
-    console.log('Environment check:', {
-      hasSupabaseUrl: !!process.env.NEXT_PUBLIC_SUPABASE_URL,
-      hasServiceRoleKey: !!process.env.SUPABASE_SERVICE_ROLE_KEY,
-      hasResendKey: !!process.env.RESEND_API_KEY,
-      supabaseUrl: process.env.NEXT_PUBLIC_SUPABASE_URL?.substring(0, 20) + '...',
-      redirectTo
-    })
 
     // Generate a password reset token using admin client
     const { data, error: tokenError } = await adminSupabase.auth.admin.generateLink({
@@ -232,15 +219,12 @@ export async function findPassword(
       console.error('Token generation error details:', tokenError)
       error = tokenError
     } else if (data.properties?.action_link) {
-      console.log('Reset token generated successfully, attempting to send email...')
       // Send custom email using your preferred service
       const emailSent = await sendCustomPasswordResetEmail(email, data.properties.action_link)
-      console.log('Email sending result:', emailSent)
       if (!emailSent) {
         console.error('Failed to send email via custom email service')
         error = { message: 'Failed to send email' }
       } else {
-        console.log('Password reset email sent successfully to:', email)
       }
     } else {
       console.error('No action link generated in reset token response')
@@ -277,11 +261,6 @@ export async function updatePassword(
     const accessToken = formData.get('access_token') as string
     const refreshToken = formData.get('refresh_token') as string
 
-    console.log('Update password - received tokens:', {
-      hasAccessToken: !!accessToken,
-      hasRefreshToken: !!refreshToken,
-      accessTokenLength: accessToken?.length || 0
-    })
 
     // Validate input
     if (!newPassword || !confirmPassword) {
@@ -305,7 +284,6 @@ export async function updatePassword(
 
     // If we have tokens from the reset link, set the session first
     if (accessToken && refreshToken) {
-      console.log('Setting session with provided tokens...')
       const { data: sessionData, error: sessionError } = await supabase.auth.setSession({
         access_token: accessToken,
         refresh_token: refreshToken
@@ -319,10 +297,6 @@ export async function updatePassword(
         }
       }
 
-      console.log('Session set successfully:', {
-        hasUser: !!sessionData.user,
-        userEmail: sessionData.user?.email
-      })
     }
 
     // Check if user is now authenticated
@@ -331,11 +305,6 @@ export async function updatePassword(
       error: userError,
     } = await supabase.auth.getUser()
 
-    console.log('Update password - user check after session setup:', {
-      hasUser: !!user,
-      userEmail: user?.email,
-      userError: userError?.message
-    })
 
     if (userError || !user) {
       console.error('User authentication failed in updatePassword:', userError?.message)
@@ -359,7 +328,6 @@ export async function updatePassword(
       }
     }
 
-    console.log('Password updated successfully for user:', user.id)
 
     // Return success message instead of redirecting immediately
     return {

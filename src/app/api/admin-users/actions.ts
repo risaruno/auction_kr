@@ -104,13 +104,10 @@ export async function fetchAdminUsers() {
           lastActive: profile.edited_at ? new Date(profile.edited_at).toLocaleDateString() : 'N/A',
           status: profile.email ? 'Active' : 'Pending', // Simple assumption based on email presence
         })
-        console.log(`Added user ${profile.id} with role ${profile.admin_role}`)
       } catch (error) {
         console.warn(`Failed to process profile ${profile.id}:`, error)
       }
     }
-
-    console.log('Total admin users found:', adminUsers.length)
     return adminUsers
   } catch (error: unknown) {
     console.error('Error fetching admin users:', (error as Error).message)

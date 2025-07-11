@@ -25,7 +25,6 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
 
   const fetchUserWithRole = async (forceRefresh = false) => {
     try {
-      console.log('Fetching user with role...', { forceRefresh })
       setIsInitialized(false)
       
       if (!isInitialized || forceRefresh) {
@@ -34,15 +33,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       
       const { data: { session }, error: sessionError } = await supabase.auth.getSession()
       
-      console.log('Session check:', { 
-        hasSession: !!session, 
-        hasUser: !!session?.user, 
-        userEmail: session?.user?.email,
-        error: sessionError 
-      })
-      
       if (sessionError || !session?.user) {
-        console.log('No valid session found')
         setUser(null)
         setSession(null)
         return
@@ -60,7 +51,6 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
         console.error('Error fetching user profile:', profileError)
         
         if (profileError.code === '42703' || profileError.code === 'PGRST116') {
-          console.log('Profile table issue or user profile missing, creating basic profile...')
           
           const { error: createError } = await supabase
             .from('profiles')
@@ -81,7 +71,6 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
             admin_role: 'user' as AdminRole,
             full_name: authUser.user_metadata?.full_name || ''
           }
-          console.log('Setting user with default role:', userWithRole)
           setUser(userWithRole)
           setSession(session)
         } else {
@@ -91,7 +80,6 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
             admin_role: 'user' as AdminRole,
             full_name: authUser.user_metadata?.full_name || ''
           }
-          console.log('Setting user without profile due to error:', userWithRole)
           setUser(userWithRole)
           setSession(session)
         }
@@ -102,7 +90,6 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
           admin_role: (profile?.admin_role || 'user') as AdminRole,
           full_name: profile?.full_name || authUser.user_metadata?.full_name || ''
         }
-        console.log('Setting user with profile:', userWithRole)
         setUser(userWithRole)
         setSession(session)
       }
@@ -121,7 +108,6 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   const signOut = async () => {
     try {
       setLoading(true)
-      console.log('Starting sign out process...')
       
       const { error } = await supabase.auth.signOut()
       if (error) {
@@ -159,7 +145,6 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     // PERUBAHAN 1: Blok setTimeout 8 detik DIHAPUS dari sini.
     // Ini mencegah 'loading' menjadi false secara prematur.
 
-    console.log('AuthContext: Initial setup')
     const initialFetch = async () => {
       if (isMounted) {
         await fetchUserWithRole()
@@ -174,19 +159,15 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
         
         // PERUBAHAN 2: setTimeout (debounce) 500ms DIHAPUS. 
         // Logika di dalamnya sekarang berjalan instan untuk mencegah delay.
-        console.log('Auth state changed:', event, session?.user?.email || 'no user')
         
         if (event === 'SIGNED_IN' && session?.user) {
-          console.log('User signed in, fetching user with role...')
           await fetchUserWithRole(true)
         } else if (event === 'SIGNED_OUT' || !session) {
-          console.log('User signed out, clearing user state')
           setUser(null)
           setSession(null)
           setLoading(false)
           setIsInitialized(true)
         } else if (event === 'TOKEN_REFRESHED' && session?.user) {
-          console.log('Token refreshed, updating user...')
           if (user) {
             const { data: profile } = await supabase
               .from('profiles')
@@ -213,10 +194,8 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
 
     const handleVisibilityChange = () => {
       if (document.visibilityState === 'visible' && isInitialized) {
-        console.log('Window became visible, checking auth state silently...')
         supabase.auth.getSession().then(({ data: { session } }) => {
           if (!session && user) {
-            console.log('User session expired while away')
             setUser(null)
             setSession(null)
           }

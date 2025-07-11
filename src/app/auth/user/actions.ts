@@ -70,8 +70,6 @@ export async function updateProfile(
         message: null
       }
     }
-
-    console.log('Profile updated successfully for user:', user.id)
     
     // Revalidate the page to show updated data
     revalidatePath('/auth/user/info')
@@ -163,8 +161,6 @@ export async function changePassword(
       }
     }
 
-    console.log('Password updated successfully for user:', user.id)
-
     return {
       error: null,
       message: '비밀번호가 성공적으로 변경되었습니다.'
@@ -183,7 +179,6 @@ export async function fetchUserApplications() {
   const supabase = await createClient()
 
   try {
-    console.log('Starting fetchUserApplications...')
     
     // Get current user
     const { data: { user }, error: userError } = await supabase.auth.getUser()
@@ -196,11 +191,6 @@ export async function fetchUserApplications() {
         error: '사용자 인증에 실패했습니다.'
       }
     }
-
-    console.log('User authenticated successfully:', {
-      userId: user.id,
-      userEmail: user.email
-    })
 
     // Fetch user's bidding applications with enhanced error handling
     const { data: applications, error: applicationsError } = await supabase
@@ -250,9 +240,6 @@ export async function fetchUserApplications() {
       }
     }
 
-    console.log('Fetched applications for user:', user.id, 'Count:', applications?.length || 0)
-    console.log('Applications data sample:', applications?.length ? applications[0] : 'No applications')
-
     return {
       success: true,
       data: applications || [],
@@ -300,8 +287,6 @@ export async function fetchUserProfile() {
         error: '프로필 정보를 불러오는데 실패했습니다.'
       }
     }
-
-    console.log('Fetched profile for user:', user.id)
 
     return {
       success: true,

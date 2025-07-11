@@ -182,7 +182,6 @@ export default function Layout({ children }: { children: React.ReactNode }) {
     // If we're on an auth route and don't have user data yet, 
     // but we're initialized, try to refresh
     if (isInitialized && !loading && !user && pathname.startsWith('/auth')) {
-      console.log('Layout mounted on auth route without user, refreshing...')
       refreshUser()
     }
   }, [isInitialized, loading, user, pathname, refreshUser])
@@ -192,7 +191,6 @@ export default function Layout({ children }: { children: React.ReactNode }) {
     if (!user && isInitialized && !loading) {
       const timer = setTimeout(() => {
         if (!user && isInitialized && !loading) {
-          console.log('No user found after delay, redirecting to login...')
           router.push(`/sign/in?redirectTo=${encodeURIComponent(pathname)}`)
         }
       }, 1000) // Give 1 second for auth state to settle
@@ -205,7 +203,6 @@ export default function Layout({ children }: { children: React.ReactNode }) {
   React.useEffect(() => {
     if (loading || !isInitialized) {
       const timer = setTimeout(() => {
-        console.log('Auth initialization timeout, forcing refresh...')
         refreshUser()
       }, 3000) // Give 3 seconds for auth to initialize
       

@@ -57,7 +57,6 @@ export default function UpdatePasswordPage() {
   // Extract tokens from URL hash on component mount
   React.useEffect(() => {
     const hash = window.location.hash;
-    console.log('URL hash:', hash);
     
     if (hash) {
       const params = new URLSearchParams(hash.substring(1)); // Remove the # character

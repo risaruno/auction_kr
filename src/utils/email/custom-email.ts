@@ -63,19 +63,9 @@ async function sendEmail(
   textContent?: string
 ): Promise<boolean> {
   try {
-    console.log(`Attempting to send email to: ${toEmail}`)
-    console.log('Email service configuration check:', {
-      hasResendKey: !!process.env.RESEND_API_KEY,
-      hasSendGridKey: !!process.env.SENDGRID_API_KEY,
-      hasMailgunKey: !!process.env.MAILGUN_API_KEY,
-      hasMailgunDomain: !!process.env.MAILGUN_DOMAIN,
-      domain: process.env.NEXT_PUBLIC_DOMAIN || 'yourdomain.com'
-    })
-
     // Option 1: Using Resend (Primary)
     const resendApiKey = process.env.RESEND_API_KEY
     if (resendApiKey) {
-      console.log('Attempting to send email via Resend...')
       const emailPayload = {
         from: `Certo <noreply@${process.env.NEXT_PUBLIC_DOMAIN || 'yourdomain.com'}>`,
         to: [toEmail],
@@ -83,7 +73,6 @@ async function sendEmail(
         html: htmlContent,
         text: textContent,
       }
-      console.log('Resend payload:', { ...emailPayload, html: '[HTML_CONTENT]', text: '[TEXT_CONTENT]' })
 
       const response = await fetch('https://api.resend.com/emails', {
         method: 'POST',
@@ -96,15 +85,12 @@ async function sendEmail(
 
       const responseText = await response.text()
       if (response.ok) {
-        console.log(`Email sent successfully via Resend to ${toEmail}`)
-        console.log('Resend response:', responseText)
         return true
       } else {
         console.error('Resend failed with status:', response.status)
         console.error('Resend error response:', responseText)
       }
     } else {
-      console.log('No Resend API key found, skipping Resend...')
     }
 
     // Option 2: Using SendGrid (Fallback)
@@ -133,7 +119,6 @@ async function sendEmail(
       })
 
       if (response.ok) {
-        console.log(`Email sent successfully via SendGrid to ${toEmail}`)
         return true
       } else {
         console.error('SendGrid failed:', await response.text())
@@ -162,7 +147,6 @@ async function sendEmail(
       })
 
       if (response.ok) {
-        console.log(`Email sent successfully via Mailgun to ${toEmail}`)
         return true
       } else {
         console.error('Mailgun failed:', await response.text())

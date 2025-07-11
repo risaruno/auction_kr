@@ -41,7 +41,6 @@ export async function sendOtp(phone: string): Promise<OtpState> {
       }
     }
 
-    console.log('Formatted phone:', formattedPhone); // Debug log
 
     const supabase = createClient()
 
@@ -52,7 +51,7 @@ export async function sendOtp(phone: string): Promise<OtpState> {
       // Mock implementation for development/testing
       const mockOtp = Math.floor(100000 + Math.random() * 900000).toString();
       localStorage.setItem(`otp_${formattedPhone}`, mockOtp);
-      console.log('Mock OTP generated:', mockOtp); // For testing only
+      console.debug('Mock OTP generated:', mockOtp); // For testing only
       
       return {
         error: null,
@@ -61,7 +60,6 @@ export async function sendOtp(phone: string): Promise<OtpState> {
     }
 
     // Use real Supabase SMS service
-    console.log('Attempting to send real SMS to:', formattedPhone);
     const { error } = await supabase.auth.signInWithOtp({
       phone: formattedPhone,
     });
@@ -142,7 +140,6 @@ export async function verifyOtp(phone: string, token: string): Promise<OtpState>
     // Use real Supabase verification
     const supabase = createClient()
 
-    console.log('Attempting to verify real OTP for:', formattedPhone);
     const { data, error } = await supabase.auth.verifyOtp({
       phone: formattedPhone,
       token: token,
@@ -157,7 +154,6 @@ export async function verifyOtp(phone: string, token: string): Promise<OtpState>
       }
     }
 
-    console.log('OTP verification successful:', data);
     return {
       error: null,
       message: 'Phone number verified successfully.',

@@ -70,7 +70,6 @@ export async function getCourtAuctionData(
       depositAmt: Math.floor(item.fstPbancLwsDspslPrc / 10),
       bidDate: item.dspslDxdyYmd,
     }
-    console.log('경매 데이터 가져옴:', auctionData)
 
     // 입찰 시간이 지났는지 확인 (오늘 오전 10시 이후)
     try {
@@ -83,9 +82,6 @@ export async function getCourtAuctionData(
           '-' +
           bidDateStr.slice(6, 8)
       )
-
-      // 입찰일이 오늘이거나 이미 지난 날인지 확인
-      console.log('입찰일:', bidDate, '오늘:', today)
 
       const isSameDayOrPast = bidDate <= today
 
@@ -219,8 +215,6 @@ export async function applyBid(
       .single()
 
     if (profileError && profileError.code === 'PGRST116') {
-      // 프로필이 존재하지 않음, 새로 생성
-      console.log('프로필을 찾을 수 없어 새 프로필을 생성합니다:', user.id)
       const { error: createProfileError } = await supabase
         .from('profiles')
         .insert([
@@ -239,7 +233,6 @@ export async function applyBid(
           message: null,
         }
       }
-      console.log('사용자 프로필이 성공적으로 생성되었습니다:', user.id)
     } else if (profileError) {
       console.error('사용자 프로필 확인 오류:', profileError)
       return {
@@ -352,9 +345,6 @@ export async function applyBid(
       }
     }
 
-    // 4. 새 신청서를 데이터베이스에 삽입
-    console.log('신청서 데이터 삽입 시도:', applicationData)
-
     const { data, error: insertError } = await supabase
       .from('bidding_applications')
       .insert([applicationData])
@@ -365,8 +355,6 @@ export async function applyBid(
       console.error('데이터베이스 삽입 오류:', insertError)
       throw new Error(`데이터베이스 오류: ${insertError.message}`)
     }
-
-    console.log('신청서가 성공적으로 삽입되었습니다:', data)
 
     // 5. 성공 메시지 반환
     return {

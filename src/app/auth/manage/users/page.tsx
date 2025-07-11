@@ -180,7 +180,7 @@ const UserManagementContent = () => {
         })
       }
     } catch (error) {
-      console.log('Could not fetch additional user details:', error)
+      console.error('Could not fetch additional user details:', error)
       // Continue with basic user data
     } finally {
       setUserDetailsLoading(false)

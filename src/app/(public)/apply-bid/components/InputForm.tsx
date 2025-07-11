@@ -76,10 +76,6 @@ export default function InputForm({
   const getFieldError = useCallback(
     (fieldName: string) => {
       const error = validationErrors.find((error) => error.field === fieldName)?.message
-      // Debug logging
-      if (fieldName === 'phoneNumber' && error) {
-        console.log('Phone validation error found:', error)
-      }
       return error
     },
     [validationErrors]
@@ -174,7 +170,6 @@ export default function InputForm({
         const result = await fetchUserProfile()
         
         if (result.success && result.data) {
-          console.log('Fetched user profile:', result.data)
           const profile = result.data
           
           // Auto-fill personal information

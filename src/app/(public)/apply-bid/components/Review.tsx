@@ -16,7 +16,6 @@ interface ReviewProps {
 }
 
 export default function Review({ formData }: ReviewProps) {
-  console.log('Review component rendered with formData:', formData)
   // Destructure the formData for easier access in the JSX
   const {
     caseResult,
