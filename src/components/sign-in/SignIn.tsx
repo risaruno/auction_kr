@@ -80,7 +80,6 @@ export default function SignIn(props: { disableCustomTheme?: boolean }) {
       event.preventDefault();
       return;
     }
-    const data = new FormData(event.currentTarget);
   };
 
   const validateInputs = () => {

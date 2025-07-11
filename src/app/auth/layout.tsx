@@ -36,6 +36,7 @@ import {
   isUser,
 } from '@/utils/auth/roles-client'
 import { useRouter, usePathname } from 'next/navigation'
+import { Container } from '@mui/material'
 
 function CustomActions() {
   return (
@@ -171,7 +172,8 @@ function useNavigation(): Navigation {
 }
 
 export default function Layout({ children }: { children: React.ReactNode }) {
-  const { user, session, loading, signOut, isInitialized, refreshUser } = useAuth()
+  const { user, session, loading, signOut, isInitialized, refreshUser } =
+    useAuth()
   const router = useRouter()
   const pathname = usePathname() || '/'
   const navigation = useNavigation()
@@ -179,7 +181,7 @@ export default function Layout({ children }: { children: React.ReactNode }) {
 
   // Refresh user data when the layout mounts (especially after login redirects)
   React.useEffect(() => {
-    // If we're on an auth route and don't have user data yet, 
+    // If we're on an auth route and don't have user data yet,
     // but we're initialized, try to refresh
     if (isInitialized && !loading && !user && pathname.startsWith('/auth')) {
       refreshUser()
@@ -194,7 +196,7 @@ export default function Layout({ children }: { children: React.ReactNode }) {
           router.push(`/sign/in?redirectTo=${encodeURIComponent(pathname)}`)
         }
       }, 1000) // Give 1 second for auth state to settle
-      
+
       return () => clearTimeout(timer)
     }
   }, [user, isInitialized, loading, router, pathname])
@@ -205,7 +207,7 @@ export default function Layout({ children }: { children: React.ReactNode }) {
       const timer = setTimeout(() => {
         refreshUser()
       }, 3000) // Give 3 seconds for auth to initialize
-      
+
       return () => clearTimeout(timer)
     }
   }, [loading, isInitialized, refreshUser])
@@ -308,7 +310,9 @@ export default function Layout({ children }: { children: React.ReactNode }) {
           sidebarFooter: SidebarFooterAccount,
         }}
       >
-        {children}
+        <Container sx={{ my: 2 }}>
+          {children}
+        </Container>
         <Copyright sx={{ my: 4 }} />
       </DashboardLayout>
     </NextAppProvider>

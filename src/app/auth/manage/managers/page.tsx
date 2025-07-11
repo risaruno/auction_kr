@@ -353,8 +353,8 @@ const AdminManagementContent = () => {
   ]
 
   return (
-    <Box sx={{ display: 'flex' }}>
-      <Box component='main' sx={{ flexGrow: 1, p: 3 }}>
+    <>
+      <Box component='main'>
         <Box
           sx={{
             display: 'flex',
@@ -507,7 +507,7 @@ const AdminManagementContent = () => {
           {successMessage}
         </Alert>
       </Snackbar>
-    </Box>
+    </>
   )
 }
 

@@ -37,6 +37,10 @@ export async function updateSession(request: NextRequest) {
     error: userError
   } = await supabase.auth.getUser()
 
+  if (userError) {
+    console.error('Middleware - Auth error:', userError.message)
+  }
+
   // Public routes that don't require authentication
   const publicRoutes = [
     '/',

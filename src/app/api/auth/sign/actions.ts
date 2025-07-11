@@ -284,7 +284,7 @@ export async function updatePassword(
 
     // If we have tokens from the reset link, set the session first
     if (accessToken && refreshToken) {
-      const { data: sessionData, error: sessionError } = await supabase.auth.setSession({
+      const { error: sessionError } = await supabase.auth.setSession({
         access_token: accessToken,
         refresh_token: refreshToken
       })

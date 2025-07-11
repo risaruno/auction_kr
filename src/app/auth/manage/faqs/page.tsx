@@ -172,8 +172,8 @@ const FAQManagementContent = () => {
   }
 
   return (
-    <Box sx={{ display: 'flex' }}>
-      <Box component='main' sx={{ flexGrow: 1, p: 3 }}>
+    <>
+      <Box component='main'>
         <Box
           sx={{
             display: 'flex',
@@ -184,7 +184,7 @@ const FAQManagementContent = () => {
         >
           <Typography variant='h5'>자주하는 질문 관리</Typography>
           <Button
-            variant='outlined'
+            variant='contained'
             startIcon={<AddCircleIcon />}
             onClick={handleOpenCreateModal}
           >
@@ -358,7 +358,7 @@ const FAQManagementContent = () => {
           {successMessage}
         </Alert>
       </Snackbar>
-    </Box>
+    </>
   )
 }
 

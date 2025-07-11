@@ -2,7 +2,6 @@
 import React, { useState, useEffect, useCallback } from 'react'
 import {
   Box,
-  CssBaseline,
   Typography,
   Button,
   Avatar,
@@ -381,9 +380,8 @@ const ExpertsContent = () => {
   ]
 
   return (
-    <Box sx={{ display: 'flex' }}>
-      <CssBaseline />
-      <Box component='main' sx={{ flexGrow: 1, p: 3 }}>
+    <>
+      <Box component='main'>
         <Box
           sx={{
             display: 'flex',
@@ -396,7 +394,7 @@ const ExpertsContent = () => {
             전문가 관리
           </Typography>
           <Button
-            variant='outlined'
+            variant='contained'
             startIcon={<AddCircleIcon />}
             onClick={handleOpenCreateModal}
           >
@@ -660,7 +658,7 @@ const ExpertsContent = () => {
           {successMessage}
         </Alert>
       </Snackbar>
-    </Box>
+    </>
   )
 }
 

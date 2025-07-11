@@ -1,7 +1,6 @@
 "use client";
 import React, { useState, useEffect } from "react";
 import {
-  Container,
   Typography,
   Box,
   Tabs,
@@ -379,7 +378,7 @@ const ServiceHistory = () => {
   ];
 
   return (
-    <Container maxWidth="lg" sx={{ my: 5 }}>
+    <>
       <Typography variant="h4" sx={{ fontWeight: "bold", mb: 3 }}>
         입찰 신청 내역
       </Typography>
@@ -772,7 +771,7 @@ const ServiceHistory = () => {
           </Button>
         </DialogActions>
       </Dialog>
-    </Container>
+    </>
   );
 };
 

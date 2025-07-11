@@ -353,7 +353,9 @@ const BiddingManagementContent = () => {
           }}
         >
           <Typography variant='body2' fontWeight='bold'>
-            {params.row.case_number || `App #${params.row.id}`}
+            {params.row.print_case_number ||
+              params.row.case_number ||
+              `App #${params.row.id}`}
           </Typography>
           <Typography variant='caption' color='text.secondary'>
             {params.row.court_name}
@@ -484,8 +486,8 @@ const BiddingManagementContent = () => {
   ]
 
   return (
-    <Box sx={{ display: 'flex' }}>
-      <Box component='main' sx={{ flexGrow: 1, p: 3 }}>
+    <>
+      <Box component='main'>
         <Box
           sx={{
             display: 'flex',
@@ -774,7 +776,7 @@ const BiddingManagementContent = () => {
           {successMessage}
         </Alert>
       </Snackbar>
-    </Box>
+    </>
   )
 }
 

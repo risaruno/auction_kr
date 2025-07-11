@@ -345,7 +345,7 @@ export async function applyBid(
       }
     }
 
-    const { data, error: insertError } = await supabase
+    const { error: insertError } = await supabase
       .from('bidding_applications')
       .insert([applicationData])
       .select()

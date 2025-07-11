@@ -189,40 +189,51 @@ export default function InquiriesList() {
   }
 
   return (
-    <Box sx={{ my: 5, px: { xs: 2, md: 4 } }}>
-      <Typography variant='h4' sx={{ fontWeight: 'bold', mb: 3 }}>
-        문의 내역
-      </Typography>
-
-      {inquiries.length === 0 ? (
-        <Box textAlign='center' py={10}>
-          <InboxOutlinedIcon sx={{ fontSize: 60, color: 'grey.400' }} />
-          <Typography variant='h6' sx={{ mt: 2 }}>
-            등록된 문의가 없습니다.
+    <>
+      <Box component='main'>
+        <Box
+          sx={{
+            display: 'flex',
+            justifyContent: 'space-between',
+            alignItems: 'center',
+            mb: 2,
+          }}
+        >
+          <Typography variant='h5' component='h2'>
+            문의 내역
           </Typography>
         </Box>
-      ) : (
-        <Box sx={{ height: 400, width: '100%' }}>
-          <DataGrid
-            rows={inquiries}
-            columns={columns}
-            loading={loading}
-            pageSizeOptions={[5, 10, 25]}
-            initialState={{
-              pagination: {
-                paginationModel: { page: 0, pageSize: 10 },
-              },
-            }}
-            disableRowSelectionOnClick
-            sx={{
-              '& .MuiDataGrid-columnHeaders': {
-                backgroundColor: '#f9fafb',
-                fontWeight: 'bold',
-              },
-            }}
-          />
-        </Box>
-      )}
+
+        {inquiries.length === 0 ? (
+          <Box textAlign='center' py={10}>
+            <InboxOutlinedIcon sx={{ fontSize: 60, color: 'grey.400' }} />
+            <Typography variant='h6' sx={{ mt: 2 }}>
+              등록된 문의가 없습니다.
+            </Typography>
+          </Box>
+        ) : (
+          <Box sx={{ height: 400, width: '100%' }}>
+            <DataGrid
+              rows={inquiries}
+              columns={columns}
+              loading={loading}
+              pageSizeOptions={[5, 10, 25]}
+              initialState={{
+                pagination: {
+                  paginationModel: { page: 0, pageSize: 10 },
+                },
+              }}
+              disableRowSelectionOnClick
+              sx={{
+                '& .MuiDataGrid-columnHeaders': {
+                  backgroundColor: '#f9fafb',
+                  fontWeight: 'bold',
+                },
+              }}
+            />
+          </Box>
+        )}
+      </Box>
 
       {/* MODIFIKASI BESAR: Dialog untuk Melihat dan Membalas Pertanyaan */}
       <Dialog
@@ -236,62 +247,64 @@ export default function InquiriesList() {
           {selectedInquiry && (
             <>
               {/* Riwayat Pesan (tidak berubah) */}
-              {selectedInquiry.messages?.map((msg: InquiryMessage, idx: number) => (
-                <Box
-                  key={idx}
-                  p={2}
-                  mb={2}
-                  sx={{
-                    borderRadius: 2,
-                    backgroundColor:
-                      msg.sender_role === 'admin' ? '#e3f2fd' : '#f5f5f5',
-                  }}
-                >
-                  <Typography
-                    variant='subtitle2'
-                    color={
-                      msg.sender_role === 'admin'
-                        ? 'primary.main'
-                        : 'text.secondary'
-                    }
-                    sx={{ fontWeight: 'bold' }}
+              {selectedInquiry.messages?.map(
+                (msg: InquiryMessage, idx: number) => (
+                  <Box
+                    key={idx}
+                    p={2}
+                    mb={2}
+                    sx={{
+                      borderRadius: 2,
+                      backgroundColor:
+                        msg.sender_role === 'admin' ? '#e3f2fd' : '#f5f5f5',
+                    }}
                   >
-                    {msg.sender_role === 'admin'
-                      ? '답변 내용'
-                      : selectedInquiry.title}
-                    {msg.sender_id && (
+                    <Typography
+                      variant='subtitle2'
+                      color={
+                        msg.sender_role === 'admin'
+                          ? 'primary.main'
+                          : 'text.secondary'
+                      }
+                      sx={{ fontWeight: 'bold' }}
+                    >
+                      {msg.sender_role === 'admin'
+                        ? '답변 내용'
+                        : selectedInquiry.title}
+                      {msg.sender_id && (
+                        <Typography
+                          component='span'
+                          variant='caption'
+                          color='text.secondary'
+                          sx={{ ml: 1 }}
+                        >
+                          ({msg.sender_id})
+                        </Typography>
+                      )}
+                      {' • '}
                       <Typography
                         component='span'
                         variant='caption'
                         color='text.secondary'
-                        sx={{ ml: 1 }}
                       >
-                        ({msg.sender_id})
+                        {new Date(msg.created_at).toLocaleString('ko-KR', {
+                          day: '2-digit',
+                          month: 'long',
+                          year: 'numeric',
+                          hour: '2-digit',
+                          minute: '2-digit',
+                        })}
                       </Typography>
-                    )}
-                    {' • '}
-                    <Typography
-                      component='span'
-                      variant='caption'
-                      color='text.secondary'
-                    >
-                      {new Date(msg.created_at).toLocaleString('ko-KR', {
-                        day: '2-digit',
-                        month: 'long',
-                        year: 'numeric',
-                        hour: '2-digit',
-                        minute: '2-digit',
-                      })}
                     </Typography>
-                  </Typography>
-                  <Typography
-                    variant='body1'
-                    sx={{ whiteSpace: 'pre-wrap', mt: 1 }}
-                  >
-                    {msg.content}
-                  </Typography>
-                </Box>
-              ))}
+                    <Typography
+                      variant='body1'
+                      sx={{ whiteSpace: 'pre-wrap', mt: 1 }}
+                    >
+                      {msg.content}
+                    </Typography>
+                  </Box>
+                )
+              )}
 
               {/* MODIFIKASI: Gunakan komponen AdminReplyForm di sini */}
               {selectedInquiry.status !== 'Answered' && userId && (
@@ -315,6 +328,6 @@ export default function InquiriesList() {
           </Button>
         </DialogActions>
       </Dialog>
-    </Box>
+    </>
   )
 }

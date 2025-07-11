@@ -343,8 +343,8 @@ const UserManagementContent = () => {
   ]
 
   return (
-    <Box sx={{ display: 'flex' }}>
-      <Box component='main' sx={{ flexGrow: 1, p: 3 }}>
+    <>
+      <Box component='main'>
         <Box
           sx={{
             display: 'flex',
@@ -878,7 +878,7 @@ const UserManagementContent = () => {
           {snackbar.message}
         </Alert>
       </Snackbar>
-    </Box>
+    </>
   )
 }
 

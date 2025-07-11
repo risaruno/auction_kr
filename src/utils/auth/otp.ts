@@ -140,7 +140,7 @@ export async function verifyOtp(phone: string, token: string): Promise<OtpState>
     // Use real Supabase verification
     const supabase = createClient()
 
-    const { data, error } = await supabase.auth.verifyOtp({
+    const { error } = await supabase.auth.verifyOtp({
       phone: formattedPhone,
       token: token,
       type: 'sms',

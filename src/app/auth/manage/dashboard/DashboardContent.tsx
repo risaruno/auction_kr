@@ -47,7 +47,7 @@ const data: StatCardProps[] = [
 
 export default function DashboardContent() {
   return (
-    <Box sx={{ display: 'flex', py: 2 }}>
+    <>
       <Box
         component="main"
         sx={(theme) => ({
@@ -102,6 +102,6 @@ export default function DashboardContent() {
           </Box>
         </Stack>
       </Box>
-    </Box>
+    </>
   );
 }
