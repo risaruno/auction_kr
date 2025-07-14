@@ -34,12 +34,7 @@ export async function updateSession(request: NextRequest) {
   // Get the current user (more secure than getSession)
   const {
     data: { user },
-    error: userError
   } = await supabase.auth.getUser()
-
-  if (userError) {
-    console.error('Middleware - Auth error:', userError.message)
-  }
 
   // Public routes that don't require authentication
   const publicRoutes = [
@@ -50,7 +45,8 @@ export async function updateSession(request: NextRequest) {
     '/experts',
     '/policy',
     '/area',
-    '/info'
+    '/info',
+    '/confirm',
   ]
 
   // Auth routes that should redirect logged-in users
@@ -58,17 +54,19 @@ export async function updateSession(request: NextRequest) {
     '/sign/in',
     '/sign/up',
     '/sign/find-password',
-    '/sign/update-password'
+    '/sign/update-password',
+    '/sign/accept-invite',
+    '/sign/confirm',
   ]
 
   // Check if current path is public
-  const isPublicRoute = publicRoutes.some(route => 
-    pathname === route || pathname.startsWith(`${route}/`)
+  const isPublicRoute = publicRoutes.some(
+    (route) => pathname === route || pathname.startsWith(`${route}/`)
   )
 
   // Check if current path is an auth route
-  const isAuthRoute = authRoutes.some(route => 
-    pathname === route || pathname.startsWith(`${route}/`)
+  const isAuthRoute = authRoutes.some(
+    (route) => pathname === route || pathname.startsWith(`${route}/`)
   )
 
   // Use user for authentication check (more secure than session)

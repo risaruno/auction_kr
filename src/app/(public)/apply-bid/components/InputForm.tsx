@@ -25,7 +25,7 @@ import AddIcon from '@mui/icons-material/Add'
 import DeleteIcon from '@mui/icons-material/Delete'
 import DaumPostcodeEmbed from 'react-daum-postcode'
 import { FormData, ApplicationType } from '@/interfaces/FormData'
-import { sendOtp, verifyOtp } from '@/utils/auth/otp'
+import { sendPhoneOtp, verifyPhoneOtp } from '@/app/api/auth/phone/actions'
 import { getBankOptions } from '@/types/bank'
 import { fetchUserProfile } from '@/app/auth/user/actions'
 
@@ -222,7 +222,7 @@ export default function InputForm({
     setLoading(true)
     setError(null)
     try {
-      const result = await sendOtp(phoneToVerify)
+      const result = await sendPhoneOtp(phoneToVerify)
       if (result.error) {
         throw new Error(result.error)
       }
@@ -247,7 +247,7 @@ export default function InputForm({
     setLoading(true)
     setError(null)
     try {
-      const result = await verifyOtp(phoneToVerify!, otp)
+      const result = await verifyPhoneOtp(phoneToVerify!, otp)
       if (result.error) {
         throw new Error(result.error)
       }

@@ -1,6 +1,6 @@
 'use client'
 import * as React from 'react'
-import { Suspense } from 'react'
+import { Suspense, useState } from 'react'
 import { useSearchParams } from 'next/navigation'
 import { useActionState } from 'react'
 import { useFormStatus } from 'react-dom'
@@ -56,6 +56,74 @@ function SignInForm() {
   const searchParams = useSearchParams()
   const redirectTo = searchParams?.get('redirectTo')
 
+  // Form values state to preserve values on error
+  const [formValues, setFormValues] = useState({
+    email: '',
+    password: '',
+    remember: false,
+  })
+
+  // Load remembered email on component mount
+  React.useEffect(() => {
+    const rememberedEmail = localStorage.getItem('rememberedEmail')
+    if (rememberedEmail) {
+      setFormValues((prev) => ({
+        ...prev,
+        email: rememberedEmail,
+        remember: true,
+      }))
+    }
+  }, [])
+
+  // Enhanced form action that preserves form values on error
+  const enhancedFormAction = (formData: FormData) => {
+    const email = formData.get('email') as string
+    const password = formData.get('password') as string
+    const remember = formData.get('remember') === 'on'
+
+    // Store form values to preserve them on error
+    setFormValues({
+      email,
+      password,
+      remember,
+    })
+
+    // Handle remember me functionality
+    if (remember) {
+      localStorage.setItem('rememberedEmail', email)
+    } else {
+      localStorage.removeItem('rememberedEmail')
+    }
+
+    return formAction(formData)
+  }
+
+  // Handle form input changes
+  const handleInputChange = (field: string, value: string | boolean) => {
+    setFormValues((prev) => ({
+      ...prev,
+      [field]: value,
+    }))
+  }
+
+  // Clear form function (optional - can be called if needed)
+  const clearForm = () => {
+    const rememberedEmail = localStorage.getItem('rememberedEmail')
+    setFormValues({
+      email: rememberedEmail || '',
+      password: '',
+      remember: !!rememberedEmail,
+    })
+  }
+
+  // Handle successful login (clear form on success)
+  React.useEffect(() => {
+    if (state.message) {
+      // Clear form on successful login
+      clearForm()
+    }
+  }, [state.message])
+
   return (
     <SignContainer direction='column' justifyContent='space-between'>
       <Card variant='outlined'>
@@ -69,7 +137,7 @@ function SignInForm() {
         </Typography>
         <Box
           component='form'
-          action={formAction}
+          action={enhancedFormAction}
           noValidate
           sx={{
             display: 'flex',
@@ -81,7 +149,11 @@ function SignInForm() {
           {redirectTo && (
             <input type='hidden' name='redirectTo' value={redirectTo} />
           )}
-          {state.error && <Alert severity='error'>{state.error}</Alert>}
+          {state.error && (
+            <Alert severity='error' sx={{ mb: 2 }}>
+              {state.error}
+            </Alert>
+          )}
 
           <FormControl>
             <FormLabel htmlFor='email'>이메일</FormLabel>
@@ -95,6 +167,8 @@ function SignInForm() {
               required
               fullWidth
               variant='outlined'
+              value={formValues.email}
+              onChange={(e) => handleInputChange('email', e.target.value)}
             />
           </FormControl>
           <FormControl>
@@ -108,6 +182,8 @@ function SignInForm() {
               required
               fullWidth
               variant='outlined'
+              value={formValues.password}
+              onChange={(e) => handleInputChange('password', e.target.value)}
             />
           </FormControl>
           <Box
@@ -118,7 +194,16 @@ function SignInForm() {
             }}
           >
             <FormControlLabel
-              control={<Checkbox value='remember' color='primary' />}
+              control={
+                <Checkbox
+                  name='remember'
+                  color='primary'
+                  checked={formValues.remember}
+                  onChange={(e) =>
+                    handleInputChange('remember', e.target.checked)
+                  }
+                />
+              }
               label='이메일 기억하기'
             />
             <Link
@@ -132,13 +217,13 @@ function SignInForm() {
 
           <LoginButton />
 
-          <Divider>or</Divider>
+          <Divider>계정 없으신가요?</Divider>
           <Button
             href='/sign/up'
             type='button'
             fullWidth
             variant='contained'
-            color='info'
+            color='secondary'
           >
             가입하기
           </Button>

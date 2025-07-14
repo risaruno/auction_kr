@@ -64,13 +64,6 @@ export default function UpdatePasswordPage() {
       const refreshToken = params.get('refresh_token');
       const type = params.get('type');
       
-      console.log('Extracted tokens:', {
-        hasAccessToken: !!accessToken,
-        hasRefreshToken: !!refreshToken,
-        type,
-        accessTokenLength: accessToken?.length || 0
-      });
-      
       if (accessToken && refreshToken && type === 'recovery') {
         setTokens({
           access_token: accessToken,
@@ -93,11 +86,6 @@ export default function UpdatePasswordPage() {
 
   // Custom form action that includes the tokens
   const formActionWithTokens = (formData: FormData) => {
-    console.log('Submitting form with tokens:', {
-      hasAccessToken: !!tokens.access_token,
-      hasRefreshToken: !!tokens.refresh_token
-    });
-    
     if (tokens.access_token) {
       formData.append('access_token', tokens.access_token);
     }

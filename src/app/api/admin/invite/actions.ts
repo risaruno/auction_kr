@@ -50,7 +50,7 @@ export async function inviteUser(
 
     const redirectTo = `${
       process.env.NEXT_PUBLIC_SITE_URL || 'http://localhost:3000'
-    }/auth/accept-invite`
+    }/sign/accept-invite/`
 
     // Generate invitation link using admin client
     const { data, error: linkError } = await adminSupabase.auth.admin.generateLink({
@@ -127,7 +127,7 @@ export async function resendInvitation(
 
     const redirectTo = `${
       process.env.NEXT_PUBLIC_SITE_URL || 'http://localhost:3000'
-    }/auth/accept-invite`
+    }/sign/accept-invite/`
 
     // Generate new invitation link
     const { data, error: linkError } = await supabase.auth.admin.generateLink({
