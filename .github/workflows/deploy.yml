@@ -1,0 +1,41 @@
+name: Deploy to Self-Hosted Server
+
+# This workflow runs on every push to the 'main' branch
+on:
+  push:
+    branches:
+      - main
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest # The virtual machine to run the job on
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v3
+
+      - name: Deploy to server via SSH
+        uses: appleboy/ssh-action@master
+        with:
+          host: ${{ secrets.SSH_HOST }}
+          username: ${{ secrets.SSH_USER }}
+          key: ${{ secrets.SSH_PRIVATE_KEY }}
+          port: 22 # Default SSH port
+          script: |
+            # This script runs ON YOUR SERVER
+            # Navigate to your project directory
+            cd /path/to/your/certo-project
+            
+            # Pull the latest changes from the main branch
+            git pull origin main
+            
+            # Install/update dependencies
+            npm install
+            
+            # Build the Next.js application for production
+            npm run build
+            
+            # Restart the application using a process manager like PM2
+            # This ensures zero-downtime deployment.
+            pm2 restart certo-app
+
