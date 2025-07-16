@@ -43,6 +43,7 @@ jobs:
     name: Deploy to Server
     needs: build-and-push # This job will only run after the image is successfully built and pushed
     runs-on: ubuntu-latest
+    environment: Production
 
     steps:
       - name: Deploy to server via SSH
@@ -72,4 +73,10 @@ jobs:
               --name certo-app \
               -p 3000:3000 \
               --restart always \
+              -e NEXT_PUBLIC_SUPABASE_URL=${{ secrets.NEXT_PUBLIC_SUPABASE_URL }} \
+              -e NEXT_PUBLIC_SUPABASE_ANON_KEY=${{ secrets.NEXT_PUBLIC_SUPABASE_ANON_KEY }} \
+              -e SUPABASE_SERVICE_ROLE_KEY=${{ secrets.SUPABASE_SERVICE_ROLE_KEY }} \
+              -e NEXT_PUBLIC_SITE_URL=${{ secrets.NEXT_PUBLIC_SITE_URL }} \
+              -e RESEND_API_KEY=${{ secrets.RESEND_API_KEY }} \
+              -e NEXT_PUBLIC_DOMAIN=${{ secrets.NEXT_PUBLIC_DOMAIN }} \
               ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}:latest
