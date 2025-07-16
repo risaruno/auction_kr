@@ -1,0 +1,12 @@
+# .dockerignore
+
+# Dependencies
+node_modules
+
+# Next.js build output
+.next
+
+# Development files
+.env.local
+npm-debug.log
+*.md
