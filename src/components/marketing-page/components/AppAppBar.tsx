@@ -40,8 +40,7 @@ const StyledToolbar = styled(Toolbar)(({ theme }) => ({
 }))
 
 export default function AppAppBar() {
-  const { user, signOut, loading } =
-    useAuth()
+  const { user, signOut, loading } = useAuth()
   const router = useRouter()
   const [open, setOpen] = useState(false)
   const [userMenuAnchor, setUserMenuAnchor] = useState<null | HTMLElement>(null)
@@ -49,7 +48,6 @@ export default function AppAppBar() {
   const [isLoggingOut, setIsLoggingOut] = useState(false)
 
   const handleInquiryClick = () => {
-
     // Jika masih dalam proses loading auth, jangan lakukan apa-apa
     if (loading) {
       return
@@ -77,7 +75,7 @@ export default function AppAppBar() {
 
   const handleLogout = async () => {
     if (isLoggingOut) return // Prevent multiple logout attempts
-    
+
     setIsLoggingOut(true)
     try {
       await signOut()
@@ -126,7 +124,7 @@ export default function AppAppBar() {
             >
               <Link href='/info' passHref>
                 <Button variant='text' color='info' size='small'>
-                  이용 안내
+                  서비스 안내
                 </Button>
               </Link>
               <Link href='/experts' passHref>
@@ -134,11 +132,6 @@ export default function AppAppBar() {
                   전문가 서비스
                 </Button>
               </Link>
-              {/* <Link href="/area" passHref>
-                <Button variant="text" color="info" size="small">
-                  서비스 지역
-                </Button>
-                </Link> */}
               <Link href='/faq' passHref>
                 <Button variant='text' color='info' size='small'>
                   자주하는 질문
@@ -280,47 +273,50 @@ export default function AppAppBar() {
                 <Box
                   sx={{
                     display: 'flex',
-                    justifyContent: 'flex-end',
+                    justifyContent: 'flex-start',
+                    my: 2,
                   }}
                 >
-                  <IconButton onClick={toggleDrawer(false)}>
-                    <CloseRoundedIcon />
-                  </IconButton>
+                  <Sitemark />
                 </Box>
                 <MenuItem>
                   <Link href='/info' passHref>
-                    이용 안내
+                    <Button variant='text' color='info' size='small'>
+                      서비스 안내
+                    </Button>
                   </Link>
                 </MenuItem>
                 <MenuItem>
                   <Link href='/experts' passHref>
-                    전문가 서비스
-                  </Link>
-                </MenuItem>
-                <MenuItem>
-                  <Link href='/area' passHref>
-                    서비스 지역
+                    <Button variant='text' color='info' size='small'>
+                      전문가 서비스
+                    </Button>
                   </Link>
                 </MenuItem>
                 <MenuItem>
                   <Link href='/faq' passHref>
-                    자주하는 질문
+                    <Button variant='text' color='info' size='small'>
+                      자주하는 질문
+                    </Button>
                   </Link>
                 </MenuItem>
-                <MenuItem
-                  onClick={() => {
-                    handleInquiryClick() // Panggil handler
-                    setOpen(false) // Tutup drawer setelah diklik
-                  }}
-                >
-                  1:1 문의
+                <MenuItem>
+                  <Link href='/auth/user/inquiry' passHref>
+                    <Button
+                      variant='text'
+                      color='info'
+                      size='small'
+                      onClick={handleInquiryClick}
+                    >
+                      1:1 문의
+                    </Button>
+                  </Link>
                 </MenuItem>
                 <MenuItem>
                   <Link href='/apply-bid' passHref>
                     <Button
-                      color='primary'
                       variant='outlined'
-                      fullWidth
+                      size='small'
                       sx={{
                         color: 'primary.main',
                         borderColor: 'primary.main',

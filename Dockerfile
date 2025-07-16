@@ -38,6 +38,9 @@ WORKDIR /app
 # Copy the optimized production build from the 'builder' stage
 COPY --from=builder /app/.next ./.next
 
+# Copy the public folder for static assets
+COPY --from=builder /app/public ./public
+
 # Copy node_modules from the 'builder' stage
 COPY --from=builder /app/node_modules ./node_modules
 

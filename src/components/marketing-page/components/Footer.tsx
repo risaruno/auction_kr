@@ -1,7 +1,6 @@
 import * as React from 'react'
 import { Box, Container, Link, Typography } from '@mui/material'
 
-
 export default function Footer() {
   return (
     <Container
@@ -49,7 +48,11 @@ export default function Footer() {
             >
               Certo
             </Typography>
-            <div>
+            <Box
+              sx={{
+                textAlign: 'left',
+              }}
+            >
               <Link
                 color='text.secondary'
                 variant='body1'
@@ -100,7 +103,7 @@ export default function Footer() {
               >
                 법무사 등록하기
               </Link>
-            </div>
+            </Box>
             <Typography
               variant='body2'
               sx={{
@@ -108,14 +111,15 @@ export default function Footer() {
                 mt: 2,
                 mb: 2,
                 fontSize: '0.875rem',
+                textAlign: 'left',
               }}
             >
-              주식회사 체르또 · 대표이사 홍길동
+              주식회사 솔하우징 · 대표이사 류기진
               <br />
-              사업자등록번호 000-11-22222 · 통신판매업신고번호 2025-수원-1607
+              사업자등록번호 337-88-00496
               <br />
-              주소 : 경기도 수원시 장안구 조원동 731-16 · 문의 :
-              customerservice@certo.co.kr
+              주소 : 경기도 수원시 장안구 듬당로 10번길 63, 201호 (조원동,
+              메가타워)
               <br />
             </Typography>
             <Typography
