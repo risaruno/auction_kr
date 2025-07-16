@@ -78,6 +78,7 @@ jobs:
             docker run \
               -d \
               --name certo-app \
+              --network supabase_default \
               -p 3000:3000 \
               --restart always \
               ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}:latest
